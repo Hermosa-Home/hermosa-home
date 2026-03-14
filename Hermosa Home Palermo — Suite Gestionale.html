@@ -203,6 +203,274 @@ textarea{resize:vertical;min-height:80px}
 
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--terra-l);border-radius:5px}
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+
+// ── DOCUMENTI ──
+const docs = {
+  marco: { nome:'Marco Rossi', suite:'Tomasi di Lampedusa', tipo:'🪪 Carta d\'identità', data:'06/03/2026', stato:'verificato', emoji:'🪪' },
+  sophie:{ nome:'Sophie Müller', suite:'Florio', tipo:'🛂 Passaporto', data:'07/03/2026', stato:'da_verificare', emoji:'🛂' },
+  luca:  { nome:'Luca Ferrari', suite:'Stabile', tipo:'—', data:'—', stato:'mancante', emoji:'❓' },
+};
+let currentPreviewId = null;
+
+function openDocPreview(id) {
+  const d = docs[id];
+  currentPreviewId = id;
+  document.getElementById('doc-preview-title').textContent = d.nome + ' — ' + d.suite;
+  document.getElementById('doc-preview-content').innerHTML = `<div style="font-size:64px;margin-bottom:10px;">${d.emoji}</div><div style="font-size:14px;font-weight:600;color:var(--deep);">${d.tipo}</div>`;
+  document.getElementById('doc-preview-info').innerHTML = `
+    <strong>Ospite:</strong> ${d.nome}<br>
+    <strong>Suite:</strong> ${d.suite}<br>
+    <strong>Tipo:</strong> ${d.tipo}<br>
+    <strong>Caricato:</strong> ${d.data}<br>
+    <strong>Stato:</strong> ${d.stato === 'verificato' ? '✅ Verificato' : d.stato === 'da_verificare' ? '⏳ Da verificare' : '❌ Mancante'}
+  `;
+  openModal('modal-doc-preview');
+}
+
+function verificaDoc(id) {
+  docs[id].stato = 'verificato';
+  document.getElementById(id+'-badge').innerHTML = '<span class="badge bg">Verificato ✓</span>';
+  const row = document.getElementById('doc-row-'+id);
+  if(row) {
+    const cells = row.querySelectorAll('td');
+    cells[3].querySelector && null;
+  }
+  notify('Documento verificato ✓');
+}
+
+function verificaDocFromPreview() {
+  if(currentPreviewId) verificaDoc(currentPreviewId);
+  closeModal('modal-doc-preview');
+}
+
+function downloadDoc(nome) {
+  notify('Download documento ' + nome + ' ✓');
+}
+
+function handleDocUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const zone = document.getElementById('doc-upload-zone');
+  const previewZone = document.getElementById('doc-preview-zone');
+  const saveBtn = document.getElementById('doc-save-btn');
+
+  if(file.type === 'application/pdf') {
+    document.getElementById('doc-preview-img').style.display = 'none';
+    document.getElementById('doc-preview-pdf').style.display = 'block';
+    previewZone.style.display = 'block';
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('doc-preview-img').src = e.target.result;
+      document.getElementById('doc-preview-img').style.display = 'block';
+      document.getElementById('doc-preview-pdf').style.display = 'none';
+      previewZone.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+  zone.style.display = 'none';
+  saveBtn.style.display = 'flex';
+  notify('📄 Documento caricato!');
+}
+
+function resetDocUpload() {
+  document.getElementById('doc-upload-zone').style.display = 'block';
+  document.getElementById('doc-preview-zone').style.display = 'none';
+  document.getElementById('doc-save-btn').style.display = 'none';
+  document.getElementById('doc-file-input').value = '';
+}
+
+function saveDoc() {
+  const ospiteId = document.getElementById('doc-ospite-sel').value;
+  const tipo = document.getElementById('doc-tipo-sel').value;
+  const oggi = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'});
+
+  docs[ospiteId].tipo = tipo;
+  docs[ospiteId].data = oggi;
+  docs[ospiteId].stato = 'da_verificare';
+  docs[ospiteId].emoji = tipo.charAt(0) + tipo.charAt(1);
+
+  // Aggiorna tabella
+  const badge = document.getElementById(ospiteId+'-badge');
+  if(badge) badge.innerHTML = '<span class="badge bo">Da verificare</span>';
+  const tipoCell = document.getElementById(ospiteId+'-tipo');
+  if(tipoCell) tipoCell.textContent = tipo;
+  const dataCell = document.getElementById(ospiteId+'-data');
+  if(dataCell) dataCell.textContent = oggi;
+  const uploadBtn = document.getElementById(ospiteId+'-upload-btn');
+  if(uploadBtn) uploadBtn.style.display = 'inline-flex';
+
+  resetDocUpload();
+  notify('💾 Documento salvato · In attesa di verifica');
+}
+
+function inviaAlloggiati(nome) {
+  notify('📤 ' + nome + ' inviato al Portale Alloggiati ✓');
+}
+
+
+// Date
+const n=new Date();
+const _td=document.getElementById('topbar-date');if(_td)_td.textContent=n.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+// Nav
+function nav(id,el,title){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  const _tt=document.getElementById('topbar-title');if(_tt)_tt.textContent=title||id;
+  if(el)el.classList.add('active');
+  else document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('active')});
+  if(id==='mappa'&&!mapInit)initMap();
+}
+
+// Modal
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
+
+// Notify
+let nt;
+function notify(msg){const e=document.getElementById('notify-toast');document.getElementById('notify-text').textContent=msg;e.classList.add('show');clearTimeout(nt);nt=setTimeout(()=>e.classList.remove('show'),2800)}
+
+function saveBooking(){
+  // Leggi dati dal form
+  const guestName = document.querySelector('#modal-booking input[type="text"]')?.value?.trim();
+  const suite = document.querySelector('#modal-booking select')?.value;
+  const checkin = document.querySelector('#modal-booking input[type="date"]')?.value;
+  const checkout = document.querySelectorAll('#modal-booking input[type="date"]')?.[1]?.value;
+  const importo = document.querySelector('#modal-booking input[type="number"]')?.value;
+
+  if(!guestName){ notify('⚠️ Inserisci il nome dell'ospite'); return; }
+
+  // Colori per suite
+  const suiteColors = {
+    'Tomasi di Lampedusa': {bg:'#2C2416', color:'var(--terra)', letter:'T'},
+    'Florio': {bg:'#1A2C35', color:'#7AB8D0', letter:'F'},
+    'Stabile': {bg:'#1F2C1A', color:'#8DB87A', letter:'S'}
+  };
+  const suiteName = suite ? suite.replace(/^[^)]+\) /,'').replace(' (fino a.*','').trim() : 'Tomasi di Lampedusa';
+  const suiteKey = Object.keys(suiteColors).find(k => suiteName.includes(k)) || 'Tomasi di Lampedusa';
+  const sc = suiteColors[suiteKey];
+
+  // Formato date
+  const fmt = d => d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}) : '—';
+
+  // Aggiungi riga alla tabella prenotazioni
+  const tbody = document.querySelector('#panel-prenotazioni table tbody');
+  if(tbody){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${sc.bg};margin-right:5px;border:1px solid ${sc.color};"></span>${suiteKey}</td>
+      <td><strong>${guestName}</strong></td>
+      <td>${fmt(checkin)} 14:00</td>
+      <td>${fmt(checkout)} 10:00</td>
+      <td><span class="badge bo">⏳ Da inviare</span></td>
+      <td><span class="badge br">⚠️</span></td>
+      <td><span class="badge br">€ ${importo||'—'} ✗</span></td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-dettaglio')">👁</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Aggiungi nella dashboard
+  const biList = document.querySelector('#panel-dashboard .card-body[style*="padding:8px 18px"]');
+  if(biList){
+    const div = document.createElement('div');
+    div.className = 'booking-item';
+    div.innerHTML = `
+      <div class="bi-apt" style="background:${sc.bg};color:${sc.color};">${sc.letter}</div>
+      <div class="bi-info">
+        <div class="bi-guest">${guestName}</div>
+        <div class="bi-dates">Suite ${suiteKey} · ${fmt(checkin)} → ${fmt(checkout)} · ⚠️ Da completare</div>
+      </div>
+      <div class="bi-meta"><div class="bi-price">€ ${importo||'—'}</div><span class="badge bo">Nuovo</span></div>`;
+    biList.appendChild(div);
+  }
+
+  closeModal('modal-booking');
+  notify('✅ Prenotazione salvata · automazioni avviate');
+}
+
+// Templates
+const tmpl={
+  acc:'Gentile {nome},\n\ntramite questo link puoi aprire il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\nHermosa Home · Palermo 🌹',
+  ben:'Benvenuto/a a Palermo, {nome}! 🌟\n\nSei nella Suite {suite} al 3° piano di Via Mariano Stabile 124.\n\n📶 WiFi: HermosaHome_{suite} · Password: welcome2026\n🎭 Teatro Massimo: 4 min a piedi\n🥘 Mercato Ballarò: 15 min a piedi\n📞 Assistenza: +39 328 484 5555\n\nBuon soggiorno in Sicilia! 🌹',
+  doc:'Gentile {nome},\n\nper il tuo soggiorno a Hermosa Home carica i documenti qui:\n🔗 hermosahome.it/doc/abc123\n\nGrazie! 🙏',
+  pag:'Gentile {nome},\n\ncompleta il pagamento del tuo soggiorno a Hermosa Home:\n🔗 hermosahome.it/pay/abc123\nImporto: €{importo}\n\nGrazie!',
+  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home a Palermo! 🌹',
+  map:'Gentile {nome},\n\nHermosa Home si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall\'aeroporto: treno → Centrale, poi 15 min a piedi (~60 min totali)\n🚗 Auto: ZTL attiva in centro — comunicaci la targa!\n\n📍 Google Maps: maps.app.goo.gl/hermosahome\n\nA presto! 🌹'
+};
+function loadTmpl(sel){if(sel.value&&tmpl[sel.value])document.getElementById('notif-text').value=tmpl[sel.value]}
+
+// MAP
+let mapInit=false;
+function initMap(){
+  if(mapInit)return;
+  mapInit=true;
+
+  const lat=38.12340, lng=13.35912;
+  const map=L.map('map',{scrollWheelZoom:false}).setView([lat,lng],15);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors',maxZoom:19
+  }).addTo(map);
+
+  // Main marker - Hermosa Home
+  const hhIcon=L.divIcon({
+    html:`<div style="background:#C4956A;color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.3);border:2px solid white;">
+      <span style="transform:rotate(45deg);font-size:16px;">🏠</span></div>`,
+    className:'',iconSize:[34,34],iconAnchor:[17,34]
+  });
+
+  L.marker([lat,lng],{icon:hhIcon}).addTo(map)
+    .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;">
+      <div style="font-weight:700;font-size:14px;color:#2C2416;margin-bottom:4px;">🌹 Hermosa Home</div>
+      <div style="font-size:12px;color:#6B5C48;">Via Mariano Stabile 124<br>Piano Terzo · 90139 Palermo</div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="background:#E8D5BE;color:#A07550;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Lampedusa</span>
+        <span style="background:#E8EDF8;color:#3A508A;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Florio</span>
+        <span style="background:#E6F4EA;color:#3A7A4A;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Stabile</span>
+      </div>
+    </div>`,{maxWidth:250})
+    .openPopup();
+
+  // Poi vicini
+  const pois=[
+    {lat:38.1203,lng:13.3575,icon:'🎭',name:'Teatro Massimo',desc:'4 min a piedi'},
+    {lat:38.1157,lng:13.3614,icon:'🏛',name:'Quattro Canti',desc:'9 min a piedi'},
+    {lat:38.1143,lng:13.3561,icon:'⛪',name:'Cattedrale',desc:'14 min a piedi'},
+    {lat:38.1095,lng:13.3672,icon:'🚂',name:'Stazione Centrale',desc:'15 min a piedi'},
+    {lat:38.1106,lng:13.3637,icon:'🥘',name:'Mercato Ballarò',desc:'15 min a piedi'},
+    {lat:38.1174,lng:13.3637,icon:'🍹',name:'La Vucciria',desc:'11 min a piedi'},
+    {lat:38.1109,lng:13.3535,icon:'🏰',name:'Palazzo Normanni',desc:'17 min a piedi'},
+  ];
+
+  pois.forEach(p=>{
+    const icon=L.divIcon({
+      html:`<div style="background:white;border:2px solid #C4956A;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.2);">${p.icon}</div>`,
+      className:'',iconSize:[30,30],iconAnchor:[15,15]
+    });
+    L.marker([p.lat,p.lng],{icon}).addTo(map)
+      .bindPopup(`<div style="font-family:'DM Sans',sans-serif;"><strong style="font-size:13px;">${p.icon} ${p.name}</strong><br><span style="font-size:11px;color:#9B8B78;">${p.desc} da Hermosa Home</span></div>`);
+  });
+
+  // Stazione e Airport
+  const stazIcon=L.divIcon({
+    html:`<div style="background:#6A7A9B;color:white;border-radius:6px;padding:3px 6px;font-size:10px;font-weight:600;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2);">🚂 Centrale</div>`,
+    className:'',iconAnchor:[40,12]
+  });
+}
+
+// Esponi funzioni globalmente (fuori dal DOMContentLoaded)
+
+
+</script>
 </head>
 <body>
 
@@ -1141,274 +1409,12 @@ textarea{resize:vertical;min-height:80px}
   </div>
 </div>
 
-<script>
-// ── DOCUMENTI ──
-const docs = {
-  marco: { nome:'Marco Rossi', suite:'Tomasi di Lampedusa', tipo:'🪪 Carta d\'identità', data:'06/03/2026', stato:'verificato', emoji:'🪪' },
-  sophie:{ nome:'Sophie Müller', suite:'Florio', tipo:'🛂 Passaporto', data:'07/03/2026', stato:'da_verificare', emoji:'🛂' },
-  luca:  { nome:'Luca Ferrari', suite:'Stabile', tipo:'—', data:'—', stato:'mancante', emoji:'❓' },
-};
-let currentPreviewId = null;
 
-function openDocPreview(id) {
-  const d = docs[id];
-  currentPreviewId = id;
-  document.getElementById('doc-preview-title').textContent = d.nome + ' — ' + d.suite;
-  document.getElementById('doc-preview-content').innerHTML = `<div style="font-size:64px;margin-bottom:10px;">${d.emoji}</div><div style="font-size:14px;font-weight:600;color:var(--deep);">${d.tipo}</div>`;
-  document.getElementById('doc-preview-info').innerHTML = `
-    <strong>Ospite:</strong> ${d.nome}<br>
-    <strong>Suite:</strong> ${d.suite}<br>
-    <strong>Tipo:</strong> ${d.tipo}<br>
-    <strong>Caricato:</strong> ${d.data}<br>
-    <strong>Stato:</strong> ${d.stato === 'verificato' ? '✅ Verificato' : d.stato === 'da_verificare' ? '⏳ Da verificare' : '❌ Mancante'}
-  `;
-  openModal('modal-doc-preview');
-}
-
-function verificaDoc(id) {
-  docs[id].stato = 'verificato';
-  document.getElementById(id+'-badge').innerHTML = '<span class="badge bg">Verificato ✓</span>';
-  const row = document.getElementById('doc-row-'+id);
-  if(row) {
-    const cells = row.querySelectorAll('td');
-    cells[3].querySelector && null;
-  }
-  notify('Documento verificato ✓');
-}
-
-function verificaDocFromPreview() {
-  if(currentPreviewId) verificaDoc(currentPreviewId);
-  closeModal('modal-doc-preview');
-}
-
-function downloadDoc(nome) {
-  notify('Download documento ' + nome + ' ✓');
-}
-
-function handleDocUpload(input) {
-  const file = input.files[0];
-  if(!file) return;
-  const zone = document.getElementById('doc-upload-zone');
-  const previewZone = document.getElementById('doc-preview-zone');
-  const saveBtn = document.getElementById('doc-save-btn');
-
-  if(file.type === 'application/pdf') {
-    document.getElementById('doc-preview-img').style.display = 'none';
-    document.getElementById('doc-preview-pdf').style.display = 'block';
-    previewZone.style.display = 'block';
-  } else {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      document.getElementById('doc-preview-img').src = e.target.result;
-      document.getElementById('doc-preview-img').style.display = 'block';
-      document.getElementById('doc-preview-pdf').style.display = 'none';
-      previewZone.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-  zone.style.display = 'none';
-  saveBtn.style.display = 'flex';
-  notify('📄 Documento caricato!');
-}
-
-function resetDocUpload() {
-  document.getElementById('doc-upload-zone').style.display = 'block';
-  document.getElementById('doc-preview-zone').style.display = 'none';
-  document.getElementById('doc-save-btn').style.display = 'none';
-  document.getElementById('doc-file-input').value = '';
-}
-
-function saveDoc() {
-  const ospiteId = document.getElementById('doc-ospite-sel').value;
-  const tipo = document.getElementById('doc-tipo-sel').value;
-  const oggi = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'});
-
-  docs[ospiteId].tipo = tipo;
-  docs[ospiteId].data = oggi;
-  docs[ospiteId].stato = 'da_verificare';
-  docs[ospiteId].emoji = tipo.charAt(0) + tipo.charAt(1);
-
-  // Aggiorna tabella
-  const badge = document.getElementById(ospiteId+'-badge');
-  if(badge) badge.innerHTML = '<span class="badge bo">Da verificare</span>';
-  const tipoCell = document.getElementById(ospiteId+'-tipo');
-  if(tipoCell) tipoCell.textContent = tipo;
-  const dataCell = document.getElementById(ospiteId+'-data');
-  if(dataCell) dataCell.textContent = oggi;
-  const uploadBtn = document.getElementById(ospiteId+'-upload-btn');
-  if(uploadBtn) uploadBtn.style.display = 'inline-flex';
-
-  resetDocUpload();
-  notify('💾 Documento salvato · In attesa di verifica');
-}
-
-function inviaAlloggiati(nome) {
-  notify('📤 ' + nome + ' inviato al Portale Alloggiati ✓');
-}
-</script>
 
 <!-- LEAFLET MAP -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script>
-// Date
-const n=new Date();
-const _td=document.getElementById('topbar-date');if(_td)_td.textContent=n.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-// Nav
-function nav(id,el,title){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  const _tt=document.getElementById('topbar-title');if(_tt)_tt.textContent=title||id;
-  if(el)el.classList.add('active');
-  else document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('active')});
-  if(id==='mappa'&&!mapInit)initMap();
-}
 
-// Modal
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
 
-// Notify
-let nt;
-function notify(msg){const e=document.getElementById('notify-toast');document.getElementById('notify-text').textContent=msg;e.classList.add('show');clearTimeout(nt);nt=setTimeout(()=>e.classList.remove('show'),2800)}
-
-function saveBooking(){
-  // Leggi dati dal form
-  const guestName = document.querySelector('#modal-booking input[type="text"]')?.value?.trim();
-  const suite = document.querySelector('#modal-booking select')?.value;
-  const checkin = document.querySelector('#modal-booking input[type="date"]')?.value;
-  const checkout = document.querySelectorAll('#modal-booking input[type="date"]')?.[1]?.value;
-  const importo = document.querySelector('#modal-booking input[type="number"]')?.value;
-
-  if(!guestName){ notify('⚠️ Inserisci il nome dell'ospite'); return; }
-
-  // Colori per suite
-  const suiteColors = {
-    'Tomasi di Lampedusa': {bg:'#2C2416', color:'var(--terra)', letter:'T'},
-    'Florio': {bg:'#1A2C35', color:'#7AB8D0', letter:'F'},
-    'Stabile': {bg:'#1F2C1A', color:'#8DB87A', letter:'S'}
-  };
-  const suiteName = suite ? suite.replace(/^[^)]+\) /,'').replace(' (fino a.*','').trim() : 'Tomasi di Lampedusa';
-  const suiteKey = Object.keys(suiteColors).find(k => suiteName.includes(k)) || 'Tomasi di Lampedusa';
-  const sc = suiteColors[suiteKey];
-
-  // Formato date
-  const fmt = d => d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}) : '—';
-
-  // Aggiungi riga alla tabella prenotazioni
-  const tbody = document.querySelector('#panel-prenotazioni table tbody');
-  if(tbody){
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${sc.bg};margin-right:5px;border:1px solid ${sc.color};"></span>${suiteKey}</td>
-      <td><strong>${guestName}</strong></td>
-      <td>${fmt(checkin)} 14:00</td>
-      <td>${fmt(checkout)} 10:00</td>
-      <td><span class="badge bo">⏳ Da inviare</span></td>
-      <td><span class="badge br">⚠️</span></td>
-      <td><span class="badge br">€ ${importo||'—'} ✗</span></td>
-      <td>
-        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-dettaglio')">👁</button>
-        <button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button>
-      </td>`;
-    tbody.appendChild(tr);
-  }
-
-  // Aggiungi nella dashboard
-  const biList = document.querySelector('#panel-dashboard .card-body[style*="padding:8px 18px"]');
-  if(biList){
-    const div = document.createElement('div');
-    div.className = 'booking-item';
-    div.innerHTML = `
-      <div class="bi-apt" style="background:${sc.bg};color:${sc.color};">${sc.letter}</div>
-      <div class="bi-info">
-        <div class="bi-guest">${guestName}</div>
-        <div class="bi-dates">Suite ${suiteKey} · ${fmt(checkin)} → ${fmt(checkout)} · ⚠️ Da completare</div>
-      </div>
-      <div class="bi-meta"><div class="bi-price">€ ${importo||'—'}</div><span class="badge bo">Nuovo</span></div>`;
-    biList.appendChild(div);
-  }
-
-  closeModal('modal-booking');
-  notify('✅ Prenotazione salvata · automazioni avviate');
-}
-
-// Templates
-const tmpl={
-  acc:'Gentile {nome},\n\ntramite questo link puoi aprire il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\nHermosa Home · Palermo 🌹',
-  ben:'Benvenuto/a a Palermo, {nome}! 🌟\n\nSei nella Suite {suite} al 3° piano di Via Mariano Stabile 124.\n\n📶 WiFi: HermosaHome_{suite} · Password: welcome2026\n🎭 Teatro Massimo: 4 min a piedi\n🥘 Mercato Ballarò: 15 min a piedi\n📞 Assistenza: +39 328 484 5555\n\nBuon soggiorno in Sicilia! 🌹',
-  doc:'Gentile {nome},\n\nper il tuo soggiorno a Hermosa Home carica i documenti qui:\n🔗 hermosahome.it/doc/abc123\n\nGrazie! 🙏',
-  pag:'Gentile {nome},\n\ncompleta il pagamento del tuo soggiorno a Hermosa Home:\n🔗 hermosahome.it/pay/abc123\nImporto: €{importo}\n\nGrazie!',
-  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home a Palermo! 🌹',
-  map:'Gentile {nome},\n\nHermosa Home si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall\'aeroporto: treno → Centrale, poi 15 min a piedi (~60 min totali)\n🚗 Auto: ZTL attiva in centro — comunicaci la targa!\n\n📍 Google Maps: maps.app.goo.gl/hermosahome\n\nA presto! 🌹'
-};
-function loadTmpl(sel){if(sel.value&&tmpl[sel.value])document.getElementById('notif-text').value=tmpl[sel.value]}
-
-// MAP
-let mapInit=false;
-function initMap(){
-  if(mapInit)return;
-  mapInit=true;
-
-  const lat=38.12340, lng=13.35912;
-  const map=L.map('map',{scrollWheelZoom:false}).setView([lat,lng],15);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap contributors',maxZoom:19
-  }).addTo(map);
-
-  // Main marker - Hermosa Home
-  const hhIcon=L.divIcon({
-    html:`<div style="background:#C4956A;color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.3);border:2px solid white;">
-      <span style="transform:rotate(45deg);font-size:16px;">🏠</span></div>`,
-    className:'',iconSize:[34,34],iconAnchor:[17,34]
-  });
-
-  L.marker([lat,lng],{icon:hhIcon}).addTo(map)
-    .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;">
-      <div style="font-weight:700;font-size:14px;color:#2C2416;margin-bottom:4px;">🌹 Hermosa Home</div>
-      <div style="font-size:12px;color:#6B5C48;">Via Mariano Stabile 124<br>Piano Terzo · 90139 Palermo</div>
-      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-        <span style="background:#E8D5BE;color:#A07550;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Lampedusa</span>
-        <span style="background:#E8EDF8;color:#3A508A;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Florio</span>
-        <span style="background:#E6F4EA;color:#3A7A4A;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Stabile</span>
-      </div>
-    </div>`,{maxWidth:250})
-    .openPopup();
-
-  // Poi vicini
-  const pois=[
-    {lat:38.1203,lng:13.3575,icon:'🎭',name:'Teatro Massimo',desc:'4 min a piedi'},
-    {lat:38.1157,lng:13.3614,icon:'🏛',name:'Quattro Canti',desc:'9 min a piedi'},
-    {lat:38.1143,lng:13.3561,icon:'⛪',name:'Cattedrale',desc:'14 min a piedi'},
-    {lat:38.1095,lng:13.3672,icon:'🚂',name:'Stazione Centrale',desc:'15 min a piedi'},
-    {lat:38.1106,lng:13.3637,icon:'🥘',name:'Mercato Ballarò',desc:'15 min a piedi'},
-    {lat:38.1174,lng:13.3637,icon:'🍹',name:'La Vucciria',desc:'11 min a piedi'},
-    {lat:38.1109,lng:13.3535,icon:'🏰',name:'Palazzo Normanni',desc:'17 min a piedi'},
-  ];
-
-  pois.forEach(p=>{
-    const icon=L.divIcon({
-      html:`<div style="background:white;border:2px solid #C4956A;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.2);">${p.icon}</div>`,
-      className:'',iconSize:[30,30],iconAnchor:[15,15]
-    });
-    L.marker([p.lat,p.lng],{icon}).addTo(map)
-      .bindPopup(`<div style="font-family:'DM Sans',sans-serif;"><strong style="font-size:13px;">${p.icon} ${p.name}</strong><br><span style="font-size:11px;color:#9B8B78;">${p.desc} da Hermosa Home</span></div>`);
-  });
-
-  // Stazione e Airport
-  const stazIcon=L.divIcon({
-    html:`<div style="background:#6A7A9B;color:white;border-radius:6px;padding:3px 6px;font-size:10px;font-weight:600;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2);">🚂 Centrale</div>`,
-    className:'',iconAnchor:[40,12]
-  });
-}
-
-// Esponi funzioni globalmente (fuori dal DOMContentLoaded)
-
-</script>
 </body>
 </html>
