@@ -969,17 +969,24 @@
           <div class="s-card-header" id="doc-upload-lbl">Carica documento</div>
           <div class="s-card-body">
 
-            <div id="upload-area" class="upload-zone" onclick="simulateUpload()">
-              <div class="uz-icon">📸</div>
-              <div class="uz-label" id="uz-label">Fotografa o carica documento</div>
-              <div class="uz-sub" id="uz-sub">Carta d'identità o Passaporto</div>
+            <!-- Input file nascosto - apre fotocamera su mobile -->
+            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhoto(this)">
+            <input type="file" id="gallery-input" accept="image/*" style="display:none;" onchange="handlePhoto(this)">
+
+            <div id="upload-area" style="display:flex;flex-direction:column;gap:10px;">
+              <button onclick="document.getElementById('camera-input').click()" style="width:100%;padding:18px;border-radius:14px;background:var(--terra);color:white;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;">
+                📷 Scatta foto documento
+              </button>
+              <button onclick="document.getElementById('gallery-input').click()" style="width:100%;padding:14px;border-radius:14px;background:transparent;color:var(--mid);border:1.5px solid var(--terra-l);font-size:13.5px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
+                🖼 Scegli dalla galleria
+              </button>
             </div>
 
             <div id="photo-preview" class="photo-preview" style="display:none;"></div>
 
             <div style="height:12px;"></div>
 
-            <button class="btn btn-primary" id="upload-btn" onclick="confirmUpload()" style="display:none;" id="doc-send-btn">
+            <button class="btn btn-primary" id="upload-btn" onclick="confirmUpload()" style="display:none;">
               <span id="doc-send-label">📤 Invia documento</span>
             </button>
 
@@ -1011,21 +1018,25 @@
             <div class="wifi-name">HermosaHome_Lampedusa</div>
             <div class="wifi-pw">Password: <span>welcome2026</span></div>
           </div>
-          <button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:12px;" onclick="toast('Password copiata ✓')">Copia</button>
+          <button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:12px;" onclick="copyWifi()">Copia</button>
         </div>
 
         <div class="s-card">
           <div class="s-card-header" id="info-apt-lbl">Appartamento</div>
           <div class="s-card-body" style="padding:8px 16px;">
 
-            <div class="info-item">
+            <div class="info-item" onclick="window.open('https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo','_blank')" style="cursor:pointer;">
               <div class="info-icon">📍</div>
-              <div>
+              <div style="flex:1;">
                 <div class="info-label" id="il-indirizzo">Indirizzo</div>
                 <div class="info-value">Via Mariano Stabile 124 — Piano 3°</div>
                 <div class="info-sub">Palermo, Sicilia</div>
               </div>
+              <div style="color:var(--terra);font-size:20px;margin-left:auto;">›</div>
             </div>
+            <button onclick="window.open('https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo','_blank')" style="width:100%;margin-top:4px;padding:9px;border-radius:10px;background:var(--terra);color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
+              🗺 Apri in Google Maps
+            </button>
 
             <div class="info-item">
               <div class="info-icon">🅿️</div>
@@ -1078,8 +1089,12 @@
               <div>
                 <div class="info-label">Gestore</div>
                 <div class="info-value">+39 340 000 0000</div>
+                <div class="info-sub" style="color:var(--terra);">⚠️ Da aggiornare con numero reale</div>
               </div>
-              <button class="btn btn-outline" style="width:auto;padding:7px 12px;font-size:12px;margin-left:auto;" onclick="toast('Apertura chiamata...')">Chiama</button>
+              <div style="display:flex;flex-direction:column;gap:6px;margin-left:auto;">
+                <button class="btn btn-success" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('https://wa.me/39340000000','_blank')">WhatsApp</button>
+                <button class="btn btn-outline" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('tel:+39340000000')">Chiama</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1178,7 +1193,7 @@
 
         <div id="pay-method-lbl" style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:10px;">Scegli metodo</div>
 
-        <div class="pay-method sel" onclick="selPay(this)">
+        <div class="pay-method sel" id="pay-pp" onclick="selPay(this,'paypal')">
           <div class="pay-logo">🅿️</div>
           <div>
             <div class="pay-name">PayPal</div>
@@ -1187,16 +1202,21 @@
           <div class="pay-check">✓</div>
         </div>
 
-        <div class="pay-method" onclick="selPay(this)">
+        <div class="pay-method" id="pay-stripe" onclick="selPay(this,'stripe')">
           <div class="pay-logo">💳</div>
           <div>
             <div class="pay-name">Carta di credito</div>
-            <div class="pay-desc" id="pm-cc-desc">Visa, Mastercard, Amex</div>
+            <div class="pay-desc" id="pm-cc-desc">Visa, Mastercard, Amex · via Stripe</div>
           </div>
           <div class="pay-check" style="opacity:0;">✓</div>
         </div>
 
         <div style="height:16px;"></div>
+
+        <div style="background:#FFF8E8;border:1.5px solid #E8D5BE;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11.5px;color:#A07550;line-height:1.5;">
+          ⚠️ <strong>Link pagamento da configurare</strong><br>
+          Inserisci il tuo link PayPal.me e Stripe nel file nelle variabili PAYPAL_URL e STRIPE_URL
+        </div>
 
         <button class="btn btn-primary" onclick="confirmPayment()" id="pay-btn">
           🔐 Paga € 225
@@ -1229,15 +1249,15 @@
         <div class="s-card" style="margin-bottom:12px;">
           <div class="s-card-body" style="display:flex;flex-direction:column;gap:10px;padding:14px;">
 
-            <button class="btn btn-success" onclick="toast('Apertura WhatsApp...')">
+            <button class="btn btn-success" onclick="window.open('https://wa.me/39340000000?text=Ciao%2C%20sono%20un%20ospite%20di%20Hermosa%20Home','_blank')" style="background:#25D366;">
               🟢 WhatsApp
             </button>
 
-            <button class="btn btn-outline" style="border-color:#229ED9;color:#229ED9;" onclick="toast('Apertura Telegram...')">
+            <button class="btn btn-outline" style="border-color:#229ED9;color:#229ED9;" onclick="window.open('https://t.me/hermosahome_pa','_blank')">
               ✈ Telegram
             </button>
 
-            <button class="btn btn-outline" onclick="toast('Apertura Email...')">
+            <button class="btn btn-outline" onclick="window.open('mailto:info@hermosahome.it','_blank')">
               ✉ Email
             </button>
 
@@ -1383,47 +1403,75 @@
     }, 1200);
   }
 
-  // ── UPLOAD SIMULATION ──
-  let uploadDone = false;
-  function simulateUpload() {
-    if (uploadDone) return;
-    const zone = document.getElementById('upload-area');
-    const preview = document.getElementById('photo-preview');
-    const btn = document.getElementById('upload-btn');
+  // ── CONFIGURAZIONE PAGAMENTI (modifica questi link) ──
+  const PAYPAL_URL  = 'https://paypal.me/hermosahome';   // ← inserisci il tuo link PayPal.me
+  const STRIPE_URL  = 'https://buy.stripe.com/XXXXXXXX'; // ← inserisci il tuo link Stripe
+  const WHATSAPP_NUM = '39340000000';                     // ← inserisci il tuo numero (senza +)
+  const TELEGRAM_USER = 'hermosahome_pa';                 // ← inserisci il tuo username Telegram
+  const EMAIL_INFO   = 'info@hermosahome.it';             // ← inserisci la tua email
 
-    zone.style.opacity = '0.5';
-    zone.style.pointerEvents = 'none';
+  // ── COPIA WIFI ──
+  function copyWifi() {
+    const pw = document.querySelector('.wifi-pw span').textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(pw).then(() => toast('📶 Password WiFi copiata!'));
+    } else {
+      // fallback per Safari su iOS
+      const el = document.createElement('textarea');
+      el.value = pw;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      toast('📶 Password WiFi copiata!');
+    }
+  }
 
-    setTimeout(() => {
-      zone.style.display = 'none';
+  // ── FOTOCAMERA / GALLERIA ──
+  function handlePhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.getElementById('photo-preview');
+      const uploadArea = document.getElementById('upload-area');
+      const btn = document.getElementById('upload-btn');
       preview.style.display = 'block';
+      preview.style.textAlign = 'center';
+      preview.innerHTML = `
+        <img src="${e.target.result}" style="max-width:100%;max-height:200px;border-radius:12px;border:2px solid var(--terra-l);object-fit:cover;" />
+        <div style="font-size:12px;color:var(--success);margin-top:8px;font-weight:600;">✓ Foto acquisita correttamente</div>
+      `;
+      uploadArea.style.display = 'none';
       btn.style.display = 'flex';
-      uploadDone = true;
       toast('📸 Foto acquisita!');
-    }, 800);
+    };
+    reader.readAsDataURL(file);
   }
 
   function confirmUpload() {
     const btn = document.getElementById('upload-btn');
-    btn.textContent = '⏳ Invio in corso...';
+    btn.innerHTML = '⏳ Invio in corso...';
     btn.style.opacity = '0.7';
+    btn.disabled = true;
 
     setTimeout(() => {
-      // Update guest status
       document.getElementById('doc-g2-status').textContent = 'Passaporto — Caricato ✓';
       document.getElementById('doc-g2-badge').textContent = '✓';
       document.getElementById('doc-g2-badge').className = 'badge badge-green';
       document.getElementById('doc-progress').style.width = '100%';
       document.getElementById('doc-req-lbl').textContent = 'Documenti richiesti (2 / 2)';
       document.getElementById('doc-badge').style.display = 'none';
-
       history = ['screen-home'];
       goTo('screen-success');
     }, 1500);
   }
 
   // ── PAYMENT ──
-  function selPay(el) {
+  let selectedPayMethod = 'paypal';
+
+  function selPay(el, method) {
+    selectedPayMethod = method;
     document.querySelectorAll('.pay-method').forEach(p => {
       p.classList.remove('sel');
       p.querySelector('.pay-check').style.opacity = '0';
@@ -1433,6 +1481,8 @@
   }
 
   function confirmPayment() {
+    const url = selectedPayMethod === 'paypal' ? PAYPAL_URL : STRIPE_URL;
+    window.open(url, '_blank');
     const btn = document.getElementById('pay-btn');
     btn.textContent = '⏳ Elaborazione...';
     btn.style.opacity = '0.7';
