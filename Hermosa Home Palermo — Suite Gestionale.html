@@ -312,7 +312,36 @@ function saveDoc() {
 }
 
 function inviaAlloggiati(nome) {
-  notify('📤 ' + nome + ' inviato al Portale Alloggiati ✓');
+  notify('📤 ' + nome + ' inviato al Portale Alloggiati PS ✓');
+}
+
+function inviaGuidaOspiti() {
+  var msg = 'Benvenuto a Palermo! 🌟\n\nEcco la nostra guida per il tuo soggiorno a Hermosa Home.\n\n🎭 DA VEDERE:\n• Teatro Massimo — 4 min a piedi\n• Quattro Canti — 9 min a piedi\n• Cattedrale — 14 min a piedi\n• Mercato Ballarò — 15 min a piedi\n• Mondello — 30 min in bus (linea 806)\n\n🍽 DOVE MANGIARE:\n• Street food da Ballarò (panelle, arancine)\n• Pani ca meusa — Via Porta Carini\n• Aperitivo — Piazza Olivella\n\n🚌 MUOVERSI:\n• Bus AMAT €1,40 · inTaxi/ItTaxi per i taxi\n• Treno aeroporto da Centrale: €6,90\n\n📞 Per qualsiasi necessità: ' + CFG.tel + '\n\nBuon soggiorno! 🌹\nHermosa Home · Via Mariano Stabile 124';
+  window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
+  notify('🌟 Guida inviata via WhatsApp ✓');
+}
+
+function toggleAuto(el) {
+  var label = el.closest('.auto-item').querySelector('div > div:first-child').textContent;
+  notify(el.checked ? label + ' attivata ✓' : label + ' disattivata');
+}
+
+function editAuto(tipo) {
+  var sel = document.getElementById('auto-tmpl-sel');
+  if (sel) { sel.value = tipo; loadAutoTmpl(sel); }
+  nav('automazioni', null, 'Messaggi Automatici');
+}
+
+function loadAutoTmpl(sel) {
+  var templates = {
+    conferma: 'Gentile {nome},\n\nconfermiamo la tua prenotazione a Hermosa Home!\n\nSuite: {suite}\nCheck-in: {checkin} ore 14:00\nCheck-out: {checkout} ore 10:00\n\nA breve riceverai il contratto da firmare digitalmente.\n\nPer info: ' + (CFG ? CFG.tel : '+39 328 484 5555') + '\nHermosa Home 🌹',
+    accesso: 'Gentile {nome},\n\ntra 2 ore potrai effettuare il check-in!\n\n🔗 Link apertura porte: {link_accesso}\n🔑 PIN backup: {pin}\n⏰ Valido: {checkin} → {checkout}\n\nHermosa Home · Via Mariano Stabile 124, 3° piano 🌹',
+    benvenuto: 'Benvenuto/a a Palermo, {nome}! 🌟\n\nSei nella {suite} — Hermosa Home.\n\n📶 WiFi: Rete della tua suite · Password in app\n🎭 Teatro Massimo: 4 min a piedi\n🥘 Mercato Ballarò: 15 min a piedi\n\n📱 Apri la tua app personale:\nhttps://hermosa-home.github.io/hermosa-home\n\nBuon soggiorno! 🌹',
+    checkout: 'Ciao {nome}! 👋\n\nDomani checkout dalla {suite} entro le 10:00.\n\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti al piano terra\n💡 Spegni luci, AC e TV\n\nGrazie per aver scelto Hermosa Home! 🌹',
+    recensione: 'Grazie {nome} per aver soggiornato da noi! 🙏\n\nSperiamo che il tuo soggiorno a Palermo sia stato indimenticabile.\n\nSe ti è piaciuto, lasciaci una recensione:\n⭐ Airbnb: [link]\n⭐ Google: [link]\n\nTi aspettiamo presto! 🌹\nHermosa Home'
+  };
+  var ta = document.getElementById('auto-tmpl-text');
+  if (ta && templates[sel.value]) ta.value = templates[sel.value];
 }
 
 // ── CONFIGURAZIONE ──
@@ -642,17 +671,24 @@ function initMap(){
     <div class="nav-section">
       <div class="nav-item active" onclick="nav('dashboard',this,'Dashboard')"><span class="nav-icon">⊞</span>Dashboard</div>
       <div class="nav-item" onclick="nav('prenotazioni',this,'Prenotazioni')"><span class="nav-icon">📅</span>Prenotazioni</div>
+      <div class="nav-item" onclick="nav('calendario',this,'Calendario & iCal')"><span class="nav-icon">🗓</span>Calendario</div>
       <div class="nav-item" onclick="nav('suites',this,'Le Suite')"><span class="nav-icon">🏛</span>Le Suite</div>
+      <div class="nav-item" onclick="nav('prezzi',this,'Prezzi & Stagioni')"><span class="nav-icon">💰</span>Prezzi & Stagioni</div>
     </div>
     <div class="nav-lbl">Ospiti</div>
     <div class="nav-section">
       <div class="nav-item" onclick="nav('contratti',this,'Contratti')"><span class="nav-icon">📄</span>Contratti<span class="nav-badge">2</span></div>
       <div class="nav-item" onclick="nav('documenti',this,'Documenti')"><span class="nav-icon">🪪</span>Documenti<span class="nav-badge">1</span></div>
+      <div class="nav-item" onclick="nav('alloggiati',this,'Registro Alloggiati')"><span class="nav-icon">🏛</span>Alloggiati PS</div>
       <div class="nav-item" onclick="nav('notifiche',this,'Notifiche')"><span class="nav-icon">🔔</span>Notifiche<span class="nav-badge">3</span></div>
+      <div class="nav-item" onclick="nav('automazioni',this,'Messaggi Automatici')"><span class="nav-icon">🤖</span>Automazioni</div>
       <div class="nav-item" onclick="nav('pagamenti',this,'Pagamenti')"><span class="nav-icon">💳</span>Pagamenti</div>
     </div>
     <div class="nav-lbl">Struttura</div>
     <div class="nav-section">
+      <div class="nav-item" onclick="nav('pulizie',this,'Pulizie & Manutenzione')"><span class="nav-icon">🧹</span>Pulizie</div>
+      <div class="nav-item" onclick="nav('statistiche',this,'Statistiche & Report')"><span class="nav-icon">📊</span>Statistiche</div>
+      <div class="nav-item" onclick="nav('guidapalermo',this,'Guida Palermo')"><span class="nav-icon">🌟</span>Guida Palermo</div>
       <div class="nav-item" onclick="nav('mappa',this,'Mappa & Come Arrivare')"><span class="nav-icon">🗺</span>Mappa & Arrivo</div>
       <div class="nav-item" onclick="nav('smartlock',this,'Smart Lock')"><span class="nav-icon">🔐</span>Smart Lock</div>
       <div class="nav-item" onclick="nav('anagrafica',this,'Anagrafica')"><span class="nav-icon">⚙️</span>Anagrafica</div>
@@ -1396,6 +1432,428 @@ function initMap(){
               <span style="font-size:20px;">🌿</span><div style="flex:1;"><div style="font-size:14px;font-weight:600;">Suite Stabile</div><div style="font-size:11.5px;color:var(--soft);">Monolocale · 32m² · fino a 2 ospiti</div></div>
               <button class="btn btn-ghost btn-sm">✏️</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ═══════ CALENDARIO & iCAL ═══════ -->
+    <div class="panel" id="panel-calendario">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><div class="card-title">🗓 Calendario prenotazioni</div><button class="btn btn-primary btn-sm" onclick="openModal('modal-booking')">+ Prenotazione</button></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div style="background:var(--terra-xl);border-radius:10px;padding:12px;border-left:4px solid var(--terra);">
+              <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🌹 Lampedusa</div>
+              <div style="font-size:13px;font-weight:600;">7–12 mar: Marco Rossi</div>
+              <div style="font-size:13px;font-weight:600;">14–18 mar: Anna Bianchi</div>
+              <div style="font-size:11px;color:var(--success);margin-top:4px;">Occupazione: 70%</div>
+            </div>
+            <div style="background:#E8EDF8;border-radius:10px;padding:12px;border-left:4px solid var(--info);">
+              <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">⚓ Florio</div>
+              <div style="font-size:13px;font-weight:600;">8–15 mar: Sophie Müller</div>
+              <div style="font-size:11px;color:var(--info);margin-top:4px;">Occupazione: 60%</div>
+            </div>
+            <div style="background:#E8F4EA;border-radius:10px;padding:12px;border-left:4px solid var(--success);">
+              <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🌿 Stabile</div>
+              <div style="font-size:13px;font-weight:600;">10–13 mar: Luca Ferrari</div>
+              <div style="font-size:11px;color:var(--success);margin-top:4px;">Occupazione: 50%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">🔗 Sincronizzazione iCal</div></div>
+        <div class="card-body">
+          <div style="background:#FFF8E8;border:1.5px solid #E8D5BE;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--mid);line-height:1.7;">
+            <strong>Come funziona:</strong> Ogni piattaforma (Airbnb, Booking.com ecc.) genera un link <code>.ics</code> che aggiorna automaticamente le date occupate nel calendario. Le prenotazioni arrivate da piattaforme appaiono come "blocchi" — i dati ospite vanno inseriti manualmente.<br><br>
+            <strong>Consiglio:</strong> Per una gestione completa con dati ospite sincronizzati considera un <strong>Channel Manager</strong> (Smoobu, Lodgify o Hostaway — da €30/mese).
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--sand);border-radius:10px;">
+              <span style="font-size:22px;">🏠</span>
+              <div style="flex:1;">
+                <div style="font-size:13.5px;font-weight:600;">Airbnb</div>
+                <input type="text" placeholder="Incolla qui il link iCal di Airbnb..." style="margin-top:6px;font-size:12px;">
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="notify('iCal Airbnb salvato ✓')">Salva</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--sand);border-radius:10px;">
+              <span style="font-size:22px;">🌐</span>
+              <div style="flex:1;">
+                <div style="font-size:13.5px;font-weight:600;">Booking.com</div>
+                <input type="text" placeholder="Incolla qui il link iCal di Booking.com..." style="margin-top:6px;font-size:12px;">
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="notify('iCal Booking salvato ✓')">Salva</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--sand);border-radius:10px;">
+              <span style="font-size:22px;">📅</span>
+              <div style="flex:1;">
+                <div style="font-size:13.5px;font-weight:600;">Altra piattaforma</div>
+                <input type="text" placeholder="Incolla qui qualsiasi link iCal..." style="margin-top:6px;font-size:12px;">
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="notify('iCal salvato ✓')">Salva</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PREZZI & STAGIONI ═══════ -->
+    <div class="panel" id="panel-prezzi">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><div class="card-title">💰 Prezzi per stagione</div><button class="btn btn-primary btn-sm" onclick="notify('Prezzi salvati ✓')">Salva tutto</button></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;margin-bottom:12px;color:var(--terra);">🌹 Tomasi di Lampedusa</div>
+              <div class="form-group"><label class="lbl">🌸 Alta stagione (giu–set)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="500" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">🍂 Media stagione (apr–mag, ott)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="420" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">❄️ Bassa stagione (nov–mar)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="350" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">🎄 Festività (Natale, Pasqua, Ferr.)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="600" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+            </div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;margin-bottom:12px;color:var(--info);">⚓ Florio</div>
+              <div class="form-group"><label class="lbl">🌸 Alta stagione</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="400" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">🍂 Media stagione</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="330" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">❄️ Bassa stagione</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="280" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">🎄 Festività</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="480" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+            </div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;margin-bottom:12px;color:var(--success);">🌿 Stabile</div>
+              <div class="form-group"><label class="lbl">🌸 Alta stagione</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="500" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">🍂 Media stagione</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="420" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">❄️ Bassa stagione</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="350" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+              <div class="form-group"><label class="lbl">🎄 Festività</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="600" style="width:90px;"><span style="font-size:12px;color:var(--soft);">€/notte</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 Regole tariffarie</div></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label class="lbl">Soggiorno minimo (notti)</label><input type="number" value="2"></div>
+            <div class="form-group"><label class="lbl">Sconto soggiorno lungo (7+ notti)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="10" style="width:70px;"><span style="font-size:12px;color:var(--soft);">%</span></div></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="lbl">Caparra (% del totale)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="30" style="width:70px;"><span style="font-size:12px;color:var(--soft);">%</span></div></div>
+            <div class="form-group"><label class="lbl">Tassa di soggiorno</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" value="2" style="width:70px;"><span style="font-size:12px;color:var(--soft);">€/notte/persona</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ REGISTRO ALLOGGIATI ═══════ -->
+    <div class="panel" id="panel-alloggiati">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div class="card-title">🏛 Portale Alloggiati — Polizia di Stato</div>
+          <a href="https://alloggiatiweb.poliziadistato.it" target="_blank" class="btn btn-outline btn-sm">Apri portale ↗</a>
+        </div>
+        <div class="card-body">
+          <div style="background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#3730A3;line-height:1.7;">
+            <strong>Obbligo di legge:</strong> Entro 24h dall'arrivo, i dati di ogni ospite (nome, cognome, data nascita, nazionalità, tipo/numero documento) devono essere comunicati al Portale Alloggiati della Polizia di Stato.<br>
+            <strong>Struttura:</strong> Hermosa Home di Alessandra Trapani · P.IVA 07218170822 · Via Mariano Stabile 124, Palermo
+          </div>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="background:var(--sand);">
+              <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Ospite</th>
+              <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Suite</th>
+              <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Check-in</th>
+              <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Documento</th>
+              <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Stato PS</th>
+              <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Azione</th>
+            </tr></thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--sand);">
+                <td style="padding:11px 14px;font-size:13px;"><strong>Marco Rossi</strong><br><span style="font-size:11px;color:var(--soft);">IT · 15/03/1985</span></td>
+                <td style="padding:11px 14px;font-size:13px;">Lampedusa</td>
+                <td style="padding:11px 14px;font-size:13px;">07/03/2026</td>
+                <td style="padding:11px 14px;font-size:13px;">🪪 CI IT-AB1234</td>
+                <td style="padding:11px 14px;"><span style="background:#E6F4EA;color:#3A7A4A;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">✅ Inviato</span></td>
+                <td style="padding:11px 14px;"><button class="btn btn-ghost btn-sm" onclick="notify('Download ricevuta PS ✓')">📥 Ricevuta</button></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--sand);">
+                <td style="padding:11px 14px;font-size:13px;"><strong>Sophie Müller</strong><br><span style="font-size:11px;color:var(--soft);">DE · 22/07/1990</span></td>
+                <td style="padding:11px 14px;font-size:13px;">Florio</td>
+                <td style="padding:11px 14px;font-size:13px;">08/03/2026</td>
+                <td style="padding:11px 14px;font-size:13px;">🛂 Passaporto DE-XX9876</td>
+                <td style="padding:11px 14px;"><span style="background:#FFF0E0;color:#C07820;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">⏳ Da inviare</span></td>
+                <td style="padding:11px 14px;"><button class="btn btn-primary btn-sm" onclick="inviaAlloggiati('Sophie Müller')">📤 Invia ora</button></td>
+              </tr>
+              <tr>
+                <td style="padding:11px 14px;font-size:13px;"><strong>Luca Ferrari</strong><br><span style="font-size:11px;color:var(--soft);">IT</span></td>
+                <td style="padding:11px 14px;font-size:13px;">Stabile</td>
+                <td style="padding:11px 14px;font-size:13px;">10/03/2026</td>
+                <td style="padding:11px 14px;font-size:13px;color:var(--danger);">⚠️ Mancante</td>
+                <td style="padding:11px 14px;"><span style="background:#FDECEA;color:#B84040;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">❌ Bloccato</span></td>
+                <td style="padding:11px 14px;"><button class="btn btn-outline btn-sm" onclick="nav('documenti',null,'Documenti')">📋 Richiedi doc</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ AUTOMAZIONI MESSAGGI ═══════ -->
+    <div class="panel" id="panel-automazioni">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🤖 Messaggi automatici</div></div>
+          <div class="card-body" style="padding:8px 18px;">
+            <div style="font-size:11.5px;color:var(--soft);margin-bottom:12px;">Attiva i messaggi da inviare automaticamente agli ospiti nelle fasi chiave del soggiorno.</div>
+            <div id="auto-list" style="display:flex;flex-direction:column;gap:0;">
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" checked onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">📅 Conferma prenotazione</div><div style="font-size:11px;color:var(--soft);">Trigger: nuova prenotazione · Canale: WhatsApp + Email</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('conferma')">✏️</button>
+              </div>
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" checked onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">📄 Contratto + documenti</div><div style="font-size:11px;color:var(--soft);">Trigger: 24h dopo prenotazione · Canale: WhatsApp</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('contratto')">✏️</button>
+              </div>
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" checked onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">💳 Reminder pagamento</div><div style="font-size:11px;color:var(--soft);">Trigger: 7 giorni prima check-in · Canale: WhatsApp</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('pagamento')">✏️</button>
+              </div>
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" checked onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">🔐 Link accesso smart lock</div><div style="font-size:11px;color:var(--soft);">Trigger: 2h prima check-in · Canale: WhatsApp</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('accesso')">✏️</button>
+              </div>
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" checked onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">🏡 Benvenuto + guida Palermo</div><div style="font-size:11px;color:var(--soft);">Trigger: giorno check-in ore 08:00 · Canale: WhatsApp</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('benvenuto')">✏️</button>
+              </div>
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" checked onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">⏰ Reminder checkout</div><div style="font-size:11px;color:var(--soft);">Trigger: giorno prima checkout ore 20:00</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('checkout')">✏️</button>
+              </div>
+              <div class="auto-item" style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;">
+                <label class="toggle" style="margin-top:2px;"><input type="checkbox" onchange="toggleAuto(this)"><div class="toggle-track"></div></label>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">⭐ Richiesta recensione</div><div style="font-size:11px;color:var(--soft);">Trigger: 2h dopo checkout · Canale: WhatsApp + Email</div></div>
+                <button class="btn btn-ghost btn-sm" onclick="editAuto('recensione')">✏️</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📝 Editor template</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="lbl">Template selezionato</label>
+              <select id="auto-tmpl-sel" onchange="loadAutoTmpl(this)">
+                <option value="conferma">📅 Conferma prenotazione</option>
+                <option value="accesso">🔐 Link accesso</option>
+                <option value="benvenuto">🏡 Benvenuto</option>
+                <option value="checkout">⏰ Checkout</option>
+                <option value="recensione">⭐ Recensione</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="lbl">Testo messaggio</label>
+              <textarea id="auto-tmpl-text" style="min-height:160px;font-size:12.5px;"></textarea>
+            </div>
+            <div style="font-size:11px;color:var(--soft);margin-bottom:12px;line-height:1.7;">
+              Variabili disponibili: <code>{nome}</code> <code>{suite}</code> <code>{checkin}</code> <code>{checkout}</code> <code>{importo}</code> <code>{link_accesso}</code> <code>{pin}</code>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="notify('Template salvato ✓')">💾 Salva template</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ PULIZIE & MANUTENZIONE ═══════ -->
+    <div class="panel" id="panel-pulizie">
+      <div class="grid-2" style="margin-bottom:18px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🧹 Checklist pulizie</div><button class="btn btn-primary btn-sm" onclick="openModal('modal-pulizie')">+ Nuova pulizia</button></div>
+          <div class="card-body" style="padding:8px 18px;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);">
+                <input type="checkbox" checked style="accent-color:var(--terra);width:16px;height:16px;">
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Suite Lampedusa</div><div style="font-size:11px;color:var(--soft);">Pulizia post check-out · 12/03 ore 10:30</div></div>
+                <span style="background:#E6F4EA;color:#3A7A4A;padding:2px 8px;border-radius:20px;font-size:11px;">✅ Completata</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);">
+                <input type="checkbox" style="accent-color:var(--terra);width:16px;height:16px;">
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Suite Florio</div><div style="font-size:11px;color:var(--soft);">Pulizia post check-out · 15/03 ore 10:00</div></div>
+                <span style="background:#FFF0E0;color:#C07820;padding:2px 8px;border-radius:20px;font-size:11px;">⏳ Programmata</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;">
+                <input type="checkbox" style="accent-color:var(--terra);width:16px;height:16px;">
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Suite Stabile</div><div style="font-size:11px;color:var(--soft);">Pulizia post check-out · 13/03 ore 10:00</div></div>
+                <span style="background:#FFF0E0;color:#C07820;padding:2px 8px;border-radius:20px;font-size:11px;">⏳ Programmata</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔧 Manutenzione</div><button class="btn btn-primary btn-sm" onclick="notify('Intervento registrato ✓')">+ Intervento</button></div>
+          <div class="card-body" style="padding:8px 18px;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);">
+                <span style="font-size:18px;">🚿</span>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Rubinetto bagno — Florio</div><div style="font-size:11px;color:var(--soft);">Segnalato: 08/03 · Priorità: media</div></div>
+                <span style="background:#FFF0E0;color:#C07820;padding:2px 8px;border-radius:20px;font-size:11px;">⏳ In attesa</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);">
+                <span style="font-size:18px;">💡</span>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Lampadina soggiorno — Stabile</div><div style="font-size:11px;color:var(--soft);">Segnalato: 10/03 · Priorità: bassa</div></div>
+                <span style="background:#E6F4EA;color:#3A7A4A;padding:2px 8px;border-radius:20px;font-size:11px;">✅ Risolto</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 0;">
+                <span style="font-size:18px;">🔐</span>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Aggiornamento firmware smart lock</div><div style="font-size:11px;color:var(--soft);">Pianificato: 20/03</div></div>
+                <span style="background:#E8EDF8;color:#3A508A;padding:2px 8px;border-radius:20px;font-size:11px;">📅 Pianificato</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Checklist dettagliata -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 Checklist pulizia standard</div></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🛏 Camere</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Cambia lenzuola e federe</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Aspira tappeti e pavimenti</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Pulisci superfici e mobili</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Svuota cestini</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Controlla mini-bar e frigo</label>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--info);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🚿 Bagni</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Cambia asciugamani</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Pulisci WC, lavabo, doccia</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Rifornisci sapone e shampoo</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Sostituisci carta igienica</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Pulisci specchi</label>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--success);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🍳 Cucina / Soggiorno</div>
+              <div style="display:flex;flex-direction:column;gap:7px;">
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Lava stoviglie e pentole</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Pulisci piano cottura e forno</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Svuota frigo dagli avanzi</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Passa straccio pavimenti</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Controlla funzionamento AC/riscaldamento</label>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px;">
+            <button class="btn btn-success" onclick="notify('Pulizia completata e registrata ✓')" style="flex:1;justify-content:center;">✅ Segna come completata</button>
+            <button class="btn btn-outline" onclick="notify('Checklist stampata ✓')">🖨 Stampa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ STATISTICHE & REPORT ═══════ -->
+    <div class="panel" id="panel-statistiche">
+      <div class="stats-row">
+        <div class="stat-card sc-t"><div class="si">💶</div><div class="sl">Incasso 2026 YTD</div><div class="sv">8.240</div><div class="ss">€ · 3 mesi · in crescita</div></div>
+        <div class="stat-card sc-g"><div class="si">📅</div><div class="sl">Notti vendute</div><div class="sv">47</div><div class="ss">su 90 disponibili (52%)</div></div>
+        <div class="stat-card sc-b"><div class="si">💰</div><div class="sl">RevPAN medio</div><div class="sv">175</div><div class="ss">€ · Ricavo per notte disponibile</div></div>
+        <div class="stat-card sc-r"><div class="si">⭐</div><div class="sl">Rating medio</div><div class="sv">4.8</div><div class="ss">su 5 · 23 recensioni</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Incassi per suite</div></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:13px;font-weight:600;">🌹 Tomasi di Lampedusa</span><span style="font-size:13px;font-weight:700;color:var(--terra);">€ 3.500</span></div>
+                <div style="background:var(--sand);border-radius:20px;height:8px;overflow:hidden;"><div style="background:var(--terra);height:100%;width:42%;border-radius:20px;"></div></div>
+                <div style="font-size:11px;color:var(--soft);margin-top:3px;">7 notti · tasso 70%</div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:13px;font-weight:600;">⚓ Florio</span><span style="font-size:13px;font-weight:700;color:var(--info);">€ 2.800</span></div>
+                <div style="background:var(--sand);border-radius:20px;height:8px;overflow:hidden;"><div style="background:var(--info);height:100%;width:34%;border-radius:20px;"></div></div>
+                <div style="font-size:11px;color:var(--soft);margin-top:3px;">7 notti · tasso 60%</div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span style="font-size:13px;font-weight:600;">🌿 Stabile</span><span style="font-size:13px;font-weight:700;color:var(--success);">€ 1.940</span></div>
+                <div style="background:var(--sand);border-radius:20px;height:8px;overflow:hidden;"><div style="background:var(--success);height:100%;width:24%;border-radius:20px;"></div></div>
+                <div style="font-size:11px;color:var(--soft);margin-top:3px;">4 notti · tasso 50%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🧾 Riepilogo fiscale</div><button class="btn btn-outline btn-sm" onclick="notify('Report scaricato ✓')">📥 Scarica</button></div>
+          <div class="card-body">
+            <div style="background:var(--terra-xl);border-radius:10px;padding:14px;margin-bottom:14px;">
+              <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Hermosa Home di Alessandra Trapani</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">
+                <div><span style="color:var(--soft);">Incasso lordo:</span><br><strong>€ 8.240</strong></div>
+                <div><span style="color:var(--soft);">Cedolare secca 26%:</span><br><strong>€ 2.142</strong></div>
+                <div><span style="color:var(--soft);">Tassa soggiorno:</span><br><strong>€ 188</strong></div>
+                <div><span style="color:var(--soft);">Netto stimato:</span><br><strong>€ 5.910</strong></div>
+              </div>
+            </div>
+            <div style="font-size:11.5px;color:var(--soft);line-height:1.7;">
+              ⚠️ Cedolare secca al 26% applicata (dal 2° immobile · art. 4 D.L. 50/2017).<br>
+              Consulta il tuo commercialista per la dichiarazione annuale.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📅 Incassi mensili 2026</div></div>
+        <div class="card-body">
+          <div style="display:flex;align-items:flex-end;gap:8px;height:120px;padding:10px 0;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;"><div style="background:var(--terra);border-radius:4px 4px 0 0;width:100%;height:60px;"></div><span style="font-size:10px;color:var(--soft);">Gen</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;"><div style="background:var(--terra);border-radius:4px 4px 0 0;width:100%;height:75px;"></div><span style="font-size:10px;color:var(--soft);">Feb</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;"><div style="background:var(--terra-d);border-radius:4px 4px 0 0;width:100%;height:100px;border:2px solid var(--terra);"></div><span style="font-size:10px;color:var(--terra);font-weight:700;">Mar</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;"><div style="background:var(--terra-l);border-radius:4px 4px 0 0;width:100%;height:20px;opacity:.5;"></div><span style="font-size:10px;color:var(--soft);">Apr</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;"><div style="background:var(--terra-l);border-radius:4px 4px 0 0;width:100%;height:15px;opacity:.3;"></div><span style="font-size:10px;color:var(--soft);">Mag</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;opacity:.2;"><div style="background:var(--terra-l);border-radius:4px 4px 0 0;width:100%;height:10px;"></div><span style="font-size:10px;color:var(--soft);">Giu</span></div>
+          </div>
+          <div style="font-size:11px;color:var(--soft);text-align:center;margin-top:4px;">Previsioni basate sulle prenotazioni attuali</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ GUIDA PALERMO ═══════ -->
+    <div class="panel" id="panel-guidapalermo">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header"><div class="card-title">🌟 Guida Palermo per gli ospiti</div><div style="font-size:12px;color:var(--soft);">Inviata automaticamente al check-in</div></div>
+        <div class="card-body">
+          <div style="background:var(--terra-xl);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--mid);line-height:1.7;">
+            Questa guida viene inviata automaticamente agli ospiti il giorno del check-in via WhatsApp. Puoi personalizzare ogni sezione.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div style="background:var(--sand);border-radius:12px;padding:16px;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--deep);">🎭 Da vedere (vicino a noi)</div>
+              <div style="font-size:12.5px;color:var(--mid);line-height:1.8;">📍 Teatro Massimo — 4 min a piedi<br>📍 Quattro Canti — 9 min a piedi<br>📍 Cattedrale — 14 min a piedi<br>📍 Palazzo Normanni — 17 min a piedi<br>📍 Ballarò — 15 min a piedi<br>📍 La Vucciria — 11 min a piedi<br>🏖 Mondello — 30 min in bus (linea 806)</div>
+            </div>
+            <div style="background:var(--sand);border-radius:12px;padding:16px;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--deep);">🍽 Dove mangiare</div>
+              <div style="font-size:12.5px;color:var(--mid);line-height:1.8;">🥘 Sfincione, panelle, arancine — Ballarò<br>🐙 Polpo e seppie — La Vucciria<br>🥪 Pani ca meusa — Via Porta Carini<br>🍦 Granita e brioche — Bar del Massimo<br>🍝 Pasta con le sarde — Ristorante Cin Cin<br>🍷 Aperitivo — Piazza Olivella</div>
+            </div>
+            <div style="background:var(--sand);border-radius:12px;padding:16px;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--deep);">🚌 Come muoversi</div>
+              <div style="font-size:12.5px;color:var(--mid);line-height:1.8;">🚌 Bus AMAT: €1,40 — app AMATsaicomeandare<br>🚂 Treno aeroporto da Centrale: €6,90<br>🚕 inTaxi o ItTaxi — app ufficiali<br>🛵 Scooter sharing: Cooltra<br>🚴 Bike sharing: oBike<br>⚠️ Centro storico: ZTL attiva</div>
+            </div>
+            <div style="background:var(--sand);border-radius:12px;padding:16px;">
+              <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--deep);">💡 Consigli pratici</div>
+              <div style="font-size:12.5px;color:var(--mid);line-height:1.8;">🛒 Supermercato: Carrefour in Via Roma<br>💊 Farmacia h24: Via Mariano Stabile 80<br>🏥 Pronto soccorso: Policlinico (Piazza Policlinico)<br>📶 WiFi gratuito: caffè Spinnato, BiblioCafè<br>🎟 Musei: riduzione con carta d'identità EU<br>📞 Emergenze: 112</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px;">
+            <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="inviaGuidaOspiti()">🟢 Invia a tutti gli ospiti attivi</button>
+            <button class="btn btn-outline" onclick="notify('Guida copiata ✓')">📋 Copia testo</button>
           </div>
         </div>
       </div>
