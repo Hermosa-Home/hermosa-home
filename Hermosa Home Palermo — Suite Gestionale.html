@@ -315,6 +315,109 @@ function inviaAlloggiati(nome) {
   notify('📤 ' + nome + ' inviato al Portale Alloggiati ✓');
 }
 
+// ── CONFIGURAZIONE ──
+var CFG = {
+  nome: 'Alessandra Trapani',
+  ragione: 'Hermosa Home di Alessandra Trapani',
+  piva: '07218170822',
+  cf: 'TRPLSN78S48G273Z',
+  tel: '+39 328 484 5555',
+  whatsapp: '393284845555',
+  email: 'info@hermosahome.it',         // ⚠️ aggiornare
+  telegram: 'hermosahome',              // ⚠️ aggiornare
+  paypal: 'https://paypal.me/HERMOSAHOME',  // ⚠️ aggiornare
+  stripe: 'https://buy.stripe.com/XXXXXXXX', // ⚠️ aggiornare
+  iban: 'IT00 X000 0000 0000 0000 0000 000', // ⚠️ aggiornare
+  prezzi: { 'Tomasi di Lampedusa': 500, 'Florio': 400, 'Stabile': 500 }
+};
+
+// ── CONTRATTO ──
+function inviaContratto(canale) {
+  var ospite = document.getElementById('sel-contratto-ospite');
+  var suiteEl = document.getElementById('sel-contratto-suite');
+  var checkin = document.getElementById('contratto-checkin');
+  var checkout = document.getElementById('contratto-checkout');
+  var ospiteNome = ospite ? ospite.value : 'Ospite';
+  var suiteVal = suiteEl ? suiteEl.value.split('|') : ['Suite','0'];
+  var suiteName = suiteVal[0];
+  var prezzo = suiteVal[1];
+  var ciDate = checkin && checkin.value ? new Date(checkin.value).toLocaleDateString('it-IT') : 'da definire';
+  var coDate = checkout && checkout.value ? new Date(checkout.value).toLocaleDateString('it-IT') : 'da definire';
+
+  var appUrl = 'https://hermosa-home.github.io/hermosa-home';
+  var msg = 'Gentile ' + ospiteNome + ',\n\nLe inviamo il contratto di locazione turistica per la Suite ' + suiteName + ' - Hermosa Home di Alessandra Trapani.\n\nSoggiorno: ' + ciDate + ' → ' + coDate + '\nPrezzo: €' + prezzo + '/notte\n\n✍️ Leggi e firma qui:\n' + appUrl + '\n\nPer informazioni: ' + CFG.tel + '\nHermosa Home · Via Mariano Stabile 124, 3° piano · Palermo 🌹';
+
+  if (canale === 'whatsapp') {
+    window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
+  } else if (canale === 'email') {
+    window.open('mailto:' + CFG.email + '?subject=Contratto locazione Suite ' + suiteName + ' - Hermosa Home&body=' + encodeURIComponent(msg), '_blank');
+  } else {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(msg).then(function() { notify('📋 Testo contratto copiato!'); });
+    } else { notify('📋 Copia il link manualmente'); }
+    return;
+  }
+  notify('📄 Contratto inviato via ' + (canale === 'whatsapp' ? 'WhatsApp' : 'Email') + ' ✓');
+  closeModal('modal-contratto');
+}
+
+// ── PAGAMENTI ──
+document.addEventListener('DOMContentLoaded', function() {
+  var metodoSel = document.getElementById('pay-metodo-sel');
+  if (metodoSel) {
+    metodoSel.addEventListener('change', function() {
+      var bonInfo = document.getElementById('bonifico-info');
+      if (bonInfo) bonInfo.style.display = this.value === 'bonifico' ? 'block' : 'none';
+    });
+  }
+});
+
+function calcPay() {
+  var notti = document.getElementById('pay-notti-input');
+  var importo = document.getElementById('pay-importo-input');
+  if (notti && importo) importo.value = parseInt(notti.value || 1) * 400;
+}
+
+function inviaLinkPagamento(canale) {
+  var ospiteEl = document.getElementById('pay-ospite-sel');
+  var importoEl = document.getElementById('pay-importo-input');
+  var metodoEl = document.getElementById('pay-metodo-sel');
+  var ospite = ospiteEl ? ospiteEl.value.split(' — ')[0] : 'Ospite';
+  var importo = importoEl ? importoEl.value : '0';
+  var metodo = metodoEl ? metodoEl.value : 'paypal';
+
+  var payUrl, payLabel;
+  if (metodo === 'paypal') {
+    payUrl = CFG.paypal + '/' + importo + 'EUR';
+    payLabel = 'PayPal';
+  } else if (metodo === 'stripe') {
+    payUrl = CFG.stripe;
+    payLabel = 'Stripe';
+  } else {
+    payUrl = '';
+    payLabel = 'Bonifico';
+  }
+
+  var msg;
+  if (metodo === 'bonifico') {
+    msg = 'Gentile ' + ospite + ',\n\nper completare la prenotazione effettui un bonifico di €' + importo + ' a:\n\n🏦 Intestato: ' + CFG.nome + '\n📌 IBAN: ' + CFG.iban + '\nCausale: Soggiorno Hermosa Home\n\nHermosa Home · ' + CFG.tel;
+  } else {
+    msg = 'Gentile ' + ospite + ',\n\npagamento soggiorno Hermosa Home:\n\n💳 ' + payLabel + ': ' + payUrl + '\nImporto: €' + importo + '\n\nHermosa Home · ' + CFG.tel;
+  }
+
+  if (canale === 'whatsapp') {
+    window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
+  } else if (canale === 'email') {
+    window.open('mailto:' + CFG.email + '?subject=Pagamento soggiorno Hermosa Home&body=' + encodeURIComponent(msg), '_blank');
+  } else {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(msg).then(function() { notify('📋 Messaggio pagamento copiato!'); });
+    }
+    return;
+  }
+  notify('💳 Link pagamento inviato via ' + (canale === 'whatsapp' ? 'WhatsApp' : 'Email') + ' ✓');
+}
+
 
 // Date
 const n=new Date();
@@ -383,19 +486,40 @@ function saveBooking(){
   const fmt = d => d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}) : '—';
 
   // Aggiungi riga alla tabella prenotazioni
-  const tbody = document.querySelector('#panel-prenotazioni table tbody');
+  var tbody = document.querySelector('#panel-prenotazioni table tbody');
   if(tbody){
-    const tr = document.createElement('tr');
-    tr.innerHTML = '<td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + sc.bg + ';margin-right:5px;border:1px solid ' + sc.color + ';"></span>' + suiteKey + '</td><td><strong>' + guestName + '</strong></td><td>' + fmt(checkin) + ' 14:00</td><td>' + fmt(checkout) + ' 10:00</td><td><span class="badge bo">⏳ Da inviare</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge br">€ ' + (importo||'—') + ' ✗</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal(\'modal-dettaglio\')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal(\'modal-notifica\')">🔔</button></td>';
+    var tr = document.createElement('tr');
+    var td1 = document.createElement('td');
+    var dot = document.createElement('span');
+    dot.style.cssText = 'display:inline-block;width:8px;height:8px;border-radius:50%;background:'+sc.bg+';margin-right:5px;border:1px solid '+sc.color+';';
+    td1.appendChild(dot);
+    td1.appendChild(document.createTextNode(suiteKey));
+    var td2 = document.createElement('td'); td2.innerHTML = '<strong>'+guestName+'</strong>';
+    var td3 = document.createElement('td'); td3.textContent = fmt(checkin)+' 14:00';
+    var td4 = document.createElement('td'); td4.textContent = fmt(checkout)+' 10:00';
+    var td5 = document.createElement('td'); td5.innerHTML = '<span class="badge bo">⏳ Da inviare</span>';
+    var td6 = document.createElement('td'); td6.innerHTML = '<span class="badge br">⚠️</span>';
+    var td7 = document.createElement('td'); td7.innerHTML = '<span class="badge br">€ '+(importo||'—')+' ✗</span>';
+    var td8 = document.createElement('td');
+    var b1 = document.createElement('button'); b1.className='btn btn-ghost btn-sm'; b1.textContent='👁'; b1.onclick=function(){openModal('modal-dettaglio');};
+    var b2 = document.createElement('button'); b2.className='btn btn-ghost btn-sm'; b2.textContent='🔔'; b2.onclick=function(){openModal('modal-notifica');};
+    td8.appendChild(b1); td8.appendChild(b2);
+    [td1,td2,td3,td4,td5,td6,td7,td8].forEach(function(td){tr.appendChild(td);});
     tbody.appendChild(tr);
   }
 
   // Aggiungi nella dashboard
-  const biList = document.querySelector('#panel-dashboard .card-body[style*="padding:8px 18px"]');
+  var biList = document.querySelector('#panel-dashboard .card-body');
   if(biList){
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.className = 'booking-item';
-    div.innerHTML = '<div class="bi-apt" style="background:' + sc.bg + ';color:' + sc.color + ';">' + sc.letter + '</div><div class="bi-info"><div class="bi-guest">' + guestName + '</div><div class="bi-dates">Suite ' + suiteKey + ' · ' + fmt(checkin) + ' → ' + fmt(checkout) + ' · ⚠️ Da completare</div></div><div class="bi-meta"><div class="bi-price">€ ' + (importo||'—') + '</div><span class="badge bo">Nuovo</span></div>';
+    var apt = document.createElement('div'); apt.className='bi-apt'; apt.style.cssText='background:'+sc.bg+';color:'+sc.color+';'; apt.textContent=sc.letter;
+    var info = document.createElement('div'); info.className='bi-info';
+    var guest = document.createElement('div'); guest.className='bi-guest'; guest.textContent=guestName;
+    var dates = document.createElement('div'); dates.className='bi-dates'; dates.textContent='Suite '+suiteKey+' · '+fmt(checkin)+' → '+fmt(checkout)+' · ⚠️ Da completare';
+    info.appendChild(guest); info.appendChild(dates);
+    var meta = document.createElement('div'); meta.className='bi-meta'; meta.innerHTML='<div class="bi-price">€ '+(importo||'—')+'</div><span class="badge bo">Nuovo</span>';
+    div.appendChild(apt); div.appendChild(info); div.appendChild(meta);
     biList.appendChild(div);
   }
 
@@ -405,14 +529,42 @@ function saveBooking(){
 
 // Templates
 const tmpl={
-  acc:'Gentile {nome},\n\ntramite questo link puoi aprire il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\nHermosa Home · Palermo 🌹',
+  acc:'Gentile {nome},\n\ntramite questo link puoi aprire il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\nHermosa Home di Alessandra Trapani · Palermo 🌹',
   ben:'Benvenuto/a a Palermo, {nome}! 🌟\n\nSei nella Suite {suite} al 3° piano di Via Mariano Stabile 124.\n\n📶 WiFi: HermosaHome_{suite} · Password: welcome2026\n🎭 Teatro Massimo: 4 min a piedi\n🥘 Mercato Ballarò: 15 min a piedi\n📞 Assistenza: +39 328 484 5555\n\nBuon soggiorno in Sicilia! 🌹',
-  doc:'Gentile {nome},\n\nper il tuo soggiorno a Hermosa Home carica i documenti qui:\n🔗 hermosahome.it/doc/abc123\n\nGrazie! 🙏',
-  pag:'Gentile {nome},\n\ncompleta il pagamento del tuo soggiorno a Hermosa Home:\n🔗 hermosahome.it/pay/abc123\nImporto: €{importo}\n\nGrazie!',
-  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home a Palermo! 🌹',
-  map:'Gentile {nome},\n\nHermosa Home si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall\'aeroporto: treno → Centrale, poi 15 min a piedi (~60 min totali)\n🚗 Auto: ZTL attiva in centro — comunicaci la targa!\n\n📍 Google Maps: maps.app.goo.gl/hermosahome\n\nA presto! 🌹'
+  doc:'Gentile {nome},\n\nper il tuo soggiorno a Hermosa Home di Alessandra Trapani carica i documenti qui:\n🔗 hermosahome.it/doc/abc123\n\nGrazie! 🙏',
+  pag:'Gentile {nome},\n\ncompleta il pagamento del tuo soggiorno a Hermosa Home di Alessandra Trapani:\n🔗 https://paypal.me/HERMOSAHOME\nImporto: €{importo}\n\nGrazie!',
+  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home di Alessandra Trapani a Palermo! 🌹',
+  map:'Gentile {nome},\n\nHermosa Home di Alessandra Trapani si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall\'aeroporto: treno → Centrale, poi 15 min a piedi (~60 min totali)\n🚗 Auto: ZTL attiva in centro — comunicaci la targa!\n\n📍 Google Maps: maps.app.goo.gl/hermosahome\n\nA presto! 🌹'
 };
 function loadTmpl(sel){if(sel.value&&tmpl[sel.value])document.getElementById('notif-text').value=tmpl[sel.value]}
+
+function inviaNotifica() {
+  var msgEl = document.getElementById('notif-text');
+  var msg = msgEl ? msgEl.value : '';
+  if (!msg.trim()) { notify('⚠️ Scrivi un messaggio prima di inviare'); return; }
+  var wa = document.getElementById('notif-ch-wa');
+  var tg = document.getElementById('notif-ch-tg');
+  var em = document.getElementById('notif-ch-em');
+  var sent = [];
+  if (wa && wa.checked) {
+    window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
+    sent.push('WhatsApp');
+  }
+  if (tg && tg.checked) {
+    window.open('https://t.me/' + CFG.telegram, '_blank');
+    sent.push('Telegram');
+  }
+  if (em && em.checked) {
+    window.open('mailto:' + CFG.email + '?body=' + encodeURIComponent(msg), '_blank');
+    sent.push('Email');
+  }
+  if (sent.length > 0) {
+    notify('📤 Inviato via ' + sent.join(', ') + ' ✓');
+    closeModal('modal-notifica');
+  } else {
+    notify('⚠️ Seleziona almeno un canale');
+  }
+}
 
 // MAP
 let mapInit=false;
@@ -427,7 +579,7 @@ function initMap(){
     attribution:'© OpenStreetMap contributors',maxZoom:19
   }).addTo(map);
 
-  // Main marker - Hermosa Home
+  // Main marker - Hermosa Home di Alessandra Trapani
   const hhIcon=L.divIcon({
     html:`<div style="background:#C4956A;color:white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.3);border:2px solid white;">
       <span style="transform:rotate(45deg);font-size:16px;">🏠</span></div>`,
@@ -436,7 +588,7 @@ function initMap(){
 
   L.marker([lat,lng],{icon:hhIcon}).addTo(map)
     .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;">
-      <div style="font-weight:700;font-size:14px;color:#2C2416;margin-bottom:4px;">🌹 Hermosa Home</div>
+      <div style="font-weight:700;font-size:14px;color:#2C2416;margin-bottom:4px;">🌹 Hermosa Home di Alessandra Trapani</div>
       <div style="font-size:12px;color:#6B5C48;">Via Mariano Stabile 124<br>Piano Terzo · 90139 Palermo</div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
         <span style="background:#E8D5BE;color:#A07550;padding:2px 7px;border-radius:10px;font-size:10.5px;">Suite Lampedusa</span>
@@ -463,7 +615,7 @@ function initMap(){
       className:'',iconSize:[30,30],iconAnchor:[15,15]
     });
     L.marker([p.lat,p.lng],{icon}).addTo(map)
-      .bindPopup(`<div style="font-family:'DM Sans',sans-serif;"><strong style="font-size:13px;">${p.icon} ${p.name}</strong><br><span style="font-size:11px;color:#9B8B78;">${p.desc} da Hermosa Home</span></div>`);
+      .bindPopup(`<div style="font-family:'DM Sans',sans-serif;"><strong style="font-size:13px;">${p.icon} ${p.name}</strong><br><span style="font-size:11px;color:#9B8B78;">${p.desc} da Hermosa Home di Alessandra Trapani</span></div>`);
   });
 
   // Stazione e Airport
@@ -559,17 +711,17 @@ function initMap(){
               <div class="booking-item" onclick="openModal('modal-dettaglio')">
                 <div class="bi-apt" style="background:#2C2416;color:var(--terra);">T</div>
                 <div class="bi-info"><div class="bi-guest">Marco Rossi</div><div class="bi-dates">Suite Tomasi di Lampedusa · 7 mar → 12 mar · ✍️ Contratto firmato</div></div>
-                <div class="bi-meta"><div class="bi-price">€ 450</div><span class="badge bg">Attivo</span></div>
+                <div class="bi-meta"><div class="bi-price">€ 500</div><span class="badge bg">Attivo</span></div>
               </div>
               <div class="booking-item">
                 <div class="bi-apt" style="background:#1A2C35;color:#7AB8D0;">F</div>
                 <div class="bi-info"><div class="bi-guest">Sophie Müller</div><div class="bi-dates">Suite Florio · 8 mar → 15 mar · ⚠️ Doc. + Pagamento mancanti</div></div>
-                <div class="bi-meta"><div class="bi-price">€ 630</div><span class="badge bo">Incompleto</span></div>
+                <div class="bi-meta"><div class="bi-price">€ 400</div><span class="badge bo">Incompleto</span></div>
               </div>
               <div class="booking-item">
                 <div class="bi-apt" style="background:#1F2C1A;color:#8DB87A;">S</div>
                 <div class="bi-info"><div class="bi-guest">Luca Ferrari</div><div class="bi-dates">Suite Stabile · 10 mar → 13 mar · ✅ Tutto completato</div></div>
-                <div class="bi-meta"><div class="bi-price">€ 270</div><span class="badge bb">Check-in oggi</span></div>
+                <div class="bi-meta"><div class="bi-price">€ 500</div><span class="badge bb">Check-in oggi</span></div>
               </div>
             </div>
           </div>
@@ -599,7 +751,7 @@ function initMap(){
             <div class="card-header"><div class="card-title">Azioni urgenti</div><span class="badge br">4</span></div>
             <div class="card-body" style="padding:8px 18px;">
               <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-o">📄</div><div><div class="ni-title">Contratto da inviare</div><div class="ni-body">Anna Bianchi · Suite Lampedusa</div></div></div>
-              <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-r">💳</div><div><div class="ni-title">Pagamento mancante</div><div class="ni-body">Sophie Müller · € 630</div></div></div>
+              <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-r">💳</div><div><div class="ni-title">Pagamento mancante</div><div class="ni-body">Sophie Müller · € 400</div></div></div>
               <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-o">🪪</div><div><div class="ni-title">Documenti mancanti</div><div class="ni-body">Sophie Müller · Suite Florio</div></div></div>
               <div class="notif-item read"><div class="ni-dot"></div><div class="ni-icon ni-b">⏰</div><div><div class="ni-title">Check-out domani</div><div class="ni-body">Verificare pulizie Suite Stabile</div></div></div>
             </div>
@@ -608,7 +760,7 @@ function initMap(){
             <div class="card-header"><div class="card-title">Attività recente</div></div>
             <div class="card-body" style="padding:10px 18px;">
               <div class="tl-item"><div class="tl-dot tl-g">✍️</div><div style="flex:1;"><div class="tl-t">Contratto firmato</div><div class="tl-s">Marco Rossi — Suite Lampedusa</div></div><div class="tl-time">1h fa</div></div>
-              <div class="tl-item"><div class="tl-dot tl-g">💶</div><div style="flex:1;"><div class="tl-t">Pagamento € 270</div><div class="tl-s">Luca Ferrari · PayPal</div></div><div class="tl-time">3h fa</div></div>
+              <div class="tl-item"><div class="tl-dot tl-g">💶</div><div style="flex:1;"><div class="tl-t">Pagamento € 500</div><div class="tl-s">Luca Ferrari · PayPal</div></div><div class="tl-time">3h fa</div></div>
               <div class="tl-item"><div class="tl-dot tl-b">🔐</div><div style="flex:1;"><div class="tl-t">Link accesso inviato</div><div class="tl-s">Marco Rossi · WhatsApp</div></div><div class="tl-time">4h fa</div></div>
             </div>
           </div>
@@ -727,7 +879,7 @@ function initMap(){
         </div>
         <div id="map"></div>
         <div style="padding:14px 18px;display:flex;gap:20px;flex-wrap:wrap;border-top:1px solid var(--terra-l);">
-          <span style="font-size:12px;color:var(--mid);display:flex;align-items:center;gap:6px;">🏠 <strong>Hermosa Home</strong> — Via M. Stabile 124, 3° piano</span>
+          <span style="font-size:12px;color:var(--mid);display:flex;align-items:center;gap:6px;">🏠 <strong>Hermosa Home di Alessandra Trapani</strong> — Via M. Stabile 124, 3° piano</span>
           <span style="font-size:12px;color:var(--soft);">📍 38.1234° N, 13.3591° E</span>
           <span style="font-size:12px;color:var(--soft);">🏛 A 300m dal Teatro Massimo · nel cuore di Palermo</span>
         </div>
@@ -735,7 +887,7 @@ function initMap(){
 
       <!-- Come arrivare -->
       <div class="card">
-        <div class="card-header"><div class="card-title">🚀 Come arrivare a Hermosa Home</div></div>
+        <div class="card-header"><div class="card-title">🚀 Come arrivare a Hermosa Home di Alessandra Trapani</div></div>
         <div class="card-body">
 
           <!-- Aereo -->
@@ -759,7 +911,7 @@ function initMap(){
             <div style="flex:1;">
               <div class="am-title">Stazione Palermo Centrale</div>
               <div class="am-body">
-                La stazione si trova a <strong>1,2 km</strong> da Hermosa Home.<br><br>
+                La stazione si trova a <strong>1,2 km</strong> da Hermosa Home di Alessandra Trapani.<br><br>
                 🚶 <strong>A piedi</strong>: 15 minuti lungo Via Roma fino a Via Mariano Stabile — percorso piacevole nel centro storico.<br>
                 🚌 <strong>Bus</strong>: linea 101 o 102 direzione Teatro Massimo (3 fermate, ~5 min).<br>
                 🚕 <strong>Taxi</strong>: disponibili in piazza antistante la stazione (~€8–10, 5 min).
@@ -788,7 +940,7 @@ function initMap(){
             <div style="flex:1;">
               <div class="am-title">Bus urbano AMAT</div>
               <div class="am-body">
-                Le linee <strong>101</strong> e <strong>102</strong> (asse principale Via Roma–Via Maqueda) passano a meno di 200m da Hermosa Home.<br><br>
+                Le linee <strong>101</strong> e <strong>102</strong> (asse principale Via Roma–Via Maqueda) passano a meno di 200m da Hermosa Home di Alessandra Trapani.<br><br>
                 Fermata più vicina: <strong>"Teatro Massimo"</strong> su Via Ruggero Settimo.<br>
                 Biglietto: <strong>€1,40</strong> (90 min) · acquistabile in tabaccheria o via app.<br><br>
                 🌙 <strong>Di notte</strong>: taxi dall'app inTaxi o ItTaxi, numerosi disponibili in centro.
@@ -802,7 +954,7 @@ function initMap(){
 
       <!-- Attrazioni vicine -->
       <div class="card">
-        <div class="card-header"><div class="card-title">🌟 Cosa vedere nei dintorni</div><span style="font-size:12px;color:var(--soft);">Tutto raggiungibile a piedi da Hermosa Home</span></div>
+        <div class="card-header"><div class="card-title">🌟 Cosa vedere nei dintorni</div><span style="font-size:12px;color:var(--soft);">Tutto raggiungibile a piedi da Hermosa Home di Alessandra Trapani</span></div>
         <div class="card-body" style="padding:8px 18px;">
 
           <div class="attraction-item">
@@ -898,19 +1050,19 @@ function initMap(){
               <tr>
                 <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--terra);margin-right:5px;"></span>Tomasi di Lampedusa</td>
                 <td><strong>Marco Rossi</strong></td><td>07/03 12:00</td><td>12/03 10:00</td>
-                <td><span class="badge bg">✍️ Firmato</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">€ 450 ✓</span></td>
+                <td><span class="badge bg">✍️ Firmato</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">€ 500 ✓</span></td>
                 <td><button class="btn btn-ghost btn-sm" onclick="openModal('modal-dettaglio')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button></td>
               </tr>
               <tr>
                 <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--info);margin-right:5px;"></span>Florio</td>
                 <td><strong>Sophie Müller</strong></td><td>08/03 14:00</td><td>15/03 10:00</td>
-                <td><span class="badge bo">⏳ Attesa</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge br">€ 630 ✗</span></td>
+                <td><span class="badge bo">⏳ Attesa</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge br">€ 400 ✗</span></td>
                 <td><button class="btn btn-ghost btn-sm" onclick="openModal('modal-dettaglio')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button></td>
               </tr>
               <tr>
                 <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:5px;"></span>Stabile</td>
                 <td><strong>Luca Ferrari</strong></td><td>10/03 12:00</td><td>13/03 10:00</td>
-                <td><span class="badge bg">✍️ Firmato</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge bg">€ 270 ✓</span></td>
+                <td><span class="badge bg">✍️ Firmato</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge bg">€ 500 ✓</span></td>
                 <td><button class="btn btn-ghost btn-sm" onclick="openModal('modal-dettaglio')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button></td>
               </tr>
             </tbody>
@@ -1076,8 +1228,8 @@ function initMap(){
           <div class="card-header"><div class="card-title">Notifiche recenti</div><button class="btn btn-ghost btn-sm" onclick="notify('Tutte lette ✓')">Segna tutte lette</button></div>
           <div class="card-body" style="padding:8px 18px;">
             <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-o">📋</div><div style="flex:1;"><div class="ni-title">Documenti mancanti — Sophie Müller</div><div class="ni-body">Suite Florio · Check-in domani</div></div></div>
-            <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-r">💳</div><div style="flex:1;"><div class="ni-title">Pagamento in attesa — Sophie Müller</div><div class="ni-body">€ 630 · Scadenza: domani</div></div></div>
-            <div class="notif-item read"><div class="ni-dot"></div><div class="ni-icon ni-g">✅</div><div style="flex:1;"><div class="ni-title">Pagamento ricevuto — Luca Ferrari</div><div class="ni-body">€ 270 · PayPal · Suite Stabile</div></div></div>
+            <div class="notif-item"><div class="ni-dot"></div><div class="ni-icon ni-r">💳</div><div style="flex:1;"><div class="ni-title">Pagamento in attesa — Sophie Müller</div><div class="ni-body">€ 400 · Scadenza: domani</div></div></div>
+            <div class="notif-item read"><div class="ni-dot"></div><div class="ni-icon ni-g">✅</div><div style="flex:1;"><div class="ni-title">Pagamento ricevuto — Luca Ferrari</div><div class="ni-body">€ 500 · PayPal · Suite Stabile</div></div></div>
             <div class="notif-item read"><div class="ni-dot"></div><div class="ni-icon ni-g">✍️</div><div style="flex:1;"><div class="ni-title">Contratto firmato — Marco Rossi</div><div class="ni-body">Suite Tomasi di Lampedusa</div></div></div>
           </div>
         </div>
@@ -1115,14 +1267,33 @@ function initMap(){
         <div class="card">
           <div class="card-header"><div class="card-title">Richiedi pagamento</div></div>
           <div class="card-body">
-            <div class="form-group"><label class="lbl">Ospite</label><select><option>Sophie Müller — Suite Florio</option><option>Anna Bianchi — Suite Lampedusa</option></select></div>
+            <div class="form-group"><label class="lbl">Ospite</label>
+              <select id="pay-ospite-sel">
+                <option>Sophie Müller — Suite Florio (€ 400/notte)</option>
+                <option>Anna Bianchi — Suite Lampedusa (€ 500/notte)</option>
+              </select>
+            </div>
             <div class="form-row">
-              <div class="form-group"><label class="lbl">Importo (€)</label><input type="number" value="630"></div>
-              <div class="form-group"><label class="lbl">Metodo</label><select><option>PayPal</option><option>Stripe</option></select></div>
+              <div class="form-group"><label class="lbl">Importo (€)</label><input type="number" id="pay-importo-input" value="400"></div>
+              <div class="form-group"><label class="lbl">N° notti</label><input type="number" id="pay-notti-input" value="1" onchange="calcPay()"></div>
+            </div>
+            <div class="form-group"><label class="lbl">Metodo pagamento</label>
+              <select id="pay-metodo-sel">
+                <option value="paypal">💙 PayPal — paypal.me/HERMOSAHOME</option>
+                <option value="stripe">💳 Stripe (carta credito)</option>
+                <option value="bonifico">🏦 Bonifico bancario</option>
+              </select>
+            </div>
+            <div id="bonifico-info" style="display:none;background:var(--sand);border-radius:10px;padding:12px;font-size:12px;color:var(--mid);line-height:1.8;margin-bottom:10px;">
+              🏦 <strong>Dati bonifico:</strong><br>
+              Intestato a: <strong>Alessandra Trapani</strong><br>
+              IBAN: <strong>IT00 X000 0000 0000 0000 0000 000</strong><br>
+              <em style="font-size:11px;color:var(--terra);">⚠️ Aggiornare con IBAN reale</em>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-primary" style="flex:1;" onclick="notify('Link inviato via WhatsApp ✓')">🟢 WhatsApp</button>
-              <button class="btn btn-outline" style="flex:1;" onclick="notify('Email inviata ✓')">✉ Email</button>
+              <button class="btn btn-primary" style="flex:1;" onclick="inviaLinkPagamento('whatsapp')">🟢 WhatsApp</button>
+              <button class="btn btn-outline" style="flex:1;" onclick="inviaLinkPagamento('email')">✉ Email</button>
+              <button class="btn btn-ghost btn-sm" onclick="inviaLinkPagamento('copia')">📋 Copia</button>
             </div>
           </div>
         </div>
@@ -1132,9 +1303,9 @@ function initMap(){
             <table>
               <thead><tr><th>Ospite</th><th>Suite</th><th>Importo</th><th>Stato</th></tr></thead>
               <tbody>
-                <tr><td>Luca Ferrari</td><td>Stabile</td><td>€ 270</td><td><span class="badge bg">Pagato</span></td></tr>
-                <tr><td>Marco Rossi</td><td>Lampedusa</td><td>€ 225</td><td><span class="badge bg">Pagato</span></td></tr>
-                <tr><td>Sophie Müller</td><td>Florio</td><td>€ 630</td><td><span class="badge bo">In attesa</span></td></tr>
+                <tr><td>Luca Ferrari</td><td>Stabile</td><td>€ 500</td><td><span class="badge bg">Pagato</span></td></tr>
+                <tr><td>Marco Rossi</td><td>Lampedusa</td><td>€ 500</td><td><span class="badge bg">Pagato</span></td></tr>
+                <tr><td>Sophie Müller</td><td>Florio</td><td>€ 400</td><td><span class="badge bo">In attesa</span></td></tr>
                 <tr><td>Anna Bianchi</td><td>Lampedusa</td><td>€ 360</td><td><span class="badge br">Non inviato</span></td></tr>
               </tbody>
             </table>
@@ -1200,14 +1371,14 @@ function initMap(){
         <div class="card">
           <div class="card-header"><div class="card-title">Dati struttura</div><button class="btn btn-primary btn-sm" onclick="notify('Dati salvati ✓')">Salva</button></div>
           <div class="card-body">
-            <div class="form-group"><label class="lbl">Nome struttura</label><input type="text" value="Hermosa Home"></div>
+            <div class="form-group"><label class="lbl">Nome struttura</label><input type="text" value="Hermosa Home di Alessandra Trapani"></div>
             <div class="form-group"><label class="lbl">Indirizzo</label><input type="text" value="Via Mariano Stabile 124, Piano Terzo"></div>
             <div class="form-group"><label class="lbl">Città</label><input type="text" value="Palermo (PA) · 90139"></div>
             <div class="form-row">
               <div class="form-group"><label class="lbl">Check-in default</label><input type="time" value="14:00"></div>
               <div class="form-group"><label class="lbl">Check-out default</label><input type="time" value="10:00"></div>
             </div>
-            <div class="form-group"><label class="lbl">Telefono</label><input type="text" value="+39 340 000 0000"></div>
+            <div class="form-group"><label class="lbl">Telefono</label><input type="text" value="+39 328 484 5555"></div>
           </div>
         </div>
         <div class="card">
@@ -1279,16 +1450,46 @@ function initMap(){
 </div>
 
 <div class="modal-backdrop" id="modal-contratto">
-  <div class="modal">
-    <div class="modal-header"><div class="modal-title">Invia contratto digitale</div><button class="modal-close" onclick="closeModal('modal-contratto')">✕</button></div>
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header"><div class="modal-title">📄 Invia contratto digitale</div><button class="modal-close" onclick="closeModal('modal-contratto')">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label class="lbl">Ospite</label><select><option>Anna Bianchi — Suite Tomasi di Lampedusa</option><option>Sophie Müller — Suite Florio</option></select></div>
-      <div style="background:var(--sand);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7;color:var(--mid);">L'ospite riceverà il <strong>contratto di locazione turistica</strong> di Hermosa Home (Via Mariano Stabile 124, Palermo) sul proprio smartphone. Potrà leggerlo, accettare le clausole e <strong>firmarlo digitalmente</strong>. Copia automatica via email.</div>
-      <div class="form-group"><label class="lbl">Lingua</label><select><option>🇮🇹 Italiano</option><option>🇬🇧 English</option><option>🇩🇪 Deutsch</option><option>🇫🇷 Français</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Ospite</label>
+          <select id="sel-contratto-ospite">
+            <option>Anna Bianchi</option>
+            <option>Sophie Müller</option>
+            <option>Marco Rossi</option>
+            <option>Luca Ferrari</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="lbl">Suite</label>
+          <select id="sel-contratto-suite">
+            <option value="Tomasi di Lampedusa|500">🌹 Tomasi di Lampedusa — €500/notte</option>
+            <option value="Florio|400">⚓ Florio — €400/notte</option>
+            <option value="Stabile|500">🌿 Stabile — €500/notte</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Check-in</label><input type="date" id="contratto-checkin"></div>
+        <div class="form-group"><label class="lbl">Check-out</label><input type="date" id="contratto-checkout"></div>
+      </div>
+      <div style="background:var(--terra-xl);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.9;color:var(--mid);">
+        <strong>Locatore:</strong> Hermosa Home di Alessandra Trapani<br>
+        <strong>P.IVA:</strong> 07218170822 · <strong>CF:</strong> TRPLSN78S48G273Z<br>
+        <strong>Sede:</strong> Via Mariano Stabile 124, Piano 3°, 90139 Palermo (PA)<br>
+        <strong>Attività:</strong> Affittacamere, Case Vacanze (ATECO 552051)
+      </div>
+      <div class="form-group"><label class="lbl">Lingua contratto</label>
+        <select><option>🇮🇹 Italiano</option><option>🇬🇧 English</option><option>🇩🇪 Deutsch</option><option>🇫🇷 Français</option></select>
+      </div>
+      <div style="font-size:12px;color:var(--soft);margin-bottom:14px;padding:10px;background:var(--sand);border-radius:8px;">
+        L'ospite riceve il link, legge il contratto, accetta le clausole e <strong>firma digitalmente</strong> con il dito. Il documento viene archiviato automaticamente.
+      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary" style="flex:1;" onclick="notify('Contratto inviato ✓');closeModal('modal-contratto')">🟢 WhatsApp</button>
-        <button class="btn btn-outline" style="flex:1;" onclick="notify('Email inviata ✓');closeModal('modal-contratto')">✉ Email</button>
-        <button class="btn btn-ghost btn-sm" onclick="notify('Link copiato ✓')">🔗 Copia link</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="inviaContratto('whatsapp')">🟢 WhatsApp</button>
+        <button class="btn btn-outline" style="flex:1;" onclick="inviaContratto('email')">✉ Email</button>
+        <button class="btn btn-ghost btn-sm" onclick="inviaContratto('copia')">🔗 Copia link</button>
       </div>
     </div>
   </div>
@@ -1311,17 +1512,17 @@ function initMap(){
         </select>
       </div>
       <div class="form-group"><label class="lbl">Messaggio</label><textarea id="notif-text" style="min-height:110px;" placeholder="Scrivi il messaggio..."></textarea></div>
-      <div class="form-group"><label class="lbl">Canali</label>
-        <div style="display:flex;gap:12px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--terra);"> WhatsApp</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Telegram</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--terra);"> Email</label>
+      <div class="form-group"><label class="lbl">Canale di invio</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" id="notif-ch-wa" checked style="accent-color:var(--terra);"> 🟢 WhatsApp</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" id="notif-ch-tg" style="accent-color:var(--terra);"> ✈️ Telegram</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" id="notif-ch-em" checked style="accent-color:var(--terra);"> ✉️ Email</label>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-notifica')">Annulla</button>
-      <button class="btn btn-primary" onclick="notify('Notifica inviata ✓');closeModal('modal-notifica')">📤 Invia</button>
+      <button class="btn btn-primary" onclick="inviaNotifica()">📤 Invia</button>
     </div>
   </div>
 </div>
@@ -1358,7 +1559,7 @@ function initMap(){
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;background:var(--terra-xl);border-radius:8px;padding:12px;margin-bottom:14px;">
         <span style="font-size:13px;color:var(--mid);">Suite Tomasi di Lampedusa · Via M. Stabile 124 / 3°</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:26px;">€ 450</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:26px;">€ 500</span>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" onclick="openModal('modal-notifica');closeModal('modal-dettaglio')">🔔 Notifica</button>
@@ -1384,7 +1585,7 @@ function initMap(){
         </div>
       </div>
       <div style="background:var(--sand);border-radius:10px;padding:14px;font-size:13px;color:var(--mid);line-height:1.7;">
-        Gentile ospite, per completare la tua prenotazione a <strong>Hermosa Home</strong> carica i documenti di identità tramite il link:<br><br>
+        Gentile ospite, per completare la tua prenotazione a <strong>Hermosa Home di Alessandra Trapani</strong> carica i documenti di identità tramite il link:<br><br>
         🔗 <strong>hermosa-home.github.io/hermosa-home</strong> → sezione Documenti<br><br>
         Grazie per la collaborazione! 🌹
       </div>
