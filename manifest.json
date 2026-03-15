@@ -1,0 +1,56 @@
+{
+  "name": "Hermosa Home Palermo",
+  "short_name": "Hermosa Home",
+  "description": "La tua app personale per il soggiorno a Hermosa Home, Via Mariano Stabile 124, Palermo",
+  "start_url": "/hermosa-home/",
+  "scope": "/hermosa-home/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2C2416",
+  "theme_color": "#2C2416",
+  "lang": "it",
+  "categories": ["travel", "lifestyle"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%232C2416'/%3E%3Ccircle cx='256' cy='195' r='90' fill='none' stroke='%23C4956A' stroke-width='16'/%3E%3Ccircle cx='256' cy='195' r='55' fill='%23C4956A'/%3E%3Cpath d='M120 370 Q256 280 392 370 L392 420 Q256 340 120 420 Z' fill='%23C4956A'/%3E%3Ctext x='256' y='490' text-anchor='middle' font-size='56' fill='%23C4956A' font-family='Georgia,serif' letter-spacing='4'%3EHH%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%232C2416'/%3E%3Ccircle cx='96' cy='75' r='34' fill='none' stroke='%23C4956A' stroke-width='7'/%3E%3Ccircle cx='96' cy='75' r='20' fill='%23C4956A'/%3E%3Cpath d='M45 140 Q96 108 147 140 L147 158 Q96 130 45 158 Z' fill='%23C4956A'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%232C2416'/%3E%3Ccircle cx='256' cy='195' r='90' fill='none' stroke='%23C4956A' stroke-width='16'/%3E%3Ccircle cx='256' cy='195' r='55' fill='%23C4956A'/%3E%3Cpath d='M120 370 Q256 280 392 370 L392 420 Q256 340 120 420 Z' fill='%23C4956A'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://hermosa-home.github.io/hermosa-home/",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Hermosa Home — App ospiti"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Apri le porte",
+      "short_name": "Porte",
+      "description": "Accedi allo smart lock",
+      "url": "/hermosa-home/#accesso",
+      "icons": [{"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ctext y='.9em' font-size='90'%3E🔓%3C/text%3E%3C/svg%3E", "sizes": "96x96"}]
+    },
+    {
+      "name": "Documenti",
+      "short_name": "Documenti",
+      "description": "Carica i tuoi documenti",
+      "url": "/hermosa-home/#documenti",
+      "icons": [{"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Ctext y='.9em' font-size='90'%3E📋%3C/text%3E%3C/svg%3E", "sizes": "96x96"}]
+    }
+  ]
+}

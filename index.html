@@ -3,7 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Hermosa Home — Benvenuto</title>
+<title>Hermosa Home</title>
+
+<!-- PWA Meta Tags -->
+<meta name="application-name" content="Hermosa Home">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hermosa Home">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2C2416">
+<meta name="description" content="La tua app personale per il soggiorno a Hermosa Home, Palermo">
+<meta name="msapplication-TileColor" content="#2C2416">
+
+<!-- Manifest -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Apple Touch Icons (inline SVG come data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%232C2416'/%3E%3Ccircle cx='256' cy='200' r='80' fill='%23C4956A'/%3E%3Cpath d='M130 380 Q256 300 382 380' stroke='%23C4956A' stroke-width='20' fill='none'/%3E%3Ctext x='256' y='460' text-anchor='middle' font-size='60' fill='%23C4956A' font-family='Georgia'>HH%3C/text%3E%3C/svg%3E">
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -837,6 +854,13 @@
           <div class="menu-sub" id="m-docs-sub">Carica la tua carta</div>
         </div>
 
+        <div class="menu-item" onclick="goTo('screen-contratto')">
+          <div class="menu-badge" id="contratto-badge">!</div>
+          <div class="menu-icon">✍️</div>
+          <div class="menu-label" id="m-contratto">Contratto</div>
+          <div class="menu-sub" id="m-contratto-sub">Leggi e firma</div>
+        </div>
+
         <div class="menu-item" onclick="goTo('screen-info')">
           <div class="menu-icon">ℹ️</div>
           <div class="menu-label" id="m-info">Info struttura</div>
@@ -1025,7 +1049,7 @@
           <div class="s-card-header" id="info-apt-lbl">Appartamento</div>
           <div class="s-card-body" style="padding:8px 16px;">
 
-            <div class="info-item" onclick="window.open('https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo','_blank')" style="cursor:pointer;">
+            <div class="info-item" onclick="window.open('https://maps.google.com/?daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=walking','_blank')" style="cursor:pointer;">
               <div class="info-icon">📍</div>
               <div style="flex:1;">
                 <div class="info-label" id="il-indirizzo">Indirizzo</div>
@@ -1034,7 +1058,7 @@
               </div>
               <div style="color:var(--terra);font-size:20px;margin-left:auto;">›</div>
             </div>
-            <button onclick="window.open('https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo','_blank')" style="width:100%;margin-top:4px;padding:9px;border-radius:10px;background:var(--terra);color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <button onclick="window.open('https://maps.google.com/?daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=walking','_blank')" style="width:100%;margin-top:4px;padding:9px;border-radius:10px;background:var(--terra);color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
               🗺 Apri in Google Maps
             </button>
 
@@ -1088,12 +1112,12 @@
               <div class="info-icon">📞</div>
               <div>
                 <div class="info-label">Gestore</div>
-                <div class="info-value">+39 340 000 0000</div>
+                <div class="info-value">+39 328 484 5555</div>
                 <div class="info-sub" style="color:var(--terra);">⚠️ Da aggiornare con numero reale</div>
               </div>
               <div style="display:flex;flex-direction:column;gap:6px;margin-left:auto;">
-                <button class="btn btn-success" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('https://wa.me/39340000000','_blank')">WhatsApp</button>
-                <button class="btn btn-outline" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('tel:+39340000000')">Chiama</button>
+                <button class="btn btn-success" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('https://wa.me/393284845555','_blank')">WhatsApp</button>
+                <button class="btn btn-outline" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('tel:+393284845555')">Chiama</button>
               </div>
             </div>
           </div>
@@ -1125,7 +1149,7 @@
                 🚌 Da Centrale: bus 101/102 o <strong>15 min a piedi</strong> lungo Via Roma<br>
                 🚕 Taxi diretto aeroporto → Via Stabile: ~€45 · ~35 min
               </div>
-              <button onclick="window.open('https://maps.google.com/?q=Palermo+Airport+to+Via+Mariano+Stabile+124+Palermo','_blank')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:var(--terra);color:white;border:none;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+              <button onclick="window.open('https://maps.google.com/?saddr=Palermo+Airport&daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=transit','_blank')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:var(--terra);color:white;border:none;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
                 📍 Apri percorso in Maps
               </button>
             </div>
@@ -1164,7 +1188,7 @@
               <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--deep);margin-bottom:4px;">Via Mariano Stabile 124</div>
               <div style="font-size:12.5px;color:var(--soft);">Piano Terzo · 90139 Palermo (PA)</div>
               <div style="font-size:12px;color:var(--terra);margin-top:8px;font-weight:500;">🏛 300m dal Teatro Massimo</div>
-              <button onclick="window.open('https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo','_blank')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:transparent;color:var(--terra);border:1.5px solid var(--terra-l);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
+              <button onclick="window.open('https://maps.google.com/?daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=walking','_blank')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:transparent;color:var(--terra);border:1.5px solid var(--terra-l);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
                 🗺 Apri su Google Maps
               </button>
             </div>
@@ -1249,7 +1273,7 @@
         <div class="s-card" style="margin-bottom:12px;">
           <div class="s-card-body" style="display:flex;flex-direction:column;gap:10px;padding:14px;">
 
-            <button class="btn btn-success" onclick="window.open('https://wa.me/39340000000?text=Ciao%2C%20sono%20un%20ospite%20di%20Hermosa%20Home','_blank')" style="background:#25D366;">
+            <button class="btn btn-success" onclick="window.open('https://wa.me/393284845555?text=Ciao%2C%20sono%20un%20ospite%20di%20Hermosa%20Home','_blank')" style="background:#25D366;">
               🟢 WhatsApp
             </button>
 
@@ -1309,6 +1333,110 @@
         <button class="btn btn-primary" onclick="goTo('screen-home')" style="max-width:240px;" id="success-btn">
           Torna alla home
         </button>
+      </div>
+      <div class="home-indicator"><div class="hi-bar"></div></div>
+    </div>
+
+    <!-- ══════════════ CONTRATTO ══════════════ -->
+    <div class="screen" id="screen-contratto">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
+        <div class="screen-title">Contratto</div>
+        <div class="screen-sub">Locazione turistica breve</div>
+      </div>
+
+      <div class="screen-content">
+
+        <!-- STEP INDICATOR -->
+        <div id="contratto-steps" style="display:flex;gap:0;margin-bottom:16px;">
+          <div id="cstep-1" style="flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:600;color:var(--terra);border-bottom:2px solid var(--terra);">1 · Leggi</div>
+          <div id="cstep-2" style="flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:500;color:var(--soft);border-bottom:2px solid var(--terra-l);">2 · Accetta</div>
+          <div id="cstep-3" style="flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:500;color:var(--soft);border-bottom:2px solid var(--terra-l);">3 · Firma</div>
+        </div>
+
+        <!-- STEP 1: TESTO CONTRATTO -->
+        <div id="contratto-step1">
+          <div class="s-card" style="margin-bottom:14px;">
+            <div class="s-card-header" style="font-size:12px;">📄 CONTRATTO DI LOCAZIONE AD USO TURISTICO</div>
+            <div id="contratto-testo" class="s-card-body" style="padding:14px 16px;font-size:12px;color:var(--mid);line-height:1.8;max-height:320px;overflow-y:auto;" onscroll="checkContrattoScroll(this)">
+              <strong>Hermosa Home</strong>, con sede in Via Mariano Stabile 124, Piano Terzo, 90139 Palermo (PA), di seguito denominato <em>Locatore</em>,<br><br>
+              e il/la Sig./Sig.ra <strong>Marco Rossi</strong>, di seguito denominato <em>Conduttore</em>,<br><br>
+              stipulano il seguente contratto di locazione ad uso turistico ai sensi dell'art. 1, comma 2, lett. c) della L. 431/1998.<br><br>
+              <strong>Art. 1 — Oggetto</strong><br>
+              Il Locatore concede in locazione al Conduttore la <strong>Suite Tomasi di Lampedusa</strong>, sita in Via Mariano Stabile 124, Piano Terzo, Palermo (PA).<br><br>
+              <strong>Art. 2 — Durata</strong><br>
+              Il soggiorno ha durata dal <strong>07/03/2026 ore 14:00</strong> al <strong>12/03/2026 ore 10:00</strong>, per un totale di 5 notti. Il contratto non è rinnovabile tacitamente.<br><br>
+              <strong>Art. 3 — Corrispettivo</strong><br>
+              Il corrispettivo totale è pari a <strong>€ 450,00</strong>, da versarsi tramite PayPal o Stripe entro la data di check-in.<br><br>
+              <strong>Art. 4 — Consegna e restituzione</strong><br>
+              L'accesso avviene tramite smart lock. Il Conduttore si impegna a riconsegnare la suite nelle stesse condizioni di consegna, libera da persone e cose.<br><br>
+              <strong>Art. 5 — Obblighi del conduttore</strong><br>
+              Il Conduttore si obbliga a: utilizzare la suite solo per uso turistico; non cedere il godimento a terzi; rispettare il regolamento della casa; non fumare all'interno; rispettare il silenzio dopo le ore 22:00; non introdurre animali senza previa autorizzazione scritta.<br><br>
+              <strong>Art. 6 — Caparra</strong><br>
+              Non è prevista caparra confirmatoria. In caso di danni alla suite, il Conduttore risponderà secondo le norme del codice civile.<br><br>
+              <strong>Art. 7 — Foro competente</strong><br>
+              Per qualsiasi controversia è competente il Foro di Palermo.<br><br>
+              <strong>Art. 8 — Privacy</strong><br>
+              I dati personali sono trattati ai sensi del GDPR 2016/679 esclusivamente per finalità connesse al presente contratto e agli obblighi di legge (Portale Alloggiati — Polizia di Stato).<br><br>
+              <em>Palermo, 07/03/2026</em>
+            </div>
+          </div>
+          <div id="scroll-hint" style="font-size:11.5px;color:var(--terra);text-align:center;margin-bottom:12px;font-weight:500;">
+            ↓ Scorri fino in fondo per continuare
+          </div>
+          <button id="btn-avanti-1" class="btn btn-primary" onclick="contrattoStep(2)" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
+            Avanti — Accetta le clausole →
+          </button>
+        </div>
+
+        <!-- STEP 2: CLAUSOLE -->
+        <div id="contratto-step2" style="display:none;">
+          <div class="s-card" style="margin-bottom:14px;">
+            <div class="s-card-header">✅ Accettazione clausole</div>
+            <div class="s-card-body" style="padding:12px 16px;display:flex;flex-direction:column;gap:12px;">
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="cl1" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
+                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Ho letto e accetto integralmente il contratto di locazione turistica</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="cl2" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
+                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Accetto il regolamento della casa (no fumo, silenzio ore 22, no animali)</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="cl3" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
+                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Autorizzo il trattamento dei dati personali ai sensi del GDPR per gli obblighi di legge</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+                <input type="checkbox" id="cl4" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
+                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Confermo i dati del soggiorno: Suite Tomasi di Lampedusa · 07–12 marzo 2026 · € 450</span>
+              </label>
+            </div>
+          </div>
+          <button id="btn-avanti-2" class="btn btn-primary" onclick="contrattoStep(3)" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
+            Avanti — Firma il contratto →
+          </button>
+        </div>
+
+        <!-- STEP 3: FIRMA -->
+        <div id="contratto-step3" style="display:none;">
+          <div class="s-card" style="margin-bottom:14px;">
+            <div class="s-card-header">✍️ Firma qui sotto con il dito</div>
+            <div class="s-card-body" style="padding:12px 16px;">
+              <canvas id="firma-canvas" width="320" height="150" style="border:1.5px solid var(--terra-l);border-radius:10px;background:white;display:block;width:100%;touch-action:none;cursor:crosshair;"></canvas>
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <button onclick="clearFirma()" class="btn btn-ghost btn-sm" style="flex:1;">🗑 Cancella</button>
+                <div style="font-size:11px;color:var(--soft);flex:2;text-align:center;line-height:1.4;padding-top:4px;">Firma con il dito o con il mouse</div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--sand);border-radius:10px;padding:12px;font-size:11.5px;color:var(--soft);line-height:1.6;margin-bottom:14px;text-align:center;">
+            🔒 Firmando digitalmente accetti tutte le condizioni.<br>Riceverai copia via email a <strong>marco.rossi@email.com</strong>
+          </div>
+          <button id="btn-firma" class="btn btn-primary" onclick="submitFirma()" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
+            ✍️ Firma e invia contratto
+          </button>
+        </div>
+
       </div>
       <div class="home-indicator"><div class="hi-bar"></div></div>
     </div>
@@ -1380,6 +1508,101 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
   }
 
+  // ── CONTRATTO ──
+  let firmaDrawing = false;
+  let firmaHasData = false;
+
+  function checkContrattoScroll(el) {
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+    if (atBottom) {
+      document.getElementById('btn-avanti-1').style.opacity = '1';
+      document.getElementById('btn-avanti-1').style.pointerEvents = 'auto';
+      document.getElementById('scroll-hint').style.display = 'none';
+    }
+  }
+
+  function contrattoStep(step) {
+    // Nascondi tutti gli step
+    document.getElementById('contratto-step1').style.display = 'none';
+    document.getElementById('contratto-step2').style.display = 'none';
+    document.getElementById('contratto-step3').style.display = 'none';
+
+    // Aggiorna indicatori
+    ['1','2','3'].forEach(s => {
+      const el = document.getElementById('cstep-'+s);
+      el.style.color = s == step ? 'var(--terra)' : 'var(--soft)';
+      el.style.borderBottomColor = s == step ? 'var(--terra)' : 'var(--terra-l)';
+      el.style.fontWeight = s == step ? '600' : '500';
+    });
+
+    document.getElementById('contratto-step'+step).style.display = 'block';
+
+    if (step === 3) initFirma();
+  }
+
+  function checkClausole() {
+    const all = ['cl1','cl2','cl3','cl4'].every(id => document.getElementById(id).checked);
+    const btn = document.getElementById('btn-avanti-2');
+    btn.style.opacity = all ? '1' : '0.4';
+    btn.style.pointerEvents = all ? 'auto' : 'none';
+  }
+
+  function initFirma() {
+    const canvas = document.getElementById('firma-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#2C2416';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const src = e.touches ? e.touches[0] : e;
+      return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+    }
+
+    canvas.addEventListener('mousedown',  e => { firmaDrawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove',  e => { if (!firmaDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); firmaHasData = true; updateFirmaBtn(); });
+    canvas.addEventListener('mouseup',    () => firmaDrawing = false);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); firmaDrawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }, {passive:false});
+    canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!firmaDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); firmaHasData = true; updateFirmaBtn(); }, {passive:false});
+    canvas.addEventListener('touchend',   () => firmaDrawing = false);
+  }
+
+  function updateFirmaBtn() {
+    const btn = document.getElementById('btn-firma');
+    if (firmaHasData) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+  }
+
+  function clearFirma() {
+    const canvas = document.getElementById('firma-canvas');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    firmaHasData = false;
+    const btn = document.getElementById('btn-firma');
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+  }
+
+  function submitFirma() {
+    document.getElementById('btn-firma').innerHTML = '⏳ Invio in corso...';
+    document.getElementById('btn-firma').style.opacity = '0.7';
+    setTimeout(() => {
+      // Nascondi badge contratto
+      const badge = document.getElementById('contratto-badge');
+      if (badge) badge.style.display = 'none';
+      const sub = document.getElementById('m-contratto-sub');
+      if (sub) sub.textContent = 'Firmato ✓';
+      // Vai a schermata successo
+      document.getElementById('success-title').textContent = 'Contratto firmato!';
+      document.getElementById('success-msg').textContent = 'Il contratto è stato firmato e inviato correttamente. Riceverai copia via email. Grazie!';
+      document.getElementById('success-icon').textContent = '✍️';
+      history = ['screen-home'];
+      goTo('screen-success');
+    }, 1800);
+  }
+
   // ── OPEN DOOR ──
   function openDoor(el, name) {
     const status = el.querySelector('.door-status');
@@ -1406,7 +1629,7 @@
   // ── CONFIGURAZIONE PAGAMENTI (modifica questi link) ──
   const PAYPAL_URL  = 'https://paypal.me/hermosahome';   // ← inserisci il tuo link PayPal.me
   const STRIPE_URL  = 'https://buy.stripe.com/XXXXXXXX'; // ← inserisci il tuo link Stripe
-  const WHATSAPP_NUM = '39340000000';                     // ← inserisci il tuo numero (senza +)
+  const WHATSAPP_NUM = '393284845555';                     // ← inserisci il tuo numero (senza +)
   const TELEGRAM_USER = 'hermosahome_pa';                 // ← inserisci il tuo username Telegram
   const EMAIL_INFO   = 'info@hermosahome.it';             // ← inserisci la tua email
 
@@ -1682,5 +1905,54 @@
     toast(l === 'it' ? '🇮🇹 Italiano' : '🇬🇧 English');
   }
 </script>
+
+<!-- PWA Install Banner -->
+<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--deep);color:white;padding:14px 18px;z-index:9999;display:none;align-items:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
+  <div style="flex:1;">
+    <div style="font-size:14px;font-weight:600;">📱 Installa Hermosa Home</div>
+    <div style="font-size:11.5px;color:rgba(255,255,255,.5);margin-top:2px;">Aggiungi alla schermata home per accesso rapido</div>
+  </div>
+  <button id="pwa-install-btn" style="background:var(--terra);color:white;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Installa</button>
+  <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:transparent;color:rgba(255,255,255,.4);border:none;font-size:20px;cursor:pointer;padding:4px;">✕</button>
+</div>
+
+<script>
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(reg) {
+      console.log('SW registrato:', reg.scope);
+    }).catch(function(err) {
+      console.log('SW errore:', err);
+    });
+  });
+}
+
+// ── PWA INSTALL PROMPT ──
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('pwa-banner').style.display = 'flex';
+});
+
+document.getElementById('pwa-install-btn').addEventListener('click', function() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(result) {
+    if (result.outcome === 'accepted') {
+      toast('✅ App installata!');
+    }
+    deferredPrompt = null;
+    document.getElementById('pwa-banner').style.display = 'none';
+  });
+});
+
+window.addEventListener('appinstalled', function() {
+  toast('🎉 Hermosa Home installata!');
+  document.getElementById('pwa-banner').style.display = 'none';
+});
+</script>
+
 </body>
 </html>
