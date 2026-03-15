@@ -339,11 +339,21 @@ function nav(id,el,title){
 // Modal
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-backdrop').forEach(b=>b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open')}));
+document.querySelectorAll('.modal-backdrop').forEach(function(b){
+  b.addEventListener('click', function(e){ if(e.target===b) b.classList.remove('open'); });
+});
 
 // Notify
 let nt;
-function notify(msg){const e=document.getElementById('notify-toast');document.getElementById('notify-text').textContent=msg;e.classList.add('show');clearTimeout(nt);nt=setTimeout(()=>e.classList.remove('show'),2800)}
+function notify(msg){
+  var e=document.getElementById('notify-toast');
+  if(!e) return;
+  var et=document.getElementById('notify-text');
+  if(et) et.textContent=msg;
+  e.classList.add('show');
+  clearTimeout(nt);
+  nt=setTimeout(function(){e.classList.remove('show');},2800);
+}
 
 function saveBooking(){
   // Leggi dati dal form
@@ -357,7 +367,7 @@ function saveBooking(){
   var importoEl = document.querySelector('#modal-booking input[type="number"]');
   var importo = importoEl ? importoEl.value : '';
 
-  if(!guestName){ notify('⚠️ Inserisci il nome dell'ospite'); return; }
+  if(!guestName){ notify('⚠️ Inserisci il nome ospite'); return; }
 
   // Colori per suite
   const suiteColors = {
