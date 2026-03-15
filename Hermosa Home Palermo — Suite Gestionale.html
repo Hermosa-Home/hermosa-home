@@ -250,6 +250,10 @@ function downloadDoc(nome) {
   notify('Download documento ' + nome + ' ✓');
 }
 
+function triggerDocUpload() {
+  document.getElementById('doc-file-input').click();
+}
+
 function handleDocUpload(input) {
   const file = input.files[0];
   if(!file) return;
@@ -318,13 +322,18 @@ const _td=document.getElementById('topbar-date');if(_td)_td.textContent=n.toLoca
 
 // Nav
 function nav(id,el,title){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  const _tt=document.getElementById('topbar-title');if(_tt)_tt.textContent=title||id;
-  if(el)el.classList.add('active');
-  else document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('active')});
-  if(id==='mappa'&&!mapInit)initMap();
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  var panel = document.getElementById('panel-'+id);
+  if(panel) panel.classList.add('active');
+  var tt = document.getElementById('topbar-title');
+  if(tt) tt.textContent = title||id;
+  if(el) el.classList.add('active');
+  else document.querySelectorAll('.nav-item').forEach(function(n){
+    var oc = n.getAttribute('onclick');
+    if(oc && oc.indexOf("'"+id+"'") > -1) n.classList.add('active');
+  });
+  if(id==='mappa' && !mapInit) initMap();
 }
 
 // Modal
@@ -338,11 +347,15 @@ function notify(msg){const e=document.getElementById('notify-toast');document.ge
 
 function saveBooking(){
   // Leggi dati dal form
-  const guestName = document.querySelector('#modal-booking input[type="text"]')?.value?.trim();
-  const suite = document.querySelector('#modal-booking select')?.value;
-  const checkin = document.querySelector('#modal-booking input[type="date"]')?.value;
-  const checkout = document.querySelectorAll('#modal-booking input[type="date"]')?.[1]?.value;
-  const importo = document.querySelector('#modal-booking input[type="number"]')?.value;
+  var mbInputs = document.querySelectorAll('#modal-booking input[type="text"]');
+  var guestName = mbInputs.length > 0 ? mbInputs[0].value.trim() : '';
+  var suiteEl = document.querySelector('#modal-booking select');
+  var suite = suiteEl ? suiteEl.value : '';
+  var dateInputs = document.querySelectorAll('#modal-booking input[type="date"]');
+  var checkin = dateInputs.length > 0 ? dateInputs[0].value : '';
+  var checkout = dateInputs.length > 1 ? dateInputs[1].value : '';
+  var importoEl = document.querySelector('#modal-booking input[type="number"]');
+  var importo = importoEl ? importoEl.value : '';
 
   if(!guestName){ notify('⚠️ Inserisci il nome dell'ospite'); return; }
 
@@ -466,9 +479,6 @@ function initMap(){
     className:'',iconAnchor:[40,12]
   });
 }
-
-// Esponi funzioni globalmente (fuori dal DOMContentLoaded)
-
 
 </script>
 </head>
@@ -1010,7 +1020,7 @@ function initMap(){
 
             <!-- ZONA UPLOAD -->
             <input type="file" id="doc-file-input" accept="image/*,application/pdf" style="display:none;" onchange="handleDocUpload(this)">
-            <div id="doc-upload-zone" onclick="document.getElementById('doc-file-input').click()" style="border:2px dashed var(--terra-l);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;" onmouseover="this.style.borderColor='var(--terra)';this.style.background='var(--terra-xl)'" onmouseout="this.style.borderColor='var(--terra-l)';this.style.background='transparent'">
+            <div id="doc-upload-zone" onclick="triggerDocUpload()" style="border:2px dashed var(--terra-l);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;" onmouseover="this.style.borderColor='var(--terra)';this.style.background='var(--terra-xl)'" onmouseout="this.style.borderColor='var(--terra-l)';this.style.background='transparent'">
               <div style="font-size:32px;margin-bottom:8px;">📄</div>
               <div style="font-size:14px;font-weight:600;color:var(--deep);margin-bottom:4px;">Clicca per caricare</div>
               <div style="font-size:12px;color:var(--soft);">JPG, PNG o PDF · max 10MB</div>
