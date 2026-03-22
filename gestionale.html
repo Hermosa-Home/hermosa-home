@@ -323,7 +323,13 @@ function saveDoc() {
 }
 
 function inviaAlloggiati(nome) {
-  notify('📤 ' + nome + ' inviato al Portale Alloggiati PS ✓');
+  window.open('https://alloggiatiweb.poliziadistato.it/PortaleAlloggiati/Access/Account/Login', '_blank');
+  // Registra invio su Firebase
+  if (window.fbSegnalaDocumento) {
+    var id = nome.toLowerCase().replace(/[^a-z]/g,'_');
+    window.fbSegnalaDocumento(id, { nome: nome, alloggiati_inviato: true, stato: 'inviato' });
+  }
+  notify('📤 Portale Alloggiati aperto — inserisci i dati di ' + nome);
 }
 
 function inviaGuidaOspiti() {
@@ -398,6 +404,17 @@ function inviaContratto(canale) {
     return;
   }
   notify('📄 Contratto inviato via ' + (canale === 'whatsapp' ? 'WhatsApp' : 'Email') + ' ✓');
+  // Salva stato contratto su Firebase
+  if (window.fbSalvaContratto) {
+    window.fbSalvaContratto({
+      ospite: ospiteNome,
+      suite: suiteName,
+      checkin: ciDate,
+      checkout: coDate,
+      canale: canale,
+      stato: 'inviato'
+    });
+  }
   closeModal('modal-contratto');
 }
 
@@ -564,7 +581,35 @@ function saveBooking(){
   }
 
   closeModal('modal-booking');
-  notify('✅ Prenotazione salvata · automazioni avviate');
+
+  // Salva su Firebase e genera link ospite
+  if (window.hhSalvaPrenotazione) {
+    window.hhSalvaPrenotazione({
+      ospite: guestName,
+      suite: suiteKey,
+      checkin: checkin,
+      checkout: checkout,
+      importo: importo,
+      email: document.querySelector('#modal-booking input[type="email"]') ? document.querySelector('#modal-booking input[type="email"]').value : ''
+    }).then(function(result) {
+      if (result) {
+        var msg = '✅ Prenotazione salvata!\n\n📱 Link app ospite:\n' + result.appLink;
+        notify('✅ Prenotazione salvata · link generato');
+        // Mostra modal con link
+        setTimeout(function() {
+          var appLink = result.appLink;
+          var waMsg = 'Gentile ' + guestName + ',\n\nbenvenuto/a a Hermosa Home!\n\n📱 La tua app personale:\n' + appLink + '\n\nHermosa Home · +39 328 484 5555 🌹';
+          if (confirm('Prenotazione salvata! Vuoi inviare il link app a ' + guestName + ' via WhatsApp?')) {
+            window.open('https://wa.me/393284845555?text=' + encodeURIComponent(waMsg), '_blank');
+          }
+        }, 500);
+      } else {
+        notify('✅ Prenotazione salvata localmente');
+      }
+    });
+  } else {
+    notify('✅ Prenotazione salvata · automazioni avviate');
+  }
 }
 
 // Templates
@@ -666,6 +711,295 @@ function initMap(){
 }
 
 </script>
+
+<!-- Firebase SDK - Gestionale -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, doc, setDoc, getDocs, onSnapshot, updateDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDb_qrNtRxLhMYGkha2bXEJP3jf5SAsIIA",
+    authDomain: "hermosahome-82675.firebaseapp.com",
+    projectId: "hermosahome-82675",
+    storageBucket: "hermosahome-82675.firebasestorage.app",
+    messagingSenderId: "1067621957341",
+    appId: "1:1067621957341:web:1a290245daec64ce362534"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── ASCOLTA AGGIORNAMENTI IN TEMPO REALE ──
+  function avviaSync() {
+    const q = query(collection(db, 'prenotazioni'), orderBy('creatoIl', 'desc'));
+    
+    onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const data = change.doc.data();
+        const id = change.doc.id;
+        
+        if (change.type === 'modified') {
+          // Contratto firmato
+          if (data.contrattoFirmato) aggiornaStatoContratto(id, data);
+          // Documento caricato
+          if (data.documentoCaricato) aggiornaStatoDocumento(id, data);
+          // Pagamento ricevuto
+          if (data.pagamentoRicevuto) aggiornaStatoPagamento(id, data);
+          
+          // Mostra notifica
+          const msg = data.ospite + ': ' + getMessaggioAggiornamento(data);
+          if (msg) mostraNotifficaRealtime(msg, id, data);
+        }
+      });
+    }, (error) => {
+      console.log('Sync errore:', error.message);
+    });
+  }
+
+  function getMessaggioAggiornamento(data) {
+    if (data.contrattoFirmato && !data._notificatoFirma) return '✍️ Contratto firmato!';
+    if (data.documentoCaricato && !data._notificatoDoc) return '📋 Documento caricato!';
+    if (data.pagamentoRicevuto && !data._notificatoPag) return '💳 Pagamento ricevuto!';
+    return '';
+  }
+
+  function aggiornaStatoContratto(id, data) {
+    // Cerca riga nella tabella contratti e aggiorna badge
+    const rows = document.querySelectorAll('#panel-contratti table tbody tr');
+    rows.forEach(function(row) {
+      if (row.textContent.includes(data.ospite)) {
+        const badgeCell = row.cells[3];
+        if (badgeCell) badgeCell.innerHTML = '<span class="badge bg">✍️ Firmato · ' + (data.contrattoFirmatoIl || 'oggi') + '</span>';
+      }
+    });
+  }
+
+  function aggiornaStatoDocumento(id, data) {
+    const rows = document.querySelectorAll('#panel-documenti table tbody tr');
+    rows.forEach(function(row) {
+      if (row.textContent.includes(data.ospite)) {
+        const statoCell = row.querySelector('[id$="-badge"]');
+        if (statoCell) statoCell.innerHTML = '<span class="badge bo">Da verificare</span>';
+      }
+    });
+  }
+
+  function aggiornaStatoPagamento(id, data) {
+    console.log('Pagamento ricevuto da:', data.ospite);
+  }
+
+  function mostraNotifficaRealtime(msg, id, data) {
+    // Aggiunge notifica alla lista notifiche
+    const lista = document.querySelector('#panel-notifiche .card-body');
+    if (lista) {
+      const item = document.createElement('div');
+      item.className = 'notif-item';
+      item.innerHTML = '<div class="ni-dot"></div><div class="ni-icon ni-g">🔔</div><div style="flex:1;"><div class="ni-title">' + msg + '</div><div class="ni-body">' + (data.ospite || '') + ' · ' + (data.suite || '') + '</div></div>';
+      lista.insertBefore(item, lista.firstChild);
+    }
+    // Mostra toast
+    if (window.notify) window.notify('🔔 ' + msg);
+  }
+
+  // ── SALVA NUOVA PRENOTAZIONE ──
+  window.hhSalvaPrenotazione = async function(dati) {
+    try {
+      const bookingId = 'HH-' + Date.now();
+      await setDoc(doc(db, 'prenotazioni', bookingId), {
+        ...dati,
+        creatoIl: serverTimestamp(),
+        contrattoFirmato: false,
+        documentoCaricato: false,
+        pagamentoRicevuto: false,
+        stato: 'nuovo'
+      });
+      // Genera link app ospiti con booking ID
+      const appLink = 'https://hermosa-home.github.io/hermosa-home?booking=' + bookingId;
+      console.log('Prenotazione salvata:', bookingId);
+      console.log('Link ospite:', appLink);
+      return { bookingId, appLink };
+    } catch(e) {
+      console.log('Errore salvataggio:', e.message);
+      return null;
+    }
+  };
+
+  // ── CARICA TUTTE LE PRENOTAZIONI ──
+  window.hhCaricaPrenotazioni = async function() {
+    try {
+      const q = query(collection(db, 'prenotazioni'), orderBy('creatoIl', 'desc'));
+      const snap = await getDocs(q);
+      const prenotazioni = [];
+      snap.forEach(d => prenotazioni.push({ id: d.id, ...d.data() }));
+      return prenotazioni;
+    } catch(e) {
+      console.log('Errore caricamento:', e.message);
+      return [];
+    }
+  };
+
+  // Avvia sincronizzazione quando DOM è pronto
+  document.addEventListener('DOMContentLoaded', function() {
+    avviaSync();
+    console.log('🔥 Firebase connesso — sync attivo');
+    // Mostra indicatore connessione
+    const userRole = document.querySelector('.user-role');
+    if (userRole) userRole.textContent = '🔥 Firebase · Sync attivo';
+  });
+</script>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDb_qrNtRxLhMYGkha2bXEJP3jf5SAsIIA",
+    authDomain: "hermosahome-82675.firebaseapp.com",
+    projectId: "hermosahome-82675",
+    storageBucket: "hermosahome-82675.firebasestorage.app",
+    messagingSenderId: "1067621957341",
+    appId: "1:1067621957341:web:1a290245daec64ce362534"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── ESPONI FUNZIONI FIREBASE GLOBALMENTE ──
+  window.db = db;
+  window.fbDoc = doc;
+  window.fbSetDoc = setDoc;
+  window.fbGetDoc = getDoc;
+  window.fbGetDocs = getDocs;
+  window.fbCollection = collection;
+  window.fbUpdateDoc = updateDoc;
+  window.fbOnSnapshot = onSnapshot;
+  window.fbTimestamp = serverTimestamp;
+
+  // ── CARICA PRENOTAZIONI IN TEMPO REALE ──
+  onSnapshot(collection(db, 'prenotazioni'), function(snapshot) {
+    snapshot.docChanges().forEach(function(change) {
+      var data = change.doc.data();
+      var id = change.doc.id;
+      if (change.type === 'added' || change.type === 'modified') {
+        aggiornaBadgePrenotazione(id, data);
+      }
+    });
+    aggiornaContatori();
+  });
+
+  // ── CARICA DOCUMENTI IN TEMPO REALE ──
+  onSnapshot(collection(db, 'documenti'), function(snapshot) {
+    var mancanti = 0;
+    snapshot.forEach(function(d) {
+      if (d.data().stato === 'mancante') mancanti++;
+    });
+    var badge = document.getElementById('badge-documenti');
+    if (badge) badge.textContent = mancanti || '';
+    if (badge) badge.style.display = mancanti ? 'flex' : 'none';
+  });
+
+  // ── CARICA CONTRATTI IN TEMPO REALE ──
+  onSnapshot(collection(db, 'contratti'), function(snapshot) {
+    var pendenti = 0;
+    snapshot.forEach(function(d) {
+      if (d.data().stato !== 'firmato') pendenti++;
+    });
+    var badge = document.querySelector('.nav-item[onclick*="contratti"] .nav-badge');
+    if (badge) badge.textContent = pendenti || '';
+  });
+
+  // ── FUNZIONI FIREBASE ──
+  window.fbSalvaPrenotazione = async function(dati) {
+    try {
+      var id = 'pren_' + Date.now();
+      await setDoc(doc(db, 'prenotazioni', id), {
+        ...dati,
+        stato: 'attivo',
+        creato: serverTimestamp()
+      });
+      console.log('Prenotazione salvata:', id);
+      return id;
+    } catch(e) {
+      console.error('Errore salvataggio:', e);
+      return null;
+    }
+  };
+
+  window.fbAggiornaStato = async function(collezione, id, aggiornamenti) {
+    try {
+      await updateDoc(doc(db, collezione, id), {
+        ...aggiornamenti,
+        aggiornato: serverTimestamp()
+      });
+      return true;
+    } catch(e) {
+      console.error('Errore aggiornamento:', e);
+      return false;
+    }
+  };
+
+  window.fbSalvaContratto = async function(dati) {
+    try {
+      var id = 'contr_' + Date.now();
+      await setDoc(doc(db, 'contratti', id), {
+        ...dati,
+        stato: 'inviato',
+        creato: serverTimestamp()
+      });
+      return id;
+    } catch(e) { return null; }
+  };
+
+  window.fbSegnalaDocumento = async function(ospiteId, dati) {
+    try {
+      await setDoc(doc(db, 'documenti', ospiteId), {
+        ...dati,
+        aggiornato: serverTimestamp()
+      });
+      return true;
+    } catch(e) { return false; }
+  };
+
+  window.fbRegistraPagamento = async function(dati) {
+    try {
+      var id = 'pag_' + Date.now();
+      await setDoc(doc(db, 'pagamenti', id), {
+        ...dati,
+        creato: serverTimestamp()
+      });
+      return id;
+    } catch(e) { return null; }
+  };
+
+  // Funzioni helper display
+  function aggiornaBadgePrenotazione(id, data) {
+    // Aggiorna tabella prenotazioni se già visibile
+    var tbody = document.querySelector('#panel-prenotazioni table tbody');
+    if (!tbody) return;
+    var existing = document.getElementById('row-' + id);
+    if (!existing && data.ospite) {
+      // Aggiunge nuova riga dalla dashboard Firebase
+      var tr = document.createElement('tr');
+      tr.id = 'row-' + id;
+      tr.innerHTML = '<td>' + (data.suite||'') + '</td><td><strong>' + (data.ospite||'') + '</strong></td>' +
+        '<td>' + (data.checkin||'') + '</td><td>' + (data.checkout||'') + '</td>' +
+        '<td><span class="badge bo">⏳ Firebase</span></td>' +
+        '<td><span class="badge br">⚠️</span></td>' +
+        '<td><span class="badge bg">€ ' + (data.importo||'—') + '</span></td>' +
+        '<td><button class="btn btn-ghost btn-sm">👁</button></td>';
+      tbody.appendChild(tr);
+    }
+  }
+
+  function aggiornaContatori() {
+    // Aggiorna il contatore azioni urgenti in dashboard
+  }
+
+  console.log('✅ Firebase Hermosa Home connesso!');
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 </head>
 <body>
 
