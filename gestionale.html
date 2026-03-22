@@ -15,6 +15,7 @@
 <meta name="description" content="Gestionale Hermosa Home — Via Mariano Stabile 124, Palermo">
 <link rel="manifest" href="manifest-gestionale.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%232C2416'/%3E%3Crect x='100' y='130' width='140' height='180' rx='10' fill='%23C4956A' opacity='.9'/%3E%3Crect x='270' y='130' width='140' height='80' rx='10' fill='%23C4956A' opacity='.6'/%3E%3Crect x='270' y='230' width='140' height='80' rx='10' fill='%23C4956A' opacity='.6'/%3E%3Crect x='100' y='330' width='310' height='60' rx='10' fill='%23C4956A' opacity='.4'/%3E%3Ctext x='256' y='460' text-anchor='middle' font-size='44' fill='%23C4956A' font-family='Georgia,serif'%3EHermosa%3C/text%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -656,14 +657,22 @@ function saveBooking(){
       if (result) {
         var msg = '✅ Prenotazione salvata!\n\n📱 Link app ospite:\n' + result.appLink;
         notify('✅ Prenotazione salvata · link generato');
-        // Mostra modal con link
+        // Mostra modal elegante invio app ospite
         setTimeout(function() {
           var appLink = result.appLink;
-          var waMsg = 'Gentile ' + guestName + ',\n\nbenvenuto/a a Hermosa Home!\n\n📱 La tua app personale:\n' + appLink + '\n\nHermosa Home · +39 328 484 5555 🌹';
-          if (confirm('Prenotazione salvata! Vuoi inviare il link app a ' + guestName + ' via WhatsApp?')) {
-            window.open('https://wa.me/393284845555?text=' + encodeURIComponent(waMsg), '_blank');
-          }
-        }, 500);
+          window._currentAppLink = appLink;
+          window._currentGuestName = guestName;
+          window._currentBookingId = result.bookingId;
+          var el = document.getElementById('invia-nome'); if(el) el.textContent = guestName;
+          var el2 = document.getElementById('invia-suite'); if(el2) el2.textContent = 'Suite ' + suiteKey;
+          var el3 = document.getElementById('invia-codice'); if(el3) el3.textContent = result.bookingId;
+          var el4 = document.getElementById('invia-link'); if(el4) el4.value = appLink;
+          // Precompila messaggio
+          var emailEl = document.querySelector('#modal-booking input[type="email"]');
+          var emailVal = emailEl ? emailEl.value : '';
+          var el5 = document.getElementById('invia-email'); if(el5 && emailVal) el5.value = emailVal;
+          openModal('modal-invia-app');
+        }, 400);
       } else {
         notify('✅ Prenotazione salvata localmente');
       }
@@ -3142,5 +3151,158 @@ window.addEventListener('appinstalled', function() {
     </div>
   </div>
 </div>
+
+<div class="modal-backdrop" id="modal-invia-app">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header" style="background:var(--deep);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:white;font-weight:400;">
+        📱 Invia app a <span id="invia-nome" style="color:var(--terra);">Ospite</span>
+      </div>
+      <button class="modal-close" style="color:white;background:rgba(255,255,255,.1);" onclick="closeModal('modal-invia-app')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--terra-xl);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:24px;">🏛</span>
+        <div>
+          <div style="font-size:13px;font-weight:600;" id="invia-suite">Suite</div>
+          <div style="font-size:11.5px;color:var(--soft);">Codice: <strong id="invia-codice"></strong></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="lbl">🔗 Link personalizzato per l'ospite</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="invia-link" readonly style="background:var(--sand);font-size:11px;font-family:monospace;">
+          <button class="btn btn-outline btn-sm" onclick="copiaLinkApp()">📋 Copia</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="lbl">Email ospite (opzionale)</label>
+        <input type="email" id="invia-email" placeholder="ospite@email.com">
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Invia tramite</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <button class="btn" style="background:#25D366;color:white;justify-content:center;" onclick="inviaAppWhatsApp()">🟢 WhatsApp</button>
+        <button class="btn btn-outline" style="justify-content:center;" onclick="inviaAppEmail()">✉️ Email</button>
+        <button class="btn btn-outline" style="justify-content:center;border-color:#229ED9;color:#229ED9;" onclick="inviaAppTelegram()">✈️ Telegram</button>
+        <button class="btn btn-outline" style="justify-content:center;" onclick="inviaAppSMS()">💬 SMS</button>
+      </div>
+      <div style="border:1.5px solid var(--terra-l);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:11px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">QR Code personalizzato — consegnalo al check-in</div>
+        <div id="qr-ospite-container" style="display:inline-block;padding:10px;background:white;border-radius:8px;"></div>
+        <div style="margin-top:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="stampaQROspite()">🖨 Stampa</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-invia-app')">Chiudi</button>
+      <button class="btn btn-primary" onclick="inviaAppTutti()">📤 Invia su tutti i canali</button>
+    </div>
+  </div>
+</div>
+<script>
+// ── INVIA APP OSPITE ──
+function getMsgOspite() {
+  var nome = document.getElementById('invia-nome');
+  var nomeVal = nome ? nome.textContent : 'Ospite';
+  var suite = document.getElementById('invia-suite');
+  var suiteVal = suite ? suite.textContent : 'Suite';
+  var link = document.getElementById('invia-link');
+  var linkVal = link ? link.value : '';
+  return '🏡 *Benvenuto a Hermosa Home, Palermo!*\n\nGentile ' + nomeVal + ',\n\nLa tua prenotazione è confermata per la *' + suiteVal + '*.\n\n📱 *La tua app personale:*\n' + linkVal + '\n\nNell app trovi tutto ciò di cui hai bisogno per il tuo soggiorno.\n\n📞 +39 328 484 5555\n✉️ info.hermosahome@gmail.com\n\nA presto! 🌹\n*Hermosa Home* · Via Mariano Stabile 124 · Palermo';
+}
+
+function inviaAppWhatsApp() {
+  window.open('https://wa.me/393284845555?text=' + encodeURIComponent(getMsgOspite()), '_blank');
+  notify('✅ WhatsApp aperto con messaggio personalizzato');
+}
+
+function inviaAppEmail() {
+  var emailEl = document.getElementById('invia-email');
+  var nomeEl = document.getElementById('invia-nome');
+  var suiteEl = document.getElementById('invia-suite');
+  var email = emailEl ? emailEl.value : '';
+  var nome = nomeEl ? nomeEl.textContent : 'Ospite';
+  var suite = suiteEl ? suiteEl.textContent : 'Suite';
+  var subject = 'La tua app personale — Hermosa Home Palermo';
+  window.open('mailto:' + email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(getMsgOspite()), '_blank');
+  notify('✅ Email aperta con messaggio personalizzato');
+}
+
+function inviaAppTelegram() {
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(document.getElementById('invia-link') ? document.getElementById('invia-link').value : '') + '&text=' + encodeURIComponent('App Hermosa Home — il tuo soggiorno a Palermo'), '_blank');
+  notify('✅ Telegram aperto');
+}
+
+function inviaAppSMS() {
+  var link = document.getElementById('invia-link');
+  var nome = document.getElementById('invia-nome');
+  var msg = 'Hermosa Home Palermo: la tua app personale per il soggiorno: ' + (link ? link.value : '');
+  window.open('sms:?body=' + encodeURIComponent(msg), '_blank');
+  notify('✅ SMS aperto');
+}
+
+function inviaAppTutti() {
+  inviaAppWhatsApp();
+  setTimeout(function() { inviaAppEmail(); }, 500);
+  notify('✅ Invio su WhatsApp ed Email avviato!');
+}
+
+function copiaLinkApp() {
+  var el = document.getElementById('invia-link');
+  if (el && navigator.clipboard) {
+    navigator.clipboard.writeText(el.value).then(function() { notify('📋 Link copiato!'); });
+  }
+}
+
+function stampaQROspite() {
+  var link = document.getElementById('invia-link');
+  var nome = document.getElementById('invia-nome');
+  var suite = document.getElementById('invia-suite');
+  if (!link) return;
+  var win = window.open('', '_blank');
+  win.document.write('<html><head><title>QR ' + (nome ? nome.textContent : '') + '</title>' +
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
+    '<style>body{font-family:Georgia,serif;text-align:center;padding:40px;background:#FAF7F2;}' +
+    'h2{color:#2C2416;font-size:24px;margin-bottom:4px;}' +
+    'p{color:#9B8B78;font-size:14px;margin-bottom:20px;}' +
+    '#qr{display:inline-block;padding:16px;background:white;border:2px solid #E8D5BE;border-radius:12px;}' +
+    '.footer{margin-top:20px;color:#C4956A;font-size:13px;}</style></head><body>' +
+    '<h2>Hermosa Home · Palermo 🌹</h2>' +
+    '<p>App personale per <strong>' + (nome ? nome.textContent : '') + '</strong> · ' + (suite ? suite.textContent : '') + '</p>' +
+    '<div id="qr"></div>' +
+    '<p style="font-size:11px;color:#9B8B78;margin-top:12px;">Scansiona con la fotocamera</p>' +
+    '<div class="footer">Via Mariano Stabile 124, 3° piano · +39 328 484 5555</div>' +
+    '<script>new QRCode(document.getElementById("qr"),{text:"' + link.value + '",width:220,height:220,colorDark:"#2C2416",colorLight:"#ffffff"});<\/script>' +
+    '</body></html>');
+  win.document.close();
+  setTimeout(function() { win.print(); }, 800);
+}
+
+// Genera QR nel modal quando si apre
+var _qrOspiteInstance = null;
+var _origOpenModal = window.openModal;
+window.openModal = function(id) {
+  if (_origOpenModal) _origOpenModal(id);
+  if (id === 'modal-invia-app') {
+    setTimeout(function() {
+      var container = document.getElementById('qr-ospite-container');
+      var linkEl = document.getElementById('invia-link');
+      if (container && linkEl && linkEl.value) {
+        container.innerHTML = '';
+        if (typeof QRCode !== 'undefined') {
+          new QRCode(container, {
+            text: linkEl.value,
+            width: 140, height: 140,
+            colorDark: '#2C2416',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        }
+      }
+    }, 300);
+  }
+};
+</script>
 </body>
 </html>
