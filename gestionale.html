@@ -253,8 +253,15 @@ function verificaDoc(id) {
 }
 
 function verificaDocFromPreview() {
-  if(currentPreviewId) verificaDoc(currentPreviewId);
+  if(currentPreviewId) {
+    verificaDoc(currentPreviewId);
+    // Aggiorna Firebase
+    if (window.fbAggiornaStato) {
+      window.fbAggiornaStato('documenti', currentPreviewId, {stato: 'verificato'});
+    }
+  }
   closeModal('modal-doc-preview');
+  notify('✅ Documento verificato e approvato!');
 }
 
 function downloadDoc(nome) {
@@ -320,6 +327,49 @@ function saveDoc() {
 
   resetDocUpload();
   notify('💾 Documento salvato · In attesa di verifica');
+}
+
+function salvaPulizia() {
+  var suite = document.getElementById('pulizia-suite');
+  var tipo = document.getElementById('pulizia-tipo');
+  var data = document.getElementById('pulizia-data');
+  var ora = document.getElementById('pulizia-ora');
+  var note = document.getElementById('pulizia-note');
+  var suiteVal = suite ? suite.value : '';
+  var tipoVal = tipo ? tipo.value : '';
+  var dataVal = data && data.value ? new Date(data.value).toLocaleDateString('it-IT') : 'da definire';
+  var oraVal = ora ? ora.value : '10:00';
+
+  // Salva su Firebase
+  if (window.fbSalvaPrenotazione) {
+    var id = 'pul_' + Date.now();
+    if (window.db && window.fbDoc && window.fbSetDoc && window.fbTimestamp) {
+      window.fbSetDoc(window.fbDoc(window.db, 'pulizie', id), {
+        suite: suiteVal,
+        tipo: tipoVal,
+        data: dataVal,
+        ora: oraVal,
+        note: note ? note.value : '',
+        stato: 'programmata',
+        creato: window.fbTimestamp()
+      });
+    }
+  }
+
+  // Aggiorna UI
+  var list = document.querySelector('#panel-pulizie .card-body');
+  if (list) {
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);';
+    div.innerHTML = '<input type="checkbox" style="accent-color:var(--terra);width:16px;height:16px;">' +
+      '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">' + suiteVal + '</div>' +
+      '<div style="font-size:11px;color:var(--soft);">' + tipoVal + ' · ' + dataVal + ' ore ' + oraVal + '</div></div>' +
+      '<span style="background:#FFF0E0;color:#C07820;padding:2px 8px;border-radius:20px;font-size:11px;">⏳ Programmata</span>';
+    list.insertBefore(div, list.firstChild);
+  }
+
+  closeModal('modal-pulizie');
+  notify('🧹 Pulizia programmata per ' + suiteVal + ' · ' + dataVal + ' ✓');
 }
 
 function inviaAlloggiati(nome) {
@@ -413,6 +463,17 @@ function inviaContratto(canale) {
       checkout: coDate,
       canale: canale,
       stato: 'inviato'
+    });
+  }
+  // Crea notifica
+  if (window.db && window.fbDoc && window.fbSetDoc && window.fbTimestamp) {
+    window.fbSetDoc(window.fbDoc(window.db, 'notifiche', 'contr_' + Date.now()), {
+      tipo: 'contratto_inviato',
+      ospite: ospiteNome,
+      suite: suiteName,
+      messaggio: 'Contratto inviato a ' + ospiteNome + ' via ' + canale,
+      letto: false,
+      creato: window.fbTimestamp()
     });
   }
   closeModal('modal-contratto');
@@ -739,14 +800,9 @@ function initMap(){
         const id = change.doc.id;
         
         if (change.type === 'modified') {
-          // Contratto firmato
           if (data.contrattoFirmato) aggiornaStatoContratto(id, data);
-          // Documento caricato
           if (data.documentoCaricato) aggiornaStatoDocumento(id, data);
-          // Pagamento ricevuto
           if (data.pagamentoRicevuto) aggiornaStatoPagamento(id, data);
-          
-          // Mostra notifica
           const msg = data.ospite + ': ' + getMessaggioAggiornamento(data);
           if (msg) mostraNotifficaRealtime(msg, id, data);
         }
@@ -754,6 +810,117 @@ function initMap(){
     }, (error) => {
       console.log('Sync errore:', error.message);
     });
+
+    // ── ASCOLTA COLLEZIONE DOCUMENTI ──
+    onSnapshot(collection(db, 'documenti'), (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added' || change.type === 'modified') {
+          const d = change.doc.data();
+          if (d.stato === 'da_verificare' && d.ospite) {
+            // Aggiorna tabella documenti nel gestionale
+            const rows = document.querySelectorAll('#panel-documenti table tbody tr');
+            let trovato = false;
+            rows.forEach(function(row) {
+              if (row.textContent.toLowerCase().includes(d.ospite.toLowerCase())) {
+                trovato = true;
+                const badgeCell = row.querySelector('[id$="-badge"]') || row.cells[4];
+                if (badgeCell) badgeCell.innerHTML = '<span class="badge bo">Da verificare</span>';
+                const dataCell = row.cells[3];
+                if (dataCell && d.caricato_il) dataCell.textContent = 'Oggi';
+              }
+            });
+            // Mostra notifica toast
+            setTimeout(function() {
+              if (window.notify) window.notify('📋 ' + d.ospite + ' ha caricato un documento — Suite ' + (d.suite||''));
+            }, 300);
+            // Aggiorna badge nav
+            var navBadge = document.querySelector('.nav-item[onclick*="documenti"] .nav-badge');
+            if (navBadge) { navBadge.textContent = parseInt(navBadge.textContent||0) + 1; navBadge.style.display='flex'; }
+          }
+          if (d.stato === 'verificato') {
+            setTimeout(function() {
+              if (window.notify) window.notify('✅ Documento di ' + (d.ospite||'ospite') + ' verificato');
+            }, 300);
+          }
+        }
+      });
+    });
+
+    // ── ASCOLTA NOTIFICHE GENERALI ──
+    onSnapshot(collection(db, 'notifiche'), (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const n = change.doc.data();
+          const id = change.doc.id;
+          if (!n.letto) {
+            // 1. Toast notifica
+            setTimeout(function() {
+              if (n.tipo === 'contratto_firmato' && window.notify) window.notify('✍️ ' + (n.ospite||'Ospite') + ' ha firmato il contratto!');
+              if (n.tipo === 'documento_caricato' && window.notify) window.notify('📋 ' + (n.ospite||'Ospite') + ' ha caricato un documento!');
+              if (n.tipo === 'pagamento_effettuato' && window.notify) window.notify('💳 Pagamento ricevuto da ' + (n.ospite||'Ospite'));
+            }, 400);
+
+            // 2. Aggiorna lista notifiche nel panel
+            aggiungiNotificaUI(id, n);
+
+            // 3. Aggiorna tabella contratti se contratto firmato
+            if (n.tipo === 'contratto_firmato') {
+              const rows = document.querySelectorAll('#panel-contratti table tbody tr');
+              rows.forEach(function(row) {
+                if (row.textContent.includes(n.ospite||'')) {
+                  const badgeCell = row.cells[3];
+                  if (badgeCell) badgeCell.innerHTML = '<span class="badge bg">✍️ Firmato · oggi</span>';
+                }
+              });
+              // Aggiorna badge azioni urgenti
+              var azioni = document.querySelector('.stat-card.sc-r .sv');
+              if (azioni) {
+                var num = parseInt(azioni.textContent) || 0;
+                if (num > 0) azioni.textContent = num - 1;
+              }
+            }
+
+            // 4. Aggiorna tabella documenti se documento caricato
+            if (n.tipo === 'documento_caricato') {
+              const rows = document.querySelectorAll('#panel-documenti table tbody tr');
+              rows.forEach(function(row) {
+                if (row.textContent.includes(n.ospite||'')) {
+                  const badgeCell = row.querySelector('[id$="-badge"]');
+                  if (badgeCell) badgeCell.innerHTML = '<span class="badge bo">Da verificare</span>';
+                }
+              });
+            }
+
+            // 5. Aggiorna badge notifiche nella sidebar
+            var sidebarBadge = document.querySelector('.nav-item[onclick*="notifiche"] .nav-badge');
+            if (sidebarBadge) {
+              var count = parseInt(sidebarBadge.textContent) || 0;
+              sidebarBadge.textContent = count + 1;
+            }
+          }
+        }
+      });
+    });
+  }
+
+  function aggiungiNotificaUI(id, n) {
+    var list = document.querySelector('#panel-notifiche .card .card-body');
+    if (!list) return;
+    var icons = {contratto_firmato:'✍️', documento_caricato:'📋', pagamento_effettuato:'💳'};
+    var colors = {contratto_firmato:'ni-g', documento_caricato:'ni-b', pagamento_effettuato:'ni-g'};
+    var icon = icons[n.tipo] || '🔔';
+    var color = colors[n.tipo] || 'ni-b';
+    var div = document.createElement('div');
+    div.className = 'notif-item';
+    div.id = 'notif-' + id;
+    div.innerHTML =
+      '<div class="ni-dot"></div>' +
+      '<div class="ni-icon ' + color + '">' + icon + '</div>' +
+      '<div style="flex:1;">' +
+        '<div class="ni-title">' + (n.messaggio || n.tipo) + '</div>' +
+        '<div class="ni-body">' + (n.suite || '') + ' · adesso</div>' +
+      '</div>';
+    list.insertBefore(div, list.firstChild);
   }
 
   function getMessaggioAggiornamento(data) {
@@ -848,157 +1015,6 @@ function initMap(){
   });
 </script>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-  import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDb_qrNtRxLhMYGkha2bXEJP3jf5SAsIIA",
-    authDomain: "hermosahome-82675.firebaseapp.com",
-    projectId: "hermosahome-82675",
-    storageBucket: "hermosahome-82675.firebasestorage.app",
-    messagingSenderId: "1067621957341",
-    appId: "1:1067621957341:web:1a290245daec64ce362534"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // ── ESPONI FUNZIONI FIREBASE GLOBALMENTE ──
-  window.db = db;
-  window.fbDoc = doc;
-  window.fbSetDoc = setDoc;
-  window.fbGetDoc = getDoc;
-  window.fbGetDocs = getDocs;
-  window.fbCollection = collection;
-  window.fbUpdateDoc = updateDoc;
-  window.fbOnSnapshot = onSnapshot;
-  window.fbTimestamp = serverTimestamp;
-
-  // ── CARICA PRENOTAZIONI IN TEMPO REALE ──
-  onSnapshot(collection(db, 'prenotazioni'), function(snapshot) {
-    snapshot.docChanges().forEach(function(change) {
-      var data = change.doc.data();
-      var id = change.doc.id;
-      if (change.type === 'added' || change.type === 'modified') {
-        aggiornaBadgePrenotazione(id, data);
-      }
-    });
-    aggiornaContatori();
-  });
-
-  // ── CARICA DOCUMENTI IN TEMPO REALE ──
-  onSnapshot(collection(db, 'documenti'), function(snapshot) {
-    var mancanti = 0;
-    snapshot.forEach(function(d) {
-      if (d.data().stato === 'mancante') mancanti++;
-    });
-    var badge = document.getElementById('badge-documenti');
-    if (badge) badge.textContent = mancanti || '';
-    if (badge) badge.style.display = mancanti ? 'flex' : 'none';
-  });
-
-  // ── CARICA CONTRATTI IN TEMPO REALE ──
-  onSnapshot(collection(db, 'contratti'), function(snapshot) {
-    var pendenti = 0;
-    snapshot.forEach(function(d) {
-      if (d.data().stato !== 'firmato') pendenti++;
-    });
-    var badge = document.querySelector('.nav-item[onclick*="contratti"] .nav-badge');
-    if (badge) badge.textContent = pendenti || '';
-  });
-
-  // ── FUNZIONI FIREBASE ──
-  window.fbSalvaPrenotazione = async function(dati) {
-    try {
-      var id = 'pren_' + Date.now();
-      await setDoc(doc(db, 'prenotazioni', id), {
-        ...dati,
-        stato: 'attivo',
-        creato: serverTimestamp()
-      });
-      console.log('Prenotazione salvata:', id);
-      return id;
-    } catch(e) {
-      console.error('Errore salvataggio:', e);
-      return null;
-    }
-  };
-
-  window.fbAggiornaStato = async function(collezione, id, aggiornamenti) {
-    try {
-      await updateDoc(doc(db, collezione, id), {
-        ...aggiornamenti,
-        aggiornato: serverTimestamp()
-      });
-      return true;
-    } catch(e) {
-      console.error('Errore aggiornamento:', e);
-      return false;
-    }
-  };
-
-  window.fbSalvaContratto = async function(dati) {
-    try {
-      var id = 'contr_' + Date.now();
-      await setDoc(doc(db, 'contratti', id), {
-        ...dati,
-        stato: 'inviato',
-        creato: serverTimestamp()
-      });
-      return id;
-    } catch(e) { return null; }
-  };
-
-  window.fbSegnalaDocumento = async function(ospiteId, dati) {
-    try {
-      await setDoc(doc(db, 'documenti', ospiteId), {
-        ...dati,
-        aggiornato: serverTimestamp()
-      });
-      return true;
-    } catch(e) { return false; }
-  };
-
-  window.fbRegistraPagamento = async function(dati) {
-    try {
-      var id = 'pag_' + Date.now();
-      await setDoc(doc(db, 'pagamenti', id), {
-        ...dati,
-        creato: serverTimestamp()
-      });
-      return id;
-    } catch(e) { return null; }
-  };
-
-  // Funzioni helper display
-  function aggiornaBadgePrenotazione(id, data) {
-    // Aggiorna tabella prenotazioni se già visibile
-    var tbody = document.querySelector('#panel-prenotazioni table tbody');
-    if (!tbody) return;
-    var existing = document.getElementById('row-' + id);
-    if (!existing && data.ospite) {
-      // Aggiunge nuova riga dalla dashboard Firebase
-      var tr = document.createElement('tr');
-      tr.id = 'row-' + id;
-      tr.innerHTML = '<td>' + (data.suite||'') + '</td><td><strong>' + (data.ospite||'') + '</strong></td>' +
-        '<td>' + (data.checkin||'') + '</td><td>' + (data.checkout||'') + '</td>' +
-        '<td><span class="badge bo">⏳ Firebase</span></td>' +
-        '<td><span class="badge br">⚠️</span></td>' +
-        '<td><span class="badge bg">€ ' + (data.importo||'—') + '</span></td>' +
-        '<td><button class="btn btn-ghost btn-sm">👁</button></td>';
-      tbody.appendChild(tr);
-    }
-  }
-
-  function aggiornaContatori() {
-    // Aggiorna il contatore azioni urgenti in dashboard
-  }
-
-  console.log('✅ Firebase Hermosa Home connesso!');
-  window.dispatchEvent(new Event('firebase-ready'));
-</script>
 
 </head>
 <body>
@@ -1460,9 +1476,9 @@ function initMap(){
           <table>
             <thead><tr><th>Ospite</th><th>Suite</th><th>Soggiorno</th><th>Stato</th><th>Azioni</th></tr></thead>
             <tbody>
-              <tr><td><strong>Marco Rossi</strong></td><td>Tomasi di Lampedusa</td><td>7–12 mar</td><td><span class="badge bg">✍️ Firmato · 07/03</span></td><td><button class="btn btn-ghost btn-sm" onclick="notify('Download in corso...')">📥 PDF</button></td></tr>
-              <tr><td><strong>Sophie Müller</strong></td><td>Florio</td><td>8–15 mar</td><td><span class="badge bo">⏳ Inviato · in attesa</span></td><td><button class="btn btn-ghost btn-sm" onclick="notify('Reminder inviato ✓')">📤 Sollecita</button></td></tr>
-              <tr><td><strong>Luca Ferrari</strong></td><td>Stabile</td><td>10–13 mar</td><td><span class="badge bg">✍️ Firmato · 06/03</span></td><td><button class="btn btn-ghost btn-sm" onclick="notify('Download in corso...')">📥 PDF</button></td></tr>
+              <tr><td><strong>Marco Rossi</strong></td><td>Tomasi di Lampedusa</td><td>7–12 mar</td><td><span class="badge bg">✍️ Firmato · 07/03</span></td><td><button class="btn btn-ghost btn-sm" onclick="apriContratto('Marco Rossi','Tomasi di Lampedusa','07/03/2026','12/03/2026','firmato')">👁 Vedi</button><button class="btn btn-ghost btn-sm" onclick="notify('Download PDF in corso...')">📥 PDF</button></td></tr>
+              <tr><td><strong>Sophie Müller</strong></td><td>Florio</td><td>8–15 mar</td><td><span class="badge bo">⏳ Inviato · in attesa</span></td><td><button class="btn btn-ghost btn-sm" onclick="apriContratto('Sophie Müller','Florio','08/03/2026','15/03/2026','in_attesa')">👁 Vedi</button><button class="btn btn-ghost btn-sm" onclick="notify('Reminder inviato ✓')">📤 Sollecita</button></td></tr>
+              <tr><td><strong>Luca Ferrari</strong></td><td>Stabile</td><td>10–13 mar</td><td><span class="badge bg">✍️ Firmato · 06/03</span></td><td><button class="btn btn-ghost btn-sm" onclick="apriContratto('Luca Ferrari','Stabile','10/03/2026','13/03/2026','firmato')">👁 Vedi</button><button class="btn btn-ghost btn-sm" onclick="notify('Download PDF in corso...')">📥 PDF</button></td></tr>
               <tr><td><strong>Anna Bianchi</strong></td><td>Tomasi di Lampedusa</td><td>14–18 mar</td><td><span class="badge br">⚠️ Non inviato</span></td><td><button class="btn btn-primary btn-sm" onclick="openModal('modal-contratto')">📄 Invia ora</button></td></tr>
             </tbody>
           </table>
@@ -1750,16 +1766,17 @@ function initMap(){
     <div class="panel" id="panel-anagrafica">
       <div class="grid-2">
         <div class="card">
-          <div class="card-header"><div class="card-title">Dati struttura</div><button class="btn btn-primary btn-sm" onclick="notify('Dati salvati ✓')">Salva</button></div>
+          <div class="card-header"><div class="card-title">Dati struttura</div><button class="btn btn-primary btn-sm" onclick="salvaAnagrafica()">Salva</button></div>
           <div class="card-body">
-            <div class="form-group"><label class="lbl">Nome struttura</label><input type="text" value="Hermosa Home di Alessandra Trapani"></div>
-            <div class="form-group"><label class="lbl">Indirizzo</label><input type="text" value="Via Mariano Stabile 124, Piano Terzo"></div>
-            <div class="form-group"><label class="lbl">Città</label><input type="text" value="Palermo (PA) · 90139"></div>
+            <div class="form-group"><label class="lbl">Nome struttura</label><input type="text" id="ana-nome" value="Hermosa Home di Alessandra Trapani"></div>
+            <div class="form-group"><label class="lbl">Indirizzo</label><input type="text" id="ana-indirizzo" value="Via Mariano Stabile 124, Piano Terzo"></div>
+            <div class="form-group"><label class="lbl">Città</label><input type="text" id="ana-citta" value="Palermo (PA) · 90139"></div>
             <div class="form-row">
-              <div class="form-group"><label class="lbl">Check-in default</label><input type="time" value="14:00"></div>
-              <div class="form-group"><label class="lbl">Check-out default</label><input type="time" value="10:00"></div>
+              <div class="form-group"><label class="lbl">Check-in default</label><input type="time" id="ana-checkin" value="14:00"></div>
+              <div class="form-group"><label class="lbl">Check-out default</label><input type="time" id="ana-checkout" value="10:00"></div>
             </div>
-            <div class="form-group"><label class="lbl">Telefono</label><input type="text" value="+39 328 484 5555"></div>
+            <div class="form-group"><label class="lbl">Telefono</label><input type="text" id="ana-tel" value="+39 328 484 5555"></div>
+            <div class="form-group"><label class="lbl">Email</label><input type="text" id="ana-email" value="info.hermosahome@gmail.com"></div>
           </div>
         </div>
         <div class="card">
@@ -1780,6 +1797,85 @@ function initMap(){
           </div>
         </div>
       </div>
+
+      <!-- EDITOR MODELLO CONTRATTO -->
+      <div class="card" style="margin-top:0;">
+        <div class="card-header">
+          <div class="card-title">📄 Modello contratto</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="resetContratto()">↺ Ripristina default</button>
+            <button class="btn btn-primary btn-sm" onclick="salvaContratto()">💾 Salva modifiche</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:#3730A3;line-height:1.7;">
+            ✏️ Modifica liberamente il testo del contratto. Le modifiche verranno applicate a tutti i nuovi contratti generati. Usa i <strong>segnaposto</strong> per inserire dati dinamici dell'ospite.
+          </div>
+
+          <!-- Segnaposto disponibili -->
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <span style="font-size:11px;color:var(--mid);padding:3px 8px;background:var(--sand);border-radius:6px;cursor:pointer;border:1px solid var(--terra-l);" onclick="inserisciSegnaposto('{OSPITE}')">+ {OSPITE}</span>
+            <span style="font-size:11px;color:var(--mid);padding:3px 8px;background:var(--sand);border-radius:6px;cursor:pointer;border:1px solid var(--terra-l);" onclick="inserisciSegnaposto('{SUITE}')">+ {SUITE}</span>
+            <span style="font-size:11px;color:var(--mid);padding:3px 8px;background:var(--sand);border-radius:6px;cursor:pointer;border:1px solid var(--terra-l);" onclick="inserisciSegnaposto('{CHECKIN}')">+ {CHECKIN}</span>
+            <span style="font-size:11px;color:var(--mid);padding:3px 8px;background:var(--sand);border-radius:6px;cursor:pointer;border:1px solid var(--terra-l);" onclick="inserisciSegnaposto('{CHECKOUT}')">+ {CHECKOUT}</span>
+            <span style="font-size:11px;color:var(--mid);padding:3px 8px;background:var(--sand);border-radius:6px;cursor:pointer;border:1px solid var(--terra-l);" onclick="inserisciSegnaposto('{PREZZO}')">+ {PREZZO}</span>
+            <span style="font-size:11px;color:var(--mid);padding:3px 8px;background:var(--sand);border-radius:6px;cursor:pointer;border:1px solid var(--terra-l);" onclick="inserisciSegnaposto('{TOTALE}')">+ {TOTALE}</span>
+          </div>
+
+          <!-- Articoli del contratto modificabili -->
+          <div style="display:flex;flex-direction:column;gap:12px;" id="contratto-articoli">
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 1 — Oggetto</div>
+              <textarea id="art1" style="width:100%;min-height:70px;font-size:13px;line-height:1.7;">Il Locatore concede in locazione al Conduttore {OSPITE} la Suite {SUITE}, sita in Via Mariano Stabile 124, Piano Terzo, 90139 Palermo (PA), denominata "Suite {SUITE}".</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 2 — Durata</div>
+              <textarea id="art2" style="width:100%;min-height:70px;font-size:13px;line-height:1.7;">Il soggiorno ha durata dal {CHECKIN} ore 14:00 al {CHECKOUT} ore 10:00. Il contratto non è rinnovabile tacitamente. In caso di ritardo nel check-out sarà addebitata una penale oraria.</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 3 — Corrispettivo e pagamento</div>
+              <textarea id="art3" style="width:100%;min-height:90px;font-size:13px;line-height:1.7;">Il corrispettivo totale è pari a € {TOTALE} (€ {PREZZO}/notte). Il pagamento dovrà essere effettuato tramite PayPal, Stripe o bonifico bancario entro la data di check-in. Il Conduttore dovrà essere in possesso di una carta di credito valida (Visa, Mastercard o American Express) da esibire al momento del check-in come garanzia per eventuali danni o servizi aggiuntivi. In assenza di carta di credito valida, il Locatore si riserva il diritto di non consentire l'accesso alla struttura.</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 4 — Obblighi del Conduttore</div>
+              <textarea id="art4" style="width:100%;min-height:90px;font-size:13px;line-height:1.7;">Il Conduttore si obbliga a: utilizzare la suite esclusivamente per uso turistico; non cedere il godimento a terzi; rispettare il regolamento della casa; vietato fumare all'interno della struttura; rispettare il silenzio dopo le ore 22:00; non introdurre animali senza previa autorizzazione scritta; non organizzare feste o eventi; riconsegnare la suite nelle stesse condizioni di consegna.</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 5 — Caparra e danni</div>
+              <textarea id="art5" style="width:100%;min-height:70px;font-size:13px;line-height:1.7;">Non è prevista caparra confirmatoria. Tuttavia, il Conduttore risponde di eventuali danni alla struttura, agli arredi e alle attrezzature. L'importo dei danni verrà addebitato sulla carta di credito fornita al check-in.</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 6 — Cancellazione</div>
+              <textarea id="art6" style="width:100%;min-height:80px;font-size:13px;line-height:1.7;">Cancellazione gratuita fino a 7 giorni prima del check-in. Cancellazione tra 7 e 3 giorni prima: rimborso del 50%. Cancellazione entro 3 giorni dal check-in o no-show: nessun rimborso. La cancellazione deve essere comunicata per iscritto via email a info.hermosahome@gmail.com.</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 7 — Privacy e Alloggiati</div>
+              <textarea id="art7" style="width:100%;min-height:70px;font-size:13px;line-height:1.7;">I dati personali sono trattati ai sensi del GDPR 2016/679 esclusivamente per finalità connesse al presente contratto. Come previsto dalla normativa italiana, i dati degli ospiti verranno comunicati al Portale Alloggiati della Polizia di Stato entro 24 ore dall'arrivo.</textarea>
+            </div>
+
+            <div class="contratto-art">
+              <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Art. 8 — Foro competente</div>
+              <textarea id="art8" style="width:100%;min-height:50px;font-size:13px;line-height:1.7;">Per qualsiasi controversia derivante dal presente contratto è competente esclusivamente il Foro di Palermo.</textarea>
+            </div>
+
+          </div>
+
+          <!-- Anteprima -->
+          <div style="margin-top:16px;border-top:1px solid var(--terra-l);padding-top:14px;">
+            <button class="btn btn-outline btn-sm" onclick="toggleAnteprima()" id="btn-anteprima">👁 Mostra anteprima</button>
+            <div id="anteprima-contratto" style="display:none;margin-top:12px;background:white;border:1px solid var(--terra-l);border-radius:10px;padding:20px;font-size:12.5px;line-height:1.9;color:var(--mid);"></div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
     </div>
 
@@ -1892,9 +1988,120 @@ function initMap(){
 
     <!-- ═══════ REGISTRO ALLOGGIATI ═══════ -->
     <div class="panel" id="panel-alloggiati">
+
+      <!-- GENERATORE FILE TXT -->
       <div class="card" style="margin-bottom:18px;">
         <div class="card-header">
-          <div class="card-title">🏛 Portale Alloggiati — Polizia di Stato</div>
+          <div class="card-title">📄 Genera file TXT per Portale Alloggiati</div>
+          <div style="display:flex;gap:8px;">
+            <a href="https://alloggiatiweb.poliziadistato.it" target="_blank" class="btn btn-outline btn-sm">Apri portale ↗</a>
+            <button class="btn btn-primary btn-sm" onclick="generaFileTXT()">⬇️ Scarica file TXT</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="background:#EEF2FF;border:1.5px solid #C7D2FE;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:#3730A3;line-height:1.7;">
+            📋 Compila i dati dell'ospite → clicca <strong>"Scarica file TXT"</strong> → carica il file sul portale Alloggiati Web della Polizia di Stato.<br>
+            <strong>Percorso sul portale:</strong> Accedi → Area di Lavoro → <strong>Invio File</strong> → Sfoglia → seleziona il file → Elabora → Invia
+          </div>
+
+          <!-- Form dati ospite -->
+          <div id="alloggiati-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="lbl">Tipo alloggiato</label>
+                <select id="al-tipo">
+                  <option value="16">Ospite singolo</option>
+                  <option value="17">Capo famiglia</option>
+                  <option value="18">Capo gruppo</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="lbl">Data arrivo</label>
+                <input type="date" id="al-arrivo">
+              </div>
+              <div class="form-group">
+                <label class="lbl">Giorni permanenza</label>
+                <input type="number" id="al-permanenza" value="1" min="1" max="30">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="lbl">Cognome</label>
+                <input type="text" id="al-cognome" placeholder="ROSSI">
+              </div>
+              <div class="form-group">
+                <label class="lbl">Nome</label>
+                <input type="text" id="al-nome" placeholder="MARCO">
+              </div>
+              <div class="form-group">
+                <label class="lbl">Sesso</label>
+                <select id="al-sesso">
+                  <option value="M">Maschio</option>
+                  <option value="F">Femmina</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="lbl">Data di nascita</label>
+                <input type="date" id="al-nascita">
+              </div>
+              <div class="form-group">
+                <label class="lbl">Comune di nascita (codice ISTAT o stato estero)</label>
+                <input type="text" id="al-comune-nascita" placeholder="100000100 (Palermo)">
+              </div>
+              <div class="form-group">
+                <label class="lbl">Cittadinanza (codice stato)</label>
+                <input type="text" id="al-cittadinanza" value="100000100" placeholder="100000100 = Italia">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="lbl">Tipo documento</label>
+                <select id="al-tipo-doc">
+                  <option value="PASOR">Passaporto</option>
+                  <option value="IDENT">Carta d'identità</option>
+                  <option value="PATEN">Patente di guida</option>
+                  <option value="ALTRD">Altro documento</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="lbl">Numero documento</label>
+                <input type="text" id="al-num-doc" placeholder="AA1234567">
+              </div>
+              <div class="form-group">
+                <label class="lbl">Luogo rilascio doc (codice ISTAT)</label>
+                <input type="text" id="al-luogo-rilascio" placeholder="100000100 (Palermo)">
+              </div>
+            </div>
+          </div>
+
+          <!-- Aggiungi ospite a lista -->
+          <div style="display:flex;gap:8px;margin-bottom:14px;">
+            <button class="btn btn-outline" onclick="aggiungiOspiteAlloggiati()">➕ Aggiungi ospite alla lista</button>
+            <button class="btn btn-ghost btn-sm" onclick="svuotaListaAlloggiati()">🗑 Svuota lista</button>
+          </div>
+
+          <!-- Lista ospiti da inviare -->
+          <div id="lista-alloggiati" style="display:none;margin-bottom:14px;">
+            <div style="font-size:11px;font-weight:700;color:var(--terra);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Ospiti in lista per il file TXT</div>
+            <div id="lista-alloggiati-items" style="display:flex;flex-direction:column;gap:6px;"></div>
+          </div>
+
+          <button class="btn btn-primary" onclick="generaFileTXT()" style="width:100%;justify-content:center;">
+            ⬇️ Scarica file TXT per Portale Alloggiati
+          </button>
+
+          <div style="background:var(--sand);border-radius:8px;padding:10px 14px;margin-top:12px;font-size:11.5px;color:var(--soft);line-height:1.6;">
+            💡 <strong>Codici ISTAT comuni principali:</strong> Palermo = 082053 · Roma = 058091 · Milano = 015146 · Napoli = 063049<br>
+            💡 <strong>Codice Italia:</strong> 100000100 · <strong>Germania:</strong> 100000083 · <strong>Francia:</strong> 100000065 · <strong>UK:</strong> 100000219
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div class="card-title">🏛 Registro invii Portale Alloggiati</div>
           <a href="https://alloggiatiweb.poliziadistato.it" target="_blank" class="btn btn-outline btn-sm">Apri portale ↗</a>
         </div>
         <div class="card-body">
@@ -2038,7 +2245,7 @@ function initMap(){
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><div class="card-title">🔧 Manutenzione</div><button class="btn btn-primary btn-sm" onclick="notify('Intervento registrato ✓')">+ Intervento</button></div>
+          <div class="card-header"><div class="card-title">🔧 Manutenzione</div><button class="btn btn-primary btn-sm" onclick="openModal('modal-manutenzione')">+ Intervento</button></div>
           <div class="card-body" style="padding:8px 18px;">
             <div style="display:flex;flex-direction:column;gap:4px;">
               <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);">
@@ -2436,6 +2643,360 @@ function initMap(){
 </div>
 
 <script>
+
+// ── EDITOR CONTRATTO ──
+var CONTRATTO_DEFAULT = {
+  art1: 'Il Locatore concede in locazione al Conduttore {OSPITE} la Suite {SUITE}, sita in Via Mariano Stabile 124, Piano Terzo, 90139 Palermo (PA), denominata "Suite {SUITE}".',
+  art2: 'Il soggiorno ha durata dal {CHECKIN} ore 14:00 al {CHECKOUT} ore 10:00. Il contratto non è rinnovabile tacitamente. In caso di ritardo nel check-out sarà addebitata una penale oraria.',
+  art3: 'Il corrispettivo totale è pari a € {TOTALE} (€ {PREZZO}/notte). Il pagamento dovrà essere effettuato tramite PayPal, Stripe o bonifico bancario entro la data di check-in. Il Conduttore dovrà essere in possesso di una carta di credito valida (Visa, Mastercard o American Express) da esibire al momento del check-in come garanzia per eventuali danni o servizi aggiuntivi. In assenza di carta di credito valida, il Locatore si riserva il diritto di non consentire l\'accesso alla struttura.',
+  art4: 'Il Conduttore si obbliga a: utilizzare la suite esclusivamente per uso turistico; non cedere il godimento a terzi; rispettare il regolamento della casa; vietato fumare all\'interno della struttura; rispettare il silenzio dopo le ore 22:00; non introdurre animali senza previa autorizzazione scritta; non organizzare feste o eventi; riconsegnare la suite nelle stesse condizioni di consegna.',
+  art5: 'Non è prevista caparra confirmatoria. Tuttavia, il Conduttore risponde di eventuali danni alla struttura, agli arredi e alle attrezzature. L\'importo dei danni verrà addebitato sulla carta di credito fornita al check-in.',
+  art6: 'Cancellazione gratuita fino a 7 giorni prima del check-in. Cancellazione tra 7 e 3 giorni prima: rimborso del 50%. Cancellazione entro 3 giorni dal check-in o no-show: nessun rimborso. La cancellazione deve essere comunicata per iscritto via email a info.hermosahome@gmail.com.',
+  art7: 'I dati personali sono trattati ai sensi del GDPR 2016/679 esclusivamente per finalità connesse al presente contratto. Come previsto dalla normativa italiana, i dati degli ospiti verranno comunicati al Portale Alloggiati della Polizia di Stato entro 24 ore dall\'arrivo.',
+  art8: 'Per qualsiasi controversia derivante dal presente contratto è competente esclusivamente il Foro di Palermo.'
+};
+
+function salvaContratto() {
+  var articoli = {};
+  for (var i = 1; i <= 8; i++) {
+    var el = document.getElementById('art' + i);
+    if (el) articoli['art' + i] = el.value;
+  }
+  // Salva su Firebase
+  if (window.db && window.fbDoc && window.fbSetDoc) {
+    window.fbSetDoc(window.fbDoc(window.db, 'settings', 'contratto'), {
+      articoli: articoli,
+      aggiornato: new Date().toLocaleDateString('it-IT')
+    }).then(function() {
+      notify('✅ Modello contratto salvato su Firebase!');
+    }).catch(function() {
+      // Salva in localStorage come fallback
+      localStorage.setItem('hh_contratto', JSON.stringify(articoli));
+      notify('✅ Modello contratto salvato!');
+    });
+  } else {
+    localStorage.setItem('hh_contratto', JSON.stringify(articoli));
+    notify('✅ Modello contratto salvato!');
+  }
+}
+
+function resetContratto() {
+  if (!confirm('Ripristinare il contratto originale? Tutte le modifiche andranno perse.')) return;
+  for (var i = 1; i <= 8; i++) {
+    var el = document.getElementById('art' + i);
+    if (el && CONTRATTO_DEFAULT['art' + i]) el.value = CONTRATTO_DEFAULT['art' + i];
+  }
+  notify('↺ Contratto ripristinato al testo originale');
+}
+
+function inserisciSegnaposto(segnaposto) {
+  // Trova il textarea attivo (focused) o l'ultimo
+  var textareas = document.querySelectorAll('#contratto-articoli textarea');
+  var target = document.activeElement;
+  if (!target || target.tagName !== 'TEXTAREA') {
+    target = textareas[textareas.length - 1];
+  }
+  if (target && target.tagName === 'TEXTAREA') {
+    var start = target.selectionStart;
+    var end = target.selectionEnd;
+    var val = target.value;
+    target.value = val.substring(0, start) + segnaposto + val.substring(end);
+    target.selectionStart = target.selectionEnd = start + segnaposto.length;
+    target.focus();
+    notify('Segnaposto ' + segnaposto + ' inserito');
+  }
+}
+
+function toggleAnteprima() {
+  var div = document.getElementById('anteprima-contratto');
+  var btn = document.getElementById('btn-anteprima');
+  if (div.style.display === 'none') {
+    div.style.display = 'block';
+    btn.textContent = '👁 Nascondi anteprima';
+    // Genera anteprima con dati di esempio
+    var html = '<div style="text-align:center;margin-bottom:16px;"><strong style="font-size:15px;">CONTRATTO DI LOCAZIONE AD USO TURISTICO</strong><br><span style="font-size:11px;color:var(--soft);">Hermosa Home di Alessandra Trapani · P.IVA 07218170822</span></div>';
+    for (var i = 1; i <= 8; i++) {
+      var el = document.getElementById('art' + i);
+      var labels = ['','Oggetto','Durata','Corrispettivo e pagamento','Obblighi del Conduttore','Caparra e danni','Cancellazione','Privacy e Alloggiati','Foro competente'];
+      if (el) {
+        var testo = el.value
+          .replace(/\{OSPITE\}/g, '<strong>Mario Rossi</strong>')
+          .replace(/\{SUITE\}/g, '<strong>Tomasi di Lampedusa</strong>')
+          .replace(/\{CHECKIN\}/g, '<strong>07/03/2026</strong>')
+          .replace(/\{CHECKOUT\}/g, '<strong>12/03/2026</strong>')
+          .replace(/\{PREZZO\}/g, '<strong>500</strong>')
+          .replace(/\{TOTALE\}/g, '<strong>2.500</strong>');
+        html += '<p style="margin-bottom:12px;"><strong>Art. ' + i + ' — ' + labels[i] + '</strong><br>' + testo + '</p>';
+      }
+    }
+    div.innerHTML = html;
+  } else {
+    div.style.display = 'none';
+    btn.textContent = '👁 Mostra anteprima';
+  }
+}
+
+function salvaAnagrafica() {
+  var dati = {
+    nome: document.getElementById('ana-nome') ? document.getElementById('ana-nome').value : '',
+    indirizzo: document.getElementById('ana-indirizzo') ? document.getElementById('ana-indirizzo').value : '',
+    citta: document.getElementById('ana-citta') ? document.getElementById('ana-citta').value : '',
+    checkin: document.getElementById('ana-checkin') ? document.getElementById('ana-checkin').value : '',
+    checkout: document.getElementById('ana-checkout') ? document.getElementById('ana-checkout').value : '',
+    tel: document.getElementById('ana-tel') ? document.getElementById('ana-tel').value : '',
+    email: document.getElementById('ana-email') ? document.getElementById('ana-email').value : ''
+  };
+  if (window.db && window.fbDoc && window.fbSetDoc) {
+    window.fbSetDoc(window.fbDoc(window.db, 'settings', 'anagrafica'), dati)
+      .then(function() { notify('✅ Dati struttura salvati!'); })
+      .catch(function() { notify('✅ Dati salvati localmente!'); });
+  } else {
+    notify('✅ Dati struttura salvati!');
+  }
+}
+
+// Carica contratto salvato da Firebase all'avvio
+window.addEventListener('firebase-ready', function() {
+  if (window.db && window.fbDoc && window.fbGetDoc) {
+    window.fbGetDoc(window.fbDoc(window.db, 'settings', 'contratto')).then(function(snap) {
+      if (snap && snap.exists && snap.exists()) {
+        var data = snap.data();
+        if (data && data.articoli) {
+          for (var key in data.articoli) {
+            var el = document.getElementById(key);
+            if (el) el.value = data.articoli[key];
+          }
+          notify('📄 Modello contratto caricato da Firebase');
+        }
+      }
+    }).catch(function() {});
+  }
+});
+
+// ── GENERATORE FILE TXT ALLOGGIATI ──
+var ospiteAlloggiatiList = [];
+
+function padL(s, len) { return String(s || '').substring(0, len).padEnd(len, ' '); }
+
+function formatDataAlloggiati(dateStr) {
+  if (!dateStr) return '        ';
+  var d = new Date(dateStr);
+  var gg = String(d.getDate()).padStart(2,'0');
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  var aaaa = d.getFullYear();
+  return gg + mm + aaaa;
+}
+
+function aggiungiOspiteAlloggiati() {
+  var tipo = document.getElementById('al-tipo');
+  var arrivo = document.getElementById('al-arrivo');
+  var perm = document.getElementById('al-permanenza');
+  var cognome = document.getElementById('al-cognome');
+  var nome = document.getElementById('al-nome');
+  var sesso = document.getElementById('al-sesso');
+  var nascita = document.getElementById('al-nascita');
+  var comuneNascita = document.getElementById('al-comune-nascita');
+  var cittadinanza = document.getElementById('al-cittadinanza');
+  var tipoDoc = document.getElementById('al-tipo-doc');
+  var numDoc = document.getElementById('al-num-doc');
+  var luogoRilascio = document.getElementById('al-luogo-rilascio');
+
+  if (!cognome.value || !nome.value || !arrivo.value || !nascita.value || !numDoc.value) {
+    notify('⚠️ Compila tutti i campi obbligatori');
+    return;
+  }
+
+  var ospite = {
+    tipo: tipo ? tipo.value : '16',
+    arrivo: formatDataAlloggiati(arrivo ? arrivo.value : ''),
+    permanenza: String(perm ? perm.value : '1').padStart(4,' '),
+    tipoDoc: tipoDoc ? tipoDoc.value : 'PASOR',
+    numDoc: numDoc ? numDoc.value : '',
+    luogoRilascio: luogoRilascio ? luogoRilascio.value : '082053   ',
+    dataScadenza: '        ',
+    cognome: cognome ? cognome.value.toUpperCase() : '',
+    nome: nome ? nome.value.toUpperCase() : '',
+    sesso: sesso ? sesso.value : 'M',
+    dataNascita: formatDataAlloggiati(nascita ? nascita.value : ''),
+    comuneNascita: comuneNascita ? comuneNascita.value : '082053   ',
+    cittadinanza: cittadinanza ? cittadinanza.value : '100000100'
+  };
+
+  ospiteAlloggiatiList.push(ospite);
+
+  // Aggiorna lista visibile
+  var lista = document.getElementById('lista-alloggiati');
+  var items = document.getElementById('lista-alloggiati-items');
+  if (lista) lista.style.display = 'block';
+  if (items) {
+    var div = document.createElement('div');
+    div.style.cssText = 'background:var(--sand);padding:8px 12px;border-radius:8px;font-size:12.5px;display:flex;align-items:center;gap:10px;';
+    div.innerHTML = '<span style="font-size:16px;">👤</span>' +
+      '<div style="flex:1;"><strong>' + ospite.cognome + ' ' + ospite.nome + '</strong> · ' +
+      'Arrivo: ' + ospite.arrivo.substring(0,2)+'/'+ospite.arrivo.substring(2,4)+'/'+ospite.arrivo.substring(4) + ' · ' +
+      ospite.tipoDoc + ' ' + ospite.numDoc + '</div>' +
+      '<span style="background:#E6F4EA;color:#3A7A4A;padding:2px 8px;border-radius:20px;font-size:11px;">✓ Aggiunto</span>';
+    items.appendChild(div);
+  }
+
+  // Reset form
+  if (cognome) cognome.value = '';
+  if (nome) nome.value = '';
+  if (numDoc) numDoc.value = '';
+
+  notify('👤 ' + ospite.cognome + ' ' + ospite.nome + ' aggiunto alla lista (' + ospiteAlloggiatiList.length + ' ospiti)');
+}
+
+function svuotaListaAlloggiati() {
+  ospiteAlloggiatiList = [];
+  var items = document.getElementById('lista-alloggiati-items');
+  var lista = document.getElementById('lista-alloggiati');
+  if (items) items.innerHTML = '';
+  if (lista) lista.style.display = 'none';
+  notify('🗑 Lista ospiti svuotata');
+}
+
+function generaFileTXT() {
+  // Se non ci sono ospiti nella lista, usa il form corrente
+  if (ospiteAlloggiatiList.length === 0) {
+    aggiungiOspiteAlloggiati();
+    if (ospiteAlloggiatiList.length === 0) return;
+  }
+
+  var righe = [];
+  ospiteAlloggiatiList.forEach(function(o) {
+    var riga = '';
+    riga += padL(o.tipo, 2);
+    riga += padL(o.arrivo, 8);
+    riga += padL(o.permanenza, 4);
+    riga += padL(o.tipoDoc, 5);
+    riga += padL(o.numDoc, 20);
+    riga += padL(o.luogoRilascio, 9);
+    riga += padL(o.dataScadenza, 8);
+    riga += padL(o.cognome, 50);
+    riga += padL(o.nome, 30);
+    riga += padL(o.sesso, 1);
+    riga += padL(o.dataNascita, 8);
+    riga += padL(o.comuneNascita, 9);
+    riga += padL(o.cittadinanza, 9);
+    righe.push(riga);
+  });
+
+  // Join con CRLF tra le righe (NON sull'ultima)
+  var contenuto = righe.join('\r\n');
+
+  // Nome file: data arrivo del primo ospite
+  var dataFile = ospiteAlloggiatiList[0].arrivo || new Date().toLocaleDateString('it-IT').replace(/\//g,'');
+  var nomeFile = 'alloggiati_' + dataFile + '.txt';
+
+  // Download
+  var blob = new Blob([contenuto], { type: 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = nomeFile;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  notify('✅ File ' + nomeFile + ' scaricato · ' + ospiteAlloggiatiList.length + ' ospiti · Carica su Portale Alloggiati → Invio File');
+
+  // Salva su Firebase
+  if (window.db && window.fbDoc && window.fbSetDoc && window.fbTimestamp) {
+    window.fbSetDoc(window.fbDoc(window.db, 'alloggiati', 'invio_' + Date.now()), {
+      ospiti: ospiteAlloggiatiList.map(function(o){ return o.cognome + ' ' + o.nome; }),
+      dataFile: nomeFile,
+      creato: window.fbTimestamp(),
+      stato: 'file_generato'
+    });
+  }
+}
+
+function salvaIntervento() {
+  var suite = document.getElementById('manu-suite');
+  var prob = document.getElementById('manu-problema');
+  var prio = document.getElementById('manu-priorita');
+  var data = document.getElementById('manu-data');
+  var suiteVal = suite ? suite.value : '';
+  var probVal = prob ? prob.value.trim() : '';
+  if (!probVal) { notify('⚠️ Descrivi il problema'); return; }
+  var dataVal = data && data.value ? new Date(data.value).toLocaleDateString('it-IT') : 'da definire';
+  var prioVal = prio ? prio.value : 'media';
+  var colors = {alta:'#FDECEA', bassa:'#E6F4EA', media:'#FFF0E0'};
+  var labels = {alta:'🔴 Alta', bassa:'🟢 Bassa', media:'🟡 Media'};
+
+  // Aggiorna UI nella sezione manutenzione
+  var list = document.querySelector('#panel-pulizie .card:last-child .card-body');
+  if (list) {
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);';
+    div.innerHTML = '<span style="font-size:18px;">🔧</span>' +
+      '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">' + probVal + ' — ' + suiteVal + '</div>' +
+      '<div style="font-size:11px;color:var(--soft);">Segnalato: ' + dataVal + ' · Priorità: ' + labels[prioVal] + '</div></div>' +
+      '<span style="background:' + colors[prioVal] + ';padding:2px 8px;border-radius:20px;font-size:11px;">⏳ In attesa</span>';
+    list.insertBefore(div, list.firstChild);
+  }
+
+  // Salva su Firebase
+  if (window.db && window.fbDoc && window.fbSetDoc && window.fbTimestamp) {
+    var id = 'manu_' + Date.now();
+    window.fbSetDoc(window.fbDoc(window.db, 'manutenzioni', id), {
+      suite: suiteVal, problema: probVal, priorita: prioVal,
+      data: dataVal, stato: 'in_attesa', creato: window.fbTimestamp()
+    });
+  }
+  closeModal('modal-manutenzione');
+  notify('🔧 Intervento registrato · ' + suiteVal + ' ✓');
+}
+
+function apriContratto(ospite, suite, checkin, checkout, stato) {
+  document.getElementById('vc-title').textContent = '📄 Contratto — ' + ospite;
+  var prezzi = {'Tomasi di Lampedusa': 500, 'Florio': 400, 'Stabile': 500};
+  var prezzo = prezzi[suite] || 500;
+
+  var statusMap = {
+    'firmato': '<span style="background:#E6F4EA;color:#3A7A4A;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">✍️ Firmato digitalmente</span>',
+    'in_attesa': '<span style="background:#FFF0E0;color:#C07820;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">⏳ In attesa di firma</span>',
+    'non_inviato': '<span style="background:#FDECEA;color:#B84040;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">⚠️ Non inviato</span>'
+  };
+  document.getElementById('vc-status-badge').innerHTML = statusMap[stato] || statusMap['non_inviato'];
+  document.getElementById('vc-status-text').textContent = ospite + ' · Suite ' + suite + ' · ' + checkin + ' → ' + checkout;
+
+  // Mostra/nascondi pulsante invia
+  var btn = document.getElementById('vc-invia-btn');
+  if (btn) btn.style.display = stato === 'non_inviato' ? 'flex' : 'none';
+
+  // Usa articoli salvati se disponibili
+  function getArt(n, ospite, suite, checkin, checkout, prezzo, totale) {
+    var el = document.getElementById('art' + n);
+    var testo = el ? el.value : (CONTRATTO_DEFAULT ? CONTRATTO_DEFAULT['art'+n] : '');
+    return testo
+      .replace(/\{OSPITE\}/g, ospite)
+      .replace(/\{SUITE\}/g, suite)
+      .replace(/\{CHECKIN\}/g, checkin)
+      .replace(/\{CHECKOUT\}/g, checkout)
+      .replace(/\{PREZZO\}/g, prezzo)
+      .replace(/\{TOTALE\}/g, totale);
+  }
+  var labels = ['','Oggetto','Durata','Corrispettivo e pagamento','Obblighi del Conduttore','Caparra e danni','Cancellazione','Privacy e Alloggiati','Foro competente'];
+  var notti = 5; var totale = prezzo * notti;
+  var artsHtml = '';
+  for (var n = 1; n <= 8; n++) {
+    artsHtml += '<p style="margin-bottom:14px;"><strong>Art. ' + n + ' — ' + labels[n] + '</strong><br>' + getArt(n, ospite, suite, checkin, checkout, prezzo, totale) + '</p>';
+  }
+
+  document.getElementById('vc-testo').innerHTML =
+    '<div style="text-align:center;margin-bottom:20px;">' +
+    '<div style="font-family:Cormorant Garamond,serif;font-size:18px;font-weight:500;">CONTRATTO DI LOCAZIONE AD USO TURISTICO</div>' +
+    '<div style="font-size:11px;color:var(--soft);margin-top:4px;">ai sensi dell'art. 1, comma 2, lett. c) della L. 431/1998</div></div>' +
+    '<p><strong>Locatore:</strong> Hermosa Home di Alessandra Trapani, P.IVA 07218170822, CF TRPLSN78S48G273Z, Via Mariano Stabile 124, Piano Terzo, 90139 Palermo (PA)</p><br>' +
+    '<p><strong>Conduttore:</strong> ' + ospite + '</p><br>' +
+    artsHtml +
+    '<div style="text-align:right;margin-top:16px;font-size:12px;color:var(--soft);"><em>Palermo, ' + checkin + '</em></div>' +
+    (stato === 'firmato' ? '<div style="margin-top:16px;padding:12px;background:#E6F4EA;border-radius:8px;font-size:12px;color:#3A7A4A;"><strong>✍️ Firmato digitalmente da ' + ospite + '</strong><br>Firma acquisita tramite Hermosa Home App · ' + checkin + '</div>' : '');
+
+  openModal('modal-view-contratto');
+}
+
 // Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
@@ -2468,5 +3029,118 @@ window.addEventListener('appinstalled', function() {
   document.getElementById('pwa-banner').style.display = 'none';
 });
 </script>
+
+<div class="modal-backdrop" id="modal-pulizie">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🧹 Nuova pulizia</div><button class="modal-close" onclick="closeModal('modal-pulizie')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Suite</label>
+          <select id="pulizia-suite">
+            <option>🌹 Tomasi di Lampedusa</option>
+            <option>⚓ Florio</option>
+            <option>🌿 Stabile</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="lbl">Tipo</label>
+          <select id="pulizia-tipo">
+            <option>Post check-out</option>
+            <option>Pulizia giornaliera</option>
+            <option>Pulizia approfondita</option>
+            <option>Pre check-in</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Data</label><input type="date" id="pulizia-data"></div>
+        <div class="form-group"><label class="lbl">Orario</label><input type="time" id="pulizia-ora" value="10:00"></div>
+      </div>
+      <div class="form-group"><label class="lbl">Note</label><textarea id="pulizia-note" placeholder="Istruzioni particolari..."></textarea></div>
+      <div class="form-group"><label class="lbl">Assegna a</label>
+        <select id="pulizia-persona">
+          <option>Da assegnare</option>
+          <option>Personale interno</option>
+          <option>Servizio esterno</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-pulizie')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaPulizia()">💾 Salva e programma</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MANUTENZIONE -->
+<div class="modal-backdrop" id="modal-manutenzione">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🔧 Nuovo intervento</div><button class="modal-close" onclick="closeModal('modal-manutenzione')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Suite</label>
+          <select id="manu-suite">
+            <option>🌹 Tomasi di Lampedusa</option>
+            <option>⚓ Florio</option>
+            <option>🌿 Stabile</option>
+            <option>🏢 Parti comuni</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="lbl">Priorità</label>
+          <select id="manu-priorita">
+            <option value="alta">🔴 Alta — urgente</option>
+            <option value="media">🟡 Media</option>
+            <option value="bassa">🟢 Bassa</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="lbl">Problema</label>
+        <input type="text" id="manu-problema" placeholder="Es. Rubinetto che perde, lampadina fulminata...">
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Data intervento</label><input type="date" id="manu-data"></div>
+        <div class="form-group"><label class="lbl">Tecnico</label>
+          <select id="manu-tecnico">
+            <option>Da assegnare</option>
+            <option>Idraulico</option>
+            <option>Elettricista</option>
+            <option>Fabbro</option>
+            <option>Tuttofare</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="lbl">Note</label>
+        <textarea id="manu-note" placeholder="Descrizione dettagliata del problema..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-manutenzione')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaIntervento()">🔧 Registra intervento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISUALIZZA CONTRATTO -->
+<div class="modal-backdrop" id="modal-view-contratto">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <div class="modal-title" id="vc-title">📄 Contratto di locazione turistica</div>
+      <button class="modal-close" onclick="closeModal('modal-view-contratto')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <!-- Status bar -->
+      <div id="vc-status-bar" style="padding:10px 22px;border-bottom:1px solid var(--terra-l);display:flex;align-items:center;gap:10px;background:var(--sand);">
+        <span id="vc-status-badge"></span>
+        <span id="vc-status-text" style="font-size:12px;color:var(--mid);"></span>
+      </div>
+      <!-- Testo contratto -->
+      <div id="vc-testo" style="padding:22px;font-size:12.5px;color:var(--mid);line-height:1.9;max-height:500px;overflow-y:auto;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-view-contratto')">Chiudi</button>
+      <button class="btn btn-ghost" onclick="notify('PDF in preparazione...')">📥 Scarica PDF</button>
+      <button id="vc-invia-btn" class="btn btn-primary" onclick="openModal('modal-contratto');closeModal('modal-view-contratto')">📤 Invia ora</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

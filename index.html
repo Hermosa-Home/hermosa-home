@@ -771,6 +771,154 @@
   .lang-btn.active { background: var(--terra); color: white; }
 
 </style>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDb_qrNtRxLhMYGkha2bXEJP3jf5SAsIIA",
+    authDomain: "hermosahome-82675.firebaseapp.com",
+    projectId: "hermosahome-82675",
+    storageBucket: "hermosahome-82675.firebasestorage.app",
+    messagingSenderId: "1067621957341",
+    appId: "1:1067621957341:web:1a290245daec64ce362534"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── CARICA DATI OSPITE DAL DATABASE ──
+  async function caricaOspite() {
+    // Legge il codice prenotazione dall'URL: ?booking=ABC123
+    const params = new URLSearchParams(window.location.search);
+    const bookingId = params.get('booking') || 'demo';
+    
+    try {
+      const docRef = doc(db, 'prenotazioni', bookingId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // Aggiorna UI con dati reali
+        const nomeEl = document.getElementById('h-greeting');
+        if (nomeEl) nomeEl.innerHTML = 'Benvenuto,<br><span class="hero-name">' + (data.ospite || 'Ospite') + '</span>';
+        const aptEl = document.getElementById('h-apt');
+        if (aptEl) aptEl.textContent = 'Suite ' + (data.suite || 'Tomasi di Lampedusa') + ' · 3° piano';
+        const accSubEl = document.getElementById('acc-sub');
+        if (accSubEl) accSubEl.textContent = (data.suite || 'Tomasi di Lampedusa') + ' · ' + (data.checkin || '—') + ' – ' + (data.checkout || '—');
+        // Salva bookingId globalmente
+        window.HH_BOOKING_ID = bookingId;
+        window.HH_DATA = data;
+        console.log('Ospite caricato:', data.ospite);
+      } else {
+        console.log('Prenotazione demo - usando dati di esempio');
+      }
+    } catch(e) {
+      console.log('Errore caricamento:', e.message);
+    }
+  }
+
+  // ── AGGIORNA STATO NEL DATABASE ──
+  window.hhUpdateStatus = async function(campo, valore) {
+    if (!window.HH_BOOKING_ID || window.HH_BOOKING_ID === 'demo') return;
+    try {
+      const docRef = doc(db, 'prenotazioni', window.HH_BOOKING_ID);
+      const update = {};
+      update[campo] = valore;
+      update['ultimoAggiornamento'] = serverTimestamp();
+      await updateDoc(docRef, update);
+      console.log('Aggiornato:', campo, '=', valore);
+    } catch(e) {
+      console.log('Errore update:', e.message);
+    }
+  };
+
+  // ── SALVA FIRMA CONTRATTO ──
+  window.hhSalvaFirma = async function() {
+    const oggi = new Date().toLocaleDateString('it-IT');
+    const ospiteNome = window.HH_DATA ? window.HH_DATA.ospite : (new URLSearchParams(window.location.search).get('nome') || 'Ospite');
+    const suiteNome = window.HH_DATA ? window.HH_DATA.suite : (new URLSearchParams(window.location.search).get('suite') || 'Suite');
+    
+    // 1. Aggiorna prenotazione se bookingId disponibile
+    if (window.HH_BOOKING_ID && window.HH_BOOKING_ID !== 'demo') {
+      await window.hhUpdateStatus('contrattoFirmato', true);
+      await window.hhUpdateStatus('contrattoFirmatoIl', oggi);
+      await window.hhUpdateStatus('contratto', 'firmato');
+    }
+    
+    // 2. Scrivi SEMPRE nella collezione contratti (il gestionale la ascolta)
+    try {
+      const firmaId = 'firma_' + Date.now();
+      await setDoc(doc(db, 'contratti', firmaId), {
+        ospite: ospiteNome,
+        suite: suiteNome,
+        stato: 'firmato',
+        firmato_il: oggi,
+        bookingId: window.HH_BOOKING_ID || 'demo',
+        timestamp: serverTimestamp()
+      });
+      
+      // 3. Scrivi nella collezione notifiche per il gestionale
+      await setDoc(doc(db, 'notifiche', 'contr_' + Date.now()), {
+        tipo: 'contratto_firmato',
+        ospite: ospiteNome,
+        suite: suiteNome,
+        messaggio: ospiteNome + ' ha firmato il contratto per la Suite ' + suiteNome,
+        letto: false,
+        creato: serverTimestamp()
+      });
+      console.log('✅ Contratto firmato salvato su Firebase');
+    } catch(e) {
+      console.log('Errore salvataggio firma:', e.message);
+    }
+  };
+
+  // ── SALVA DOCUMENTO CARICATO ──
+  window.hhSalvaDocumento = async function(tipo) {
+    const oggi = new Date().toLocaleDateString('it-IT');
+    const ospiteNome = window.HH_DATA ? window.HH_DATA.ospite : (new URLSearchParams(window.location.search).get('nome') || 'Ospite');
+    const suiteNome = window.HH_DATA ? window.HH_DATA.suite : (new URLSearchParams(window.location.search).get('suite') || 'Suite');
+    
+    // Aggiorna prenotazione
+    if (window.HH_BOOKING_ID && window.HH_BOOKING_ID !== 'demo') {
+      await window.hhUpdateStatus('documentoCaricato', true);
+      await window.hhUpdateStatus('documentoTipo', tipo);
+      await window.hhUpdateStatus('documentoCaricatoIl', oggi);
+      await window.hhUpdateStatus('documenti', 'caricati');
+    }
+    
+    // Scrivi nella collezione documenti e notifiche
+    try {
+      await setDoc(doc(db, 'documenti', 'doc_' + Date.now()), {
+        ospite: ospiteNome,
+        suite: suiteNome,
+        tipo: tipo,
+        stato: 'da_verificare',
+        caricato_il: oggi,
+        bookingId: window.HH_BOOKING_ID || 'demo',
+        timestamp: serverTimestamp()
+      });
+      
+      await setDoc(doc(db, 'notifiche', 'doc_' + Date.now()), {
+        tipo: 'documento_caricato',
+        ospite: ospiteNome,
+        suite: suiteNome,
+        messaggio: ospiteNome + ' ha caricato il documento (' + tipo + ') per la Suite ' + suiteNome,
+        letto: false,
+        creato: serverTimestamp()
+      });
+      console.log('✅ Documento salvato su Firebase');
+    } catch(e) {
+      console.log('Errore salvataggio documento:', e.message);
+    }
+  };
+
+  // Avvia al caricamento
+  document.addEventListener('DOMContentLoaded', caricaOspite);
+</script>
+
 </head>
 <body>
 
@@ -1430,7 +1578,7 @@
             </div>
           </div>
           <div style="background:var(--sand);border-radius:10px;padding:12px;font-size:11.5px;color:var(--soft);line-height:1.6;margin-bottom:14px;text-align:center;">
-            🔒 Firmando digitalmente accetti tutte le condizioni.<br>Riceverai copia via email a <strong>marco.rossi@email.com</strong>
+            🔒 Firmando digitalmente accetti tutte le condizioni.<br>Riceverai copia via email a <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ff929e8d9c90d18d908c8c96bf9a929e9693d19c9092">[email&#160;protected]</a></strong>
           </div>
           <button id="btn-firma" class="btn btn-primary" onclick="submitFirma()" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
             ✍️ Firma e invia contratto
@@ -1451,7 +1599,7 @@
 <!-- Toast -->
 <div class="toast" id="toast-el"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
   // ── CLOCK ──
   function tick() {
     const now = new Date();
@@ -1586,6 +1734,7 @@
   }
 
   function submitFirma() {
+    if (window.hhSalvaFirma) window.hhSalvaFirma();
     document.getElementById('btn-firma').innerHTML = '⏳ Invio in corso...';
     document.getElementById('btn-firma').style.opacity = '0.7';
     setTimeout(() => {
@@ -1678,13 +1827,37 @@
     btn.style.opacity = '0.7';
     btn.disabled = true;
 
+    // Leggi dati ospite dai parametri URL
+    const params = new URLSearchParams(window.location.search);
+    const ospiteId = params.get('ospite') || 'ospite_' + Date.now();
+    const ospiteNome = params.get('nome') || document.querySelector('.hero-name') ? document.querySelector('.hero-name').textContent : 'Ospite';
+    const suite = params.get('suite') || 'Suite';
+    const tipoDoc = '🪪 Documento identità';
+
+    // Salva notifica documento su Firebase (senza foto - solo metadati)
+    // Salva documento su Firebase con notifica al gestionale
+    var tipoLabel = tipoDoc || 'Documento identità';
+    if (window.hhSalvaDocumento) {
+      window.hhSalvaDocumento(tipoLabel);
+    }
+    if (window.fbCaricaDocumento) {
+      window.fbCaricaDocumento(tipoLabel, 'foto_' + Date.now() + '.jpg').then(function(ok) {
+        console.log('Documento notificato a Firebase:', ok);
+      });
+    }
+
+    // Aggiorna UI app ospiti
     setTimeout(() => {
-      document.getElementById('doc-g2-status').textContent = 'Passaporto — Caricato ✓';
-      document.getElementById('doc-g2-badge').textContent = '✓';
-      document.getElementById('doc-g2-badge').className = 'badge badge-green';
-      document.getElementById('doc-progress').style.width = '100%';
-      document.getElementById('doc-req-lbl').textContent = 'Documenti richiesti (2 / 2)';
-      document.getElementById('doc-badge').style.display = 'none';
+      const g2 = document.getElementById('doc-g2-status');
+      if (g2) g2.textContent = 'Documento — Caricato ✓';
+      const badge = document.getElementById('doc-g2-badge');
+      if (badge) { badge.textContent = '✓'; badge.className = 'badge badge-green'; }
+      const progress = document.getElementById('doc-progress');
+      if (progress) progress.style.width = '100%';
+      const reqLbl = document.getElementById('doc-req-lbl');
+      if (reqLbl) reqLbl.textContent = 'Documenti richiesti (2 / 2)';
+      const docBadge = document.getElementById('doc-badge');
+      if (docBadge) docBadge.style.display = 'none';
       history = ['screen-home'];
       goTo('screen-success');
     }, 1500);
@@ -1944,15 +2117,4 @@ document.getElementById('pwa-install-btn').addEventListener('click', function() 
       toast('✅ App installata!');
     }
     deferredPrompt = null;
-    document.getElementById('pwa-banner').style.display = 'none';
-  });
-});
-
-window.addEventListener('appinstalled', function() {
-  toast('🎉 Hermosa Home installata!');
-  document.getElementById('pwa-banner').style.display = 'none';
-});
-</script>
-
-</body>
-</html>
+    document.getElementById('pwa-ba
