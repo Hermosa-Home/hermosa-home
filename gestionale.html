@@ -4016,7 +4016,7 @@ function stampaQROspite() {
   if (!link) return;
   var win = window.open('', '_blank');
   win.document.write('<html><head><title>QR ' + (nome ? nome.textContent : '') + '</title>' +
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>' +
+    '<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/scr'+'ipt>' +
     '<style>body{font-family:Georgia,serif;text-align:center;padding:40px;background:#FAF7F2;}' +
     'h2{color:#2C2416;font-size:24px;margin-bottom:4px;}' +
     'p{color:#9B8B78;font-size:14px;margin-bottom:20px;}' +
@@ -4027,7 +4027,7 @@ function stampaQROspite() {
     '<div id="qr"></div>' +
     '<p style="font-size:11px;color:#9B8B78;margin-top:12px;">Scansiona con la fotocamera</p>' +
     '<div class="footer">Via Mariano Stabile 124, 3° piano · +39 328 484 5555</div>' +
-    '<script>new QRCode(document.getElementById("qr"),{text:"' + link.value + '",width:220,height:220,colorDark:"#2C2416",colorLight:"#ffffff"});<\/script>' +
+    '<scr'+'ipt>new QRCode(document.getElementById("qr"),{text:"' + link.value + '",width:220,height:220,colorDark:"#2C2416",colorLight:"#ffffff"});<\/script>' +
     '</body></html>');
   win.document.close();
   setTimeout(function() { win.print(); }, 800);
