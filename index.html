@@ -1032,10 +1032,208 @@
 
       </div>
 
+        <div class="menu-item" onclick="goTo('screen-pagamento')">
+          <div class="menu-icon">💳</div>
+          <div class="menu-label" id="m-pag">Pagamento</div>
+          <div class="menu-sub" id="m-pag-sub">€ 225 in attesa</div>
+        </div>
+
+        <div class="menu-item" onclick="goTo('screen-meteo')">
+          <div class="menu-icon">🌤</div>
+          <div class="menu-label">Meteo Palermo</div>
+          <div class="menu-sub" id="m-meteo-sub">Caricamento...</div>
+        </div>
+
+        <div class="menu-item" onclick="goTo('screen-ristoranti')">
+          <div class="menu-icon">🍽</div>
+          <div class="menu-label">Ristoranti</div>
+          <div class="menu-sub">I migliori vicino a noi</div>
+        </div>
+
+        <div class="menu-item full-width" onclick="goTo('screen-chat')">
+          <div class="menu-icon">💬</div>
+          <div>
+            <div class="menu-label" id="m-chat">Contatta il gestore</div>
+            <div class="menu-sub" id="m-chat-sub">WhatsApp · Telegram · Email</div>
+          </div>
+          <div style="margin-left:auto;color:var(--soft);">›</div>
+        </div>
+
+        <div class="menu-item full-width" onclick="goTo('screen-feedback')">
+          <div class="menu-icon">⭐</div>
+          <div>
+            <div class="menu-label">Lascia un feedback</div>
+            <div class="menu-sub">La tua opinione conta</div>
+          </div>
+          <div style="margin-left:auto;color:var(--soft);">›</div>
+        </div>
+
+      </div>
+
       <div style="height:8px;"></div>
     </div>
 
-    <!-- ══════════════ ACCESSO ══════════════ -->
+    <!-- ══════════════ METEO ══════════════ -->
+    <div class="screen" id="screen-meteo">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
+        <div class="screen-title">Meteo Palermo</div>
+        <div class="screen-sub">Aggiornato in tempo reale</div>
+      </div>
+      <div class="screen-content" style="padding:20px 16px;">
+        <div id="meteo-card" style="background:linear-gradient(135deg,#1A3A5C,#2E6FA8);border-radius:16px;padding:24px;color:white;text-align:center;margin-bottom:16px;">
+          <div style="font-size:64px;" id="meteo-icon">⏳</div>
+          <div style="font-size:48px;font-weight:300;font-family:'Cormorant Garamond',serif;" id="meteo-temp">--°</div>
+          <div style="font-size:16px;opacity:.8;margin-top:4px;" id="meteo-desc">Caricamento...</div>
+          <div style="font-size:13px;opacity:.6;margin-top:8px;">Palermo, Sicilia · <span id="meteo-time">--</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">💧</div>
+            <div style="font-size:18px;font-weight:600;" id="meteo-umidita">--%</div>
+            <div style="font-size:11px;color:var(--soft);">Umidità</div>
+          </div>
+          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">💨</div>
+            <div style="font-size:18px;font-weight:600;" id="meteo-vento">-- km/h</div>
+            <div style="font-size:11px;color:var(--soft);">Vento</div>
+          </div>
+          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">🌡</div>
+            <div style="font-size:18px;font-weight:600;" id="meteo-percepita">--°</div>
+            <div style="font-size:11px;color:var(--soft);">Percepita</div>
+          </div>
+          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
+            <div style="font-size:20px;margin-bottom:4px;">👁</div>
+            <div style="font-size:18px;font-weight:600;" id="meteo-visibilita">-- km</div>
+            <div style="font-size:11px;color:var(--soft);">Visibilità</div>
+          </div>
+        </div>
+        <div style="background:var(--terra-xlight);border-radius:12px;padding:14px;font-size:13px;color:var(--mid);line-height:1.7;">
+          💡 <strong>Consiglio:</strong> Palermo è soleggiata quasi tutto l'anno. Porta crema solare anche in inverno — il sole siciliano è forte!
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ RISTORANTI ══════════════ -->
+    <div class="screen" id="screen-ristoranti">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
+        <div class="screen-title">🍽 I migliori ristoranti</div>
+        <div class="screen-sub">Selezionati da noi · tutti a piedi</div>
+      </div>
+      <div class="screen-content" style="padding:16px;">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+
+          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Osteria+dei+Vespri+Palermo','_blank')">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="font-size:32px;">🍝</div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--deep);">Osteria dei Vespri</div>
+                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐⭐ · Cucina siciliana · €€€</div>
+                <div style="font-size:12.5px;color:var(--mid);">La migliore cucina siciliana del centro storico. Piazza Croce dei Vespri — 12 min a piedi</div>
+                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Trattoria+del+Pesce+Palermo','_blank')">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="font-size:32px;">🐟</div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--deep);">Trattoria del Pesce</div>
+                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐ · Pesce fresco · €€</div>
+                <div style="font-size:12.5px;color:var(--mid);">Frittura di paranza e spaghetti con le vongole. Via Cala — 10 min a piedi</div>
+                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Bar+Spinnato+Palermo','_blank')">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="font-size:32px;">☕</div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--deep);">Bar Spinnato</div>
+                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐⭐ · Bar storico · €</div>
+                <div style="font-size:12.5px;color:var(--mid);">Il bar più famoso di Palermo dal 1860. Granita, brioche e cannoli. Via Principe di Belmonte — 6 min a piedi</div>
+                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Mercato+Ballaro+Palermo','_blank')">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="font-size:32px;">🥘</div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--deep);">Mercato Ballarò — Street Food</div>
+                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐⭐ · Street food · €</div>
+                <div style="font-size:12.5px;color:var(--mid);">Panelle, arancine, sfincione, pani ca meusa. L'esperienza autentica di Palermo. 15 min a piedi</div>
+                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Cin+Cin+Palermo','_blank')">
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="font-size:32px;">🍷</div>
+              <div style="flex:1;">
+                <div style="font-size:15px;font-weight:600;color:var(--deep);">Cin Cin</div>
+                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐ · Pasta siciliana · €€</div>
+                <div style="font-size:12.5px;color:var(--mid);">Pasta con le sarde e caponata perfetta. Via Maniscalchi — 8 min a piedi</div>
+                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ FEEDBACK ══════════════ -->
+    <div class="screen" id="screen-feedback">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
+        <div class="screen-title">⭐ Il tuo feedback</div>
+        <div class="screen-sub">Ci aiuta a migliorare</div>
+      </div>
+      <div class="screen-content" style="padding:20px 16px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--deep);margin-bottom:8px;">Come è stato il tuo soggiorno?</div>
+          <div style="display:flex;justify-content:center;gap:12px;margin:16px 0;" id="star-rating">
+            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(1)">★</span>
+            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(2)">★</span>
+            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(3)">★</span>
+            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(4)">★</span>
+            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(5)">★</span>
+          </div>
+          <div style="font-size:14px;color:var(--soft);" id="rating-label">Tocca le stelle per votare</div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);margin-bottom:8px;font-weight:600;">Cosa hai apprezzato di più?</label>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;" id="tag-buttons">
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🛏 Comfort</button>
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🌇 Vista</button>
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🧹 Pulizia</button>
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">📍 Posizione</button>
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">👋 Accoglienza</button>
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">📶 WiFi</button>
+            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🔐 Smart lock</button>
+          </div>
+          <textarea id="feedback-text" placeholder="Scrivi qui la tua esperienza (opzionale)..." style="width:100%;padding:12px;border:1.5px solid var(--terra-light);border-radius:12px;font-size:13px;min-height:100px;font-family:inherit;resize:none;background:var(--sand);"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="inviaFeedback()" style="width:100%;justify-content:center;padding:14px;font-size:15px;">
+          Invia feedback
+        </button>
+        <div style="margin-top:16px;display:flex;gap:10px;">
+          <a href="https://airbnb.com" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:var(--sand);border-radius:12px;text-decoration:none;color:var(--mid);font-size:13px;font-weight:500;">
+            🏠 Recensione Airbnb
+          </a>
+          <a href="https://google.com/search?q=Hermosa+Home+Palermo" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:var(--sand);border-radius:12px;text-decoration:none;color:var(--mid);font-size:13px;font-weight:500;">
+            ⭐ Recensione Google
+          </a>
+        </div>
+      </div>
+    </div>
     <div class="screen" id="screen-accesso">
       <div class="screen-header">
         <button class="back-btn" onclick="goBack()">‹ Indietro</button>
@@ -2076,6 +2274,113 @@
     }
 
     toast(l === 'it' ? '🇮🇹 Italiano' : '🇬🇧 English');
+  }
+
+  // ── METEO PALERMO ──
+  var currentRating = 0;
+
+  function caricaMeteo() {
+    // Open-Meteo API — gratuita, no API key
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=38.1157&longitude=13.3615&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,visibility&timezone=Europe/Rome';
+    fetch(url).then(function(r){ return r.json(); }).then(function(data) {
+      var c = data.current;
+      var icons = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'⛈',71:'❄️',73:'❄️',75:'❄️',80:'🌦',81:'🌧',82:'⛈',95:'⛈'};
+      var descs = {0:'Sereno',1:'Prevalentemente sereno',2:'Parzialmente nuvoloso',3:'Nuvoloso',45:'Nebbia',51:'Pioggia leggera',61:'Pioggia',63:'Pioggia moderata',80:'Acquazzone',95:'Temporale'};
+      var code = c.weather_code;
+      var icon = icons[code] || '🌤';
+      var desc = descs[code] || 'Variabile';
+      var temp = Math.round(c.temperature_2m);
+      var percepita = Math.round(c.apparent_temperature);
+      var umidita = c.relative_humidity_2m;
+      var vento = Math.round(c.wind_speed_10m);
+      var vis = Math.round((c.visibility || 10000) / 1000);
+
+      var iconEl = document.getElementById('meteo-icon'); if(iconEl) iconEl.textContent = icon;
+      var tempEl = document.getElementById('meteo-temp'); if(tempEl) tempEl.textContent = temp + '°C';
+      var descEl = document.getElementById('meteo-desc'); if(descEl) descEl.textContent = desc;
+      var timeEl = document.getElementById('meteo-time'); if(timeEl) timeEl.textContent = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      var umEl = document.getElementById('meteo-umidita'); if(umEl) umEl.textContent = umidita + '%';
+      var venEl = document.getElementById('meteo-vento'); if(venEl) venEl.textContent = vento + ' km/h';
+      var perEl = document.getElementById('meteo-percepita'); if(perEl) perEl.textContent = percepita + '°C';
+      var visEl = document.getElementById('meteo-visibilita'); if(visEl) visEl.textContent = vis + ' km';
+
+      // Aggiorna sub nel menu
+      var sub = document.getElementById('m-meteo-sub');
+      if(sub) sub.textContent = icon + ' ' + temp + '°C · ' + desc;
+
+      // Colore sfondo card meteo
+      var card = document.getElementById('meteo-card');
+      if(card) {
+        if(code === 0 || code === 1) card.style.background = 'linear-gradient(135deg,#F97316,#FBBF24)';
+        else if(code >= 61) card.style.background = 'linear-gradient(135deg,#374151,#6B7280)';
+        else card.style.background = 'linear-gradient(135deg,#1A3A5C,#2E6FA8)';
+      }
+    }).catch(function() {
+      var sub = document.getElementById('m-meteo-sub');
+      if(sub) sub.textContent = '🌤 Palermo';
+    });
+  }
+
+  // Carica meteo al primo accesso alla sezione
+  var meteoCaricato = false;
+  var origGoTo = goTo;
+  function goTo(id) {
+    origGoTo(id);
+    if (id === 'screen-meteo' && !meteoCaricato) {
+      meteoCaricato = true;
+      caricaMeteo();
+    }
+  }
+  // Precarica in background
+  setTimeout(caricaMeteo, 2000);
+
+  // ── RATING & FEEDBACK ──
+  function setRating(n) {
+    currentRating = n;
+    var stars = document.querySelectorAll('#star-rating span');
+    var labels = ['','Pessimo 😞','Non buono 😕','Nella media 😐','Buono 😊','Ottimo! 🤩'];
+    stars.forEach(function(s, i) {
+      s.style.opacity = i < n ? '1' : '0.3';
+      s.style.color = i < n ? '#F59E0B' : '';
+    });
+    var lbl = document.getElementById('rating-label');
+    if(lbl) lbl.textContent = labels[n] || '';
+  }
+
+  function toggleTag(btn) {
+    var active = btn.style.background === 'var(--terra)' || btn.style.background === 'rgb(196, 149, 106)';
+    btn.style.background = active ? 'white' : 'var(--terra)';
+    btn.style.color = active ? 'var(--mid)' : 'white';
+    btn.style.borderColor = active ? 'var(--terra-light)' : 'var(--terra)';
+  }
+
+  function inviaFeedback() {
+    if (currentRating === 0) { toast('⭐ Seleziona un voto prima di inviare'); return; }
+    var tags = [];
+    document.querySelectorAll('#tag-buttons button').forEach(function(b) {
+      if(b.style.background === 'var(--terra)' || b.style.background === 'rgb(196, 149, 106)') {
+        tags.push(b.textContent);
+      }
+    });
+    var note = document.getElementById('feedback-text');
+    var noteVal = note ? note.value.trim() : '';
+
+    // Salva su Firebase
+    if(window.fbRegistraPagamento) {
+      // Riutilizza Firebase connection
+    }
+    if(window.db && window.fbDoc && window.fbSetDoc && window.fbTimestamp) {
+      var guestName = document.querySelector('.hero-name');
+      window.fbSetDoc(window.fbDoc(window.db, 'feedback', 'fb_' + Date.now()), {
+        ospite: guestName ? guestName.textContent : 'Ospite',
+        voto: currentRating,
+        tags: tags,
+        note: noteVal,
+        data: window.fbTimestamp()
+      });
+    }
+    toast('🙏 Grazie per il feedback!');
+    setTimeout(function() { goBack(); }, 1500);
   }
 </script>
 

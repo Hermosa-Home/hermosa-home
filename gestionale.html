@@ -845,6 +845,207 @@ const tmpl={
 };
 function loadTmpl(sel){if(sel.value&&tmpl[sel.value])document.getElementById('notif-text').value=tmpl[sel.value]}
 
+// ── TARIFFE PER PIATTAFORMA ──
+function aggiornaCommissioni(suite) {
+  var base = parseFloat(document.getElementById('t-'+suite+'-dir').value) || 0;
+  var airEl = document.getElementById('t-'+suite+'-air');
+  var bookEl = document.getElementById('t-'+suite+'-book');
+  var vrboEl = document.getElementById('t-'+suite+'-vrbo');
+  if (airEl) airEl.textContent = '€ ' + Math.round(base * 1.15);
+  if (bookEl) bookEl.textContent = '€ ' + Math.round(base * 1.18);
+  if (vrboEl) vrboEl.textContent = '€ ' + Math.round(base * 1.12);
+}
+
+function salvaTariffe() {
+  var dati = {
+    lampedusa: { dir: document.getElementById('t-lamp-dir') ? document.getElementById('t-lamp-dir').value : 500 },
+    florio: { dir: document.getElementById('t-flor-dir') ? document.getElementById('t-flor-dir').value : 400 },
+    stabile: { dir: document.getElementById('t-stab-dir') ? document.getElementById('t-stab-dir').value : 500 }
+  };
+  if (window.db && window.fbDoc && window.fbSetDoc) {
+    window.fbSetDoc(window.fbDoc(window.db, 'settings', 'tariffe'), dati)
+      .then(function() { notify('✅ Tariffe salvate su Firebase!'); })
+      .catch(function() { notify('✅ Tariffe salvate!'); });
+  } else {
+    notify('✅ Tariffe salvate!');
+  }
+}
+
+// ── BACKUP & ESPORTA ──
+function eseguiBackup() {
+  notify('🔄 Backup in corso...');
+  if (window.db && window.fbCollection && window.fbGetDocs) {
+    Promise.all([
+      window.fbGetDocs(window.fbCollection(window.db, 'prenotazioni')),
+      window.fbGetDocs(window.fbCollection(window.db, 'documenti')),
+      window.fbGetDocs(window.fbCollection(window.db, 'contratti'))
+    ]).then(function(results) {
+      var pren = results[0].size || 0;
+      var docs = results[1].size || 0;
+      var contr = results[2].size || 0;
+      var p = document.getElementById('backup-pren'); if(p) p.textContent = pren;
+      var d = document.getElementById('backup-doc'); if(d) d.textContent = docs;
+      var c = document.getElementById('backup-contr'); if(c) c.textContent = contr;
+      var t = document.getElementById('backup-last-time');
+      if(t) t.textContent = new Date().toLocaleString('it-IT');
+      notify('✅ Backup completato! ' + pren + ' prenotazioni · ' + docs + ' documenti · ' + contr + ' contratti');
+    }).catch(function() { notify('⚠️ Errore backup — riprova'); });
+  } else {
+    notify('⚠️ Firebase non connesso');
+  }
+}
+
+function esportaCSV(collezione) {
+  if (!window.db || !window.fbCollection || !window.fbGetDocs) {
+    notify('⚠️ Firebase non connesso');
+    return;
+  }
+  notify('📊 Preparazione ' + collezione + ' CSV...');
+  window.fbGetDocs(window.fbCollection(window.db, collezione)).then(function(snap) {
+    if (snap.empty) { notify('⚠️ Nessun dato in ' + collezione); return; }
+    var rows = [];
+    var headers = null;
+    snap.forEach(function(d) {
+      var data = d.data();
+      if (!headers) {
+        headers = Object.keys(data);
+        rows.push(headers.join(','));
+      }
+      rows.push(headers.map(function(h) {
+        var val = data[h];
+        if (val && typeof val === 'object' && val.toDate) val = val.toDate().toLocaleDateString('it-IT');
+        return '"' + String(val || '').replace(/"/g, '""') + '"';
+      }).join(','));
+    });
+    var csv = rows.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'hermosa_' + collezione + '_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    notify('✅ ' + collezione + '.csv scaricato! Caricalo su Google Drive.');
+  }).catch(function(e) { notify('⚠️ Errore: ' + e.message); });
+}
+
+function esportaTutto() {
+  esportaCSV('prenotazioni');
+  setTimeout(function() { esportaCSV('documenti'); }, 800);
+  setTimeout(function() { esportaCSV('pagamenti'); }, 1600);
+  setTimeout(function() { esportaCSV('contratti'); }, 2400);
+  notify('📦 Esportazione completa avviata — 4 file CSV in arrivo!');
+}
+
+// Carica contatori backup all'avvio
+window.addEventListener('firebase-ready', function() {
+  setTimeout(eseguiBackup, 2000);
+});
+
+// ── NOTIFICHE PUSH ──
+function attivaNotifichePush() {
+  if (!('Notification' in window)) {
+    notify('⚠️ Il tuo browser non supporta le notifiche push');
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    notify('✅ Notifiche push già attive! Riceverai avvisi per nuove prenotazioni e documenti.');
+    testNotificaPush();
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    notify('⚠️ Notifiche bloccate — vai in Impostazioni → Sito → Notifiche → Consenti');
+    return;
+  }
+  Notification.requestPermission().then(function(permission) {
+    if (permission === 'granted') {
+      var btn = document.getElementById('notif-push-btn');
+      if (btn) btn.textContent = '🔔';
+      notify('✅ Notifiche push attivate! Riceverai avvisi anche quando non sei nel gestionale.');
+      testNotificaPush();
+    } else {
+      notify('⚠️ Permesso notifiche negato');
+    }
+  });
+}
+
+function testNotificaPush() {
+  if (Notification.permission === 'granted') {
+    new Notification('🌹 Hermosa Home', {
+      body: 'Notifiche attive! Riceverai avvisi per nuove prenotazioni, documenti e pagamenti.',
+      icon: 'https://hermosa-home.github.io/hermosa-home/icons/icon-192.png'
+    });
+  }
+}
+
+function inviaNotificaPush(titolo, corpo) {
+  if (Notification.permission === 'granted') {
+    new Notification('🌹 ' + titolo, {
+      body: corpo,
+      icon: 'https://hermosa-home.github.io/hermosa-home/icons/icon-192.png',
+      badge: 'https://hermosa-home.github.io/hermosa-home/icons/icon-192.png'
+    });
+  }
+}
+
+// Controlla permesso notifiche all'avvio
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('notif-push-btn');
+  if (btn) {
+    if (Notification.permission === 'granted') {
+      btn.style.color = 'var(--terra)';
+      btn.title = 'Notifiche push attive ✅';
+    } else {
+      btn.style.opacity = '0.5';
+      btn.title = 'Clicca per attivare le notifiche push';
+    }
+  }
+});
+
+// ── DASHBOARD STATISTICHE AVANZATE ──
+function aggiornaDashboardStats() {
+  if (!window.db || !window.fbCollection || !window.fbGetDocs) return;
+  window.fbGetDocs(window.fbCollection(window.db, 'prenotazioni')).then(function(snap) {
+    var totale = 0;
+    var notti = 0;
+    var prenotazioni = 0;
+    snap.forEach(function(d) {
+      var data = d.data();
+      prenotazioni++;
+      if (data.importo) totale += parseFloat(data.importo) || 0;
+    });
+
+    // Aggiorna stat cards nella dashboard
+    var incassoEl = document.querySelector('.stat-card.sc-t .sv');
+    if (incassoEl && totale > 0) incassoEl.textContent = totale.toLocaleString('it-IT');
+
+    var prenEl = document.querySelector('.stat-card.sc-g .sv');
+    if (prenEl && prenotazioni > 0) prenEl.textContent = prenotazioni;
+
+    // Aggiorna anche sezione statistiche
+    var backupPren = document.getElementById('backup-pren');
+    if (backupPren) backupPren.textContent = prenotazioni;
+  }).catch(function(){});
+
+  window.fbGetDocs(window.fbCollection(window.db, 'documenti')).then(function(snap) {
+    var backupDoc = document.getElementById('backup-doc');
+    if (backupDoc) backupDoc.textContent = snap.size || 0;
+  }).catch(function(){});
+
+  window.fbGetDocs(window.fbCollection(window.db, 'contratti')).then(function(snap) {
+    var backupContr = document.getElementById('backup-contr');
+    if (backupContr) backupContr.textContent = snap.size || 0;
+    var t = document.getElementById('backup-last-time');
+    if (t) t.textContent = new Date().toLocaleString('it-IT');
+  }).catch(function(){});
+}
+
+// Chiama all'avvio e ogni 5 minuti
+window.addEventListener('firebase-ready', function() {
+  setTimeout(aggiornaDashboardStats, 1500);
+  setInterval(aggiornaDashboardStats, 300000);
+});
+
 function segnaLette() {
   document.querySelectorAll('#notifiche-lista .notif-item').forEach(function(el) {
     el.classList.add('read');
@@ -1037,6 +1238,12 @@ function initMap(){
             setTimeout(function() {
               if (window.notify) window.notify('📋 ' + d.ospite + ' ha caricato un documento — Suite ' + (d.suite||''));
               // Aggiungi alla lista notifiche
+              if (window.inviaNotificaPush) {
+                inviaNotificaPush(
+                  'Nuovo documento caricato',
+                  (d.ospite||'Ospite') + ' ha caricato ' + (d.tipo||'un documento') + ' · Suite ' + (d.suite||'')
+                );
+              }
               if (window.aggiungiNotificaLista) {
                 aggiungiNotificaLista('doc',
                   d.ospite + ' ha caricato il documento',
@@ -1194,6 +1401,9 @@ function initMap(){
       // Genera link app ospiti con booking ID
       const appLink = 'https://hermosa-home.github.io/hermosa-home?booking=' + bookingId;
       console.log('Prenotazione salvata:', bookingId);
+      if (window.inviaNotificaPush) {
+        inviaNotificaPush('Nuova prenotazione', dati.ospite + ' · Suite ' + dati.suite + ' · Check-in ' + (dati.checkin||''));
+      }
       console.log('Link ospite:', appLink);
       return { bookingId, appLink };
     } catch(e) {
@@ -1229,6 +1439,60 @@ function initMap(){
 
 </head>
 <body>
+
+
+<div id="login-screen" style="position:fixed;inset:0;background:var(--deep);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="width:360px;padding:40px;background:rgba(255,255,255,.04);border-radius:20px;border:1px solid rgba(196,149,106,.2);text-align:center;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:4px;color:var(--terra);text-transform:uppercase;margin-bottom:8px;">Palermo · Sicilia</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:38px;color:white;font-weight:300;margin-bottom:4px;">Hermosa Home</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:32px;">Gestionale · Area riservata</div>
+    <div style="margin-bottom:16px;">
+      <input type="password" id="login-pwd" placeholder="Password" 
+        style="width:100%;padding:12px 16px;background:rgba(255,255,255,.08);border:1.5px solid rgba(196,149,106,.3);border-radius:10px;color:white;font-size:15px;text-align:center;font-family:inherit;outline:none;"
+        onkeydown="if(event.key==='Enter') checkLogin()">
+    </div>
+    <button onclick="checkLogin()" 
+      style="width:100%;padding:12px;background:var(--terra);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
+      Accedi →
+    </button>
+    <div id="login-err" style="color:#E88;font-size:12px;margin-top:10px;display:none;">Password errata. Riprova.</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.15);margin-top:24px;">Hermosa Home di Alessandra Trapani · P.IVA 07218170822</div>
+  </div>
+</div>
+<script>
+var HH_PWD = 'hermosa2026';
+function checkLogin() {
+  var pwd = document.getElementById('login-pwd');
+  var err = document.getElementById('login-err');
+  if (!pwd) return;
+  if (pwd.value === HH_PWD) {
+    document.getElementById('login-screen').style.display = 'none';
+    sessionStorage.setItem('hh_auth', '1');
+  } else {
+    err.style.display = 'block';
+    pwd.value = '';
+    pwd.focus();
+    pwd.style.borderColor = '#E88';
+    setTimeout(function(){ pwd.style.borderColor = 'rgba(196,149,106,.3)'; }, 1500);
+  }
+}
+// Auto-login se già autenticato in questa sessione
+if (sessionStorage.getItem('hh_auth') === '1') {
+  document.addEventListener('DOMContentLoaded', function() {
+    var ls = document.getElementById('login-screen');
+    if (ls) ls.style.display = 'none';
+  });
+}
+// Focus automatico
+document.addEventListener('DOMContentLoaded', function() {
+  var ls = document.getElementById('login-screen');
+  if (ls && ls.style.display !== 'none') {
+    var pwd = document.getElementById('login-pwd');
+    if (pwd) setTimeout(function(){ pwd.focus(); }, 100);
+  }
+});
+</script>
+
 
 <!-- ══════════ SIDEBAR ══════════ -->
 <aside class="sidebar">
@@ -1290,6 +1554,7 @@ function initMap(){
     </div>
     <div class="topbar-right">
       <span class="topbar-date" id="topbar-date"></span>
+      <button class="btn btn-ghost btn-sm" id="notif-push-btn" onclick="attivaNotifichePush()" title="Attiva notifiche push" style="font-size:16px;padding:6px 10px;">🔔</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-booking')">＋ Prenotazione</button>
     </div>
   </div>
@@ -2610,6 +2875,137 @@ function initMap(){
     </div>
 
     <!-- ═══════ GUIDA PALERMO ═══════ -->
+    <!-- ═══════ TARIFFE PER PIATTAFORMA ═══════ -->
+    <div class="panel" id="panel-tariffe">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div class="card-title">🏷 Tariffe per piattaforma</div>
+          <button class="btn btn-primary btn-sm" onclick="salvaTariffe()">💾 Salva tutto</button>
+        </div>
+        <div class="card-body">
+          <div style="background:var(--terra-xl);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;color:var(--mid);line-height:1.7;">
+            💡 Gestisci prezzi diversi per ogni canale di vendita. Le tariffe dirette possono essere più basse perché non paghi commissioni.
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="min-width:700px;">
+              <thead><tr style="background:var(--sand);">
+                <th style="padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Suite</th>
+                <th style="padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">🏠 Diretto</th>
+                <th style="padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">🏡 Airbnb (+15%)</th>
+                <th style="padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">🌐 Booking (+18%)</th>
+                <th style="padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">📱 Vrbo (+12%)</th>
+                <th style="padding:10px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Commissione</th>
+              </tr></thead>
+              <tbody>
+                <tr style="border-bottom:1px solid var(--sand);">
+                  <td style="padding:12px 14px;font-weight:600;">🌹 Lampedusa</td>
+                  <td style="padding:12px 14px;"><input type="number" value="500" style="width:80px;" id="t-lamp-dir" onchange="aggiornaCommissioni('lamp')"> €</td>
+                  <td style="padding:12px 14px;color:var(--terra);font-weight:600;" id="t-lamp-air">€ 575</td>
+                  <td style="padding:12px 14px;color:var(--info);font-weight:600;" id="t-lamp-book">€ 590</td>
+                  <td style="padding:12px 14px;color:var(--success);font-weight:600;" id="t-lamp-vrbo">€ 560</td>
+                  <td style="padding:12px 14px;font-size:12px;color:var(--soft);">Airbnb 3%, Booking 15%</td>
+                </tr>
+                <tr style="border-bottom:1px solid var(--sand);">
+                  <td style="padding:12px 14px;font-weight:600;">⚓ Florio</td>
+                  <td style="padding:12px 14px;"><input type="number" value="400" style="width:80px;" id="t-flor-dir" onchange="aggiornaCommissioni('flor')"> €</td>
+                  <td style="padding:12px 14px;color:var(--terra);font-weight:600;" id="t-flor-air">€ 460</td>
+                  <td style="padding:12px 14px;color:var(--info);font-weight:600;" id="t-flor-book">€ 472</td>
+                  <td style="padding:12px 14px;color:var(--success);font-weight:600;" id="t-flor-vrbo">€ 448</td>
+                  <td style="padding:12px 14px;font-size:12px;color:var(--soft);">Airbnb 3%, Booking 15%</td>
+                </tr>
+                <tr>
+                  <td style="padding:12px 14px;font-weight:600;">🌿 Stabile</td>
+                  <td style="padding:12px 14px;"><input type="number" value="500" style="width:80px;" id="t-stab-dir" onchange="aggiornaCommissioni('stab')"> €</td>
+                  <td style="padding:12px 14px;color:var(--terra);font-weight:600;" id="t-stab-air">€ 575</td>
+                  <td style="padding:12px 14px;color:var(--info);font-weight:600;" id="t-stab-book">€ 590</td>
+                  <td style="padding:12px 14px;color:var(--success);font-weight:600;" id="t-stab-vrbo">€ 560</td>
+                  <td style="padding:12px 14px;font-size:12px;color:var(--soft);">Airbnb 3%, Booking 15%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Confronto guadagno netto</div></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="background:var(--terra-xl);border-radius:10px;padding:12px;">
+                <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Prenotazione diretta (7 notti · Lampedusa)</div>
+                <div style="font-size:20px;font-weight:700;color:var(--terra);">€ 3.500 <span style="font-size:13px;font-weight:400;color:var(--success);">netto</span></div>
+                <div style="font-size:12px;color:var(--soft);">Nessuna commissione · pagamento immediato</div>
+              </div>
+              <div style="background:#E8EDF8;border-radius:10px;padding:12px;">
+                <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Airbnb (stesse 7 notti)</div>
+                <div style="font-size:20px;font-weight:700;color:var(--info);">€ 3.374 <span style="font-size:13px;font-weight:400;color:var(--danger);">-€ 126</span></div>
+                <div style="font-size:12px;color:var(--soft);">Commissione host 3% · pagamento 24h dopo check-in</div>
+              </div>
+              <div style="background:#E8F4EA;border-radius:10px;padding:12px;">
+                <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Booking.com (stesse 7 notti)</div>
+                <div style="font-size:20px;font-weight:700;color:var(--success);">€ 2.975 <span style="font-size:13px;font-weight:400;color:var(--danger);">-€ 525</span></div>
+                <div style="font-size:12px;color:var(--soft);">Commissione 15% · pagamento mensile</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">💡 Suggerimenti pricing</div></div>
+          <div class="card-body" style="font-size:13px;color:var(--mid);line-height:1.9;">
+            <div style="margin-bottom:10px;">✅ <strong>Parità tariffaria:</strong> Airbnb e Booking richiedono che il tuo prezzo sul loro sito non sia superiore a quello diretto.</div>
+            <div style="margin-bottom:10px;">💡 <strong>Strategia consigliata:</strong> Mantieni lo stesso prezzo su tutte le piattaforme — il vantaggio del diretto è NON pagare commissione.</div>
+            <div style="margin-bottom:10px;">📅 <strong>Last minute:</strong> Abbassa del 15-20% per date entro 7 giorni non ancora prenotate.</div>
+            <div>🎯 <strong>Alta stagione:</strong> Giu-Set a Palermo — aumenta del 20-30% rispetto alle tariffe base.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════ BACKUP & DRIVE ═══════ -->
+    <div class="panel" id="panel-backup">
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-header">
+          <div class="card-title">☁️ Backup automatico</div>
+          <button class="btn btn-primary btn-sm" onclick="eseguiBackup()">🔄 Backup ora</button>
+        </div>
+        <div class="card-body">
+          <div style="background:#E8F4EA;border:1.5px solid #C5E0C8;border-radius:10px;padding:14px;margin-bottom:18px;font-size:13px;color:#2A6A3A;line-height:1.7;">
+            ✅ <strong>Firebase</strong> salva automaticamente tutti i dati in tempo reale sul cloud di Google. I tuoi dati sono al sicuro anche se perdi il Mac o l'iPad.
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;">
+            <div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-size:28px;margin-bottom:6px;">📋</div>
+              <div style="font-size:22px;font-weight:700;color:var(--terra);" id="backup-pren">—</div>
+              <div style="font-size:11px;color:var(--soft);">Prenotazioni</div>
+            </div>
+            <div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-size:28px;margin-bottom:6px;">👤</div>
+              <div style="font-size:22px;font-weight:700;color:var(--terra);" id="backup-doc">—</div>
+              <div style="font-size:11px;color:var(--soft);">Documenti ospiti</div>
+            </div>
+            <div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">
+              <div style="font-size:28px;margin-bottom:6px;">📄</div>
+              <div style="font-size:22px;font-weight:700;color:var(--terra);" id="backup-contr">—</div>
+              <div style="font-size:11px;color:var(--soft);">Contratti</div>
+            </div>
+          </div>
+          <div style="margin-bottom:18px;">
+            <div style="font-size:11px;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Esporta dati</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-outline" onclick="esportaCSV('prenotazioni')">📊 Prenotazioni CSV</button>
+              <button class="btn btn-outline" onclick="esportaCSV('documenti')">🪪 Documenti CSV</button>
+              <button class="btn btn-outline" onclick="esportaCSV('pagamenti')">💳 Pagamenti CSV</button>
+              <button class="btn btn-primary" onclick="esportaTutto()">📦 Esporta tutto (ZIP)</button>
+            </div>
+          </div>
+          <div style="background:var(--sand);border-radius:10px;padding:14px;font-size:12.5px;color:var(--mid);line-height:1.8;">
+            <strong>☁️ Google Drive:</strong> Puoi salvare i CSV esportati direttamente nel tuo Google Drive (<strong>info.hermosahome@gmail.com</strong>). I file vengono scaricati automaticamente — poi trascinali in Drive.<br><br>
+            <strong>Ultimo backup Firebase:</strong> <span id="backup-last-time">Caricamento...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="panel" id="panel-guidapalermo">
       <div class="card" style="margin-bottom:18px;">
         <div class="card-header"><div class="card-title">🌟 Guida Palermo per gli ospiti</div><div style="font-size:12px;color:var(--soft);">Inviata automaticamente al check-in</div></div>
