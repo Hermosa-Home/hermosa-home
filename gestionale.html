@@ -4010,27 +4010,34 @@ function copiaLinkApp() {
 }
 
 function stampaQROspite() {
-  var link = document.getElementById('invia-link');
-  var nome = document.getElementById('invia-nome');
-  var suite = document.getElementById('invia-suite');
-  if (!link) return;
-  var win = window.open('', '_blank');
-  win.document.write('<html><head><title>QR ' + (nome ? nome.textContent : '') + '</title>' +
-    '<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/scr'+'ipt>' +
-    '<style>body{font-family:Georgia,serif;text-align:center;padding:40px;background:#FAF7F2;}' +
-    'h2{color:#2C2416;font-size:24px;margin-bottom:4px;}' +
-    'p{color:#9B8B78;font-size:14px;margin-bottom:20px;}' +
-    '#qr{display:inline-block;padding:16px;background:white;border:2px solid #E8D5BE;border-radius:12px;}' +
-    '.footer{margin-top:20px;color:#C4956A;font-size:13px;}</style></head><body>' +
-    '<h2>Hermosa Home · Palermo 🌹</h2>' +
-    '<p>App personale per <strong>' + (nome ? nome.textContent : '') + '</strong> · ' + (suite ? suite.textContent : '') + '</p>' +
-    '<div id="qr"></div>' +
-    '<p style="font-size:11px;color:#9B8B78;margin-top:12px;">Scansiona con la fotocamera</p>' +
-    '<div class="footer">Via Mariano Stabile 124, 3° piano · +39 328 484 5555</div>' +
-    '<scr'+'ipt>new QRCode(document.getElementById("qr"),{text:"' + link.value + '",width:220,height:220,colorDark:"#2C2416",colorLight:"#ffffff"});<\/script>' +
-    '</body></html>');
-  win.document.close();
-  setTimeout(function() { win.print(); }, 800);
+  var linkEl = document.getElementById('invia-link');
+  var nomeEl = document.getElementById('invia-nome');
+  var suiteEl = document.getElementById('invia-suite');
+  if (!linkEl || !linkEl.value) { notify('⚠️ Nessun link da stampare'); return; }
+  var url = linkEl.value;
+  var nome = nomeEl ? nomeEl.textContent : 'Ospite';
+  var suite = suiteEl ? suiteEl.textContent : 'Suite';
+  // Genera QR tramite API Google Charts (nessun script tag necessario)
+  var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR ' + nome + '</title>';
+  html += '<style>body{font-family:Georgia,serif;text-align:center;padding:40px;background:#FAF7F2;margin:0}';
+  html += 'h2{color:#2C2416;font-size:24px;margin-bottom:4px}';
+  html += 'p{color:#9B8B78;font-size:14px;margin-bottom:20px}';
+  html += '.qr{display:inline-block;padding:16px;background:white;border:2px solid #E8D5BE;border-radius:12px;margin:16px 0}';
+  html += '.footer{color:#C4956A;font-size:13px;margin-top:20px}</style></head><body>';
+  html += '<h2>Hermosa Home &middot; Palermo &#127801;</h2>';
+  html += '<p>App personale per <strong>' + nome + '</strong> &middot; ' + suite + '</p>';
+  html += '<div class="qr"><img src="' + qrUrl + '" width="220" height="220" alt="QR Code"></div>';
+  html += '<p style="font-size:11px;color:#9B8B78">Scansiona con la fotocamera del telefono</p>';
+  html += '<div class="footer">Via Mariano Stabile 124, 3&deg; piano &middot; +39 328 484 5555</div>';
+  html += '</body></html>';
+  var blob = new Blob([html], {type: 'text/html'});
+  var blobUrl = URL.createObjectURL(blob);
+  var win = window.open(blobUrl, '_blank');
+  setTimeout(function() {
+    if (win) win.print();
+    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
+  }, 1000);
 }
 
 // QR generazione integrata in openModal principale
