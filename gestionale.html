@@ -1441,57 +1441,6 @@ function initMap(){
 <body>
 
 
-<div id="login-screen" style="position:fixed;inset:0;background:var(--deep);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="width:360px;padding:40px;background:rgba(255,255,255,.04);border-radius:20px;border:1px solid rgba(196,149,106,.2);text-align:center;">
-    <div style="font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:4px;color:var(--terra);text-transform:uppercase;margin-bottom:8px;">Palermo · Sicilia</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:38px;color:white;font-weight:300;margin-bottom:4px;">Hermosa Home</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:32px;">Gestionale · Area riservata</div>
-    <div style="margin-bottom:16px;">
-      <input type="password" id="login-pwd" placeholder="Password" 
-        style="width:100%;padding:12px 16px;background:rgba(255,255,255,.08);border:1.5px solid rgba(196,149,106,.3);border-radius:10px;color:white;font-size:15px;text-align:center;font-family:inherit;outline:none;"
-        onkeydown="if(event.key==='Enter') checkLogin()">
-    </div>
-    <button onclick="checkLogin()" 
-      style="width:100%;padding:12px;background:var(--terra);color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
-      Accedi →
-    </button>
-    <div id="login-err" style="color:#E88;font-size:12px;margin-top:10px;display:none;">Password errata. Riprova.</div>
-    <div style="font-size:10px;color:rgba(255,255,255,.15);margin-top:24px;">Hermosa Home di Alessandra Trapani · P.IVA 07218170822</div>
-  </div>
-</div>
-<script>
-var HH_PWD = 'hermosa2026';
-function checkLogin() {
-  var pwd = document.getElementById('login-pwd');
-  var err = document.getElementById('login-err');
-  if (!pwd) return;
-  if (pwd.value === HH_PWD) {
-    document.getElementById('login-screen').style.display = 'none';
-    sessionStorage.setItem('hh_auth', '1');
-  } else {
-    err.style.display = 'block';
-    pwd.value = '';
-    pwd.focus();
-    pwd.style.borderColor = '#E88';
-    setTimeout(function(){ pwd.style.borderColor = 'rgba(196,149,106,.3)'; }, 1500);
-  }
-}
-// Auto-login se già autenticato in questa sessione
-if (sessionStorage.getItem('hh_auth') === '1') {
-  document.addEventListener('DOMContentLoaded', function() {
-    var ls = document.getElementById('login-screen');
-    if (ls) ls.style.display = 'none';
-  });
-}
-// Focus automatico
-document.addEventListener('DOMContentLoaded', function() {
-  var ls = document.getElementById('login-screen');
-  if (ls && ls.style.display !== 'none') {
-    var pwd = document.getElementById('login-pwd');
-    if (pwd) setTimeout(function(){ pwd.focus(); }, 100);
-  }
-});
-</script>
 
 
 <!-- ══════════ SIDEBAR ══════════ -->
@@ -3936,7 +3885,7 @@ function getMsgOspite() {
   var suiteVal = suite ? suite.textContent : 'Suite';
   var link = document.getElementById('invia-link');
   var linkVal = link ? link.value : '';
-  return '🏡 *Benvenuto a Hermosa Home, Palermo!*\n\nGentile ' + nomeVal + ',\n\nLa tua prenotazione è confermata per la *' + suiteVal + '*.\n\n📱 *La tua app personale:*\n' + linkVal + "\n\nNell'app trovi tutto ciò di cui hai bisogno:\n🔐 Apertura porte · 📋 Documenti · ✍️ Contratto · 💳 Pagamento · 🗺 Mappa\n\n📞 +39 328 484 5555\n✉️ info.hermosahome@gmail.com\n\nA presto! 🌹\n*Hermosa Home* · Via Mariano Stabile 124 · Palermo";
+  return 'Benvenuto a Hermosa Home, Palermo!\n\nGentile ' + nomeVal + ',\n\nLa tua prenotazione è confermata per la ' + suiteVal + '.\n\nLa tua app personale:\n' + linkVal + "\n\nNell'app trovi: apertura porte, documenti, contratto, pagamento, mappa.\n\n+39 328 484 5555\ninfo.hermosahome@gmail.com\n\nA presto!\nHermosa Home - Via Mariano Stabile 124 - Palermo";
 }
 
 function inviaAppWhatsApp() {
@@ -3944,14 +3893,12 @@ function inviaAppWhatsApp() {
   var msg = encodeURIComponent(getMsgOspite());
   if (tel) {
     window.open('https://wa.me/' + tel + '?text=' + msg, '_blank');
-    notify('✅ WhatsApp aperto verso il cliente');
+    notify('WhatsApp aperto verso il cliente');
   } else {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(getMsgOspite()).then(function() {
-        notify('⚠️ Nessun numero inserito — messaggio copiato! Incolla su WhatsApp');
+        notify('Numero non inserito - messaggio copiato! Incollalo su WhatsApp');
       });
-    } else {
-      notify('⚠️ Inserisci il numero di telefono del cliente');
     }
   }
 }
@@ -3959,20 +3906,15 @@ function inviaAppWhatsApp() {
 function inviaAppEmail() {
   var emailEl = document.getElementById('invia-email');
   var email = emailEl ? emailEl.value.trim() : '';
-  var subject = 'La tua app personale — Hermosa Home Palermo';
-  if (email) {
-    window.open('mailto:' + email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(getMsgOspite()), '_blank');
-    notify('✅ Email aperta verso ' + email);
-  } else {
-    window.open('mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(getMsgOspite()), '_blank');
-    notify('⚠️ Inserisci email del cliente nel campo');
-  }
+  var subject = 'La tua app personale - Hermosa Home Palermo';
+  window.open('mailto:' + email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(getMsgOspite()), '_blank');
+  notify('Email aperta');
 }
 
 function inviaAppTelegram() {
   var link = document.getElementById('invia-link');
-  window.open('https://t.me/share/url?url=' + encodeURIComponent(link ? link.value : '') + '&text=' + encodeURIComponent('La tua app personale — Hermosa Home Palermo 🌹'), '_blank');
-  notify('✅ Link Telegram aperto');
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(link ? link.value : '') + '&text=' + encodeURIComponent('La tua app - Hermosa Home Palermo'), '_blank');
+  notify('Telegram aperto');
 }
 
 function inviaAppSMS() {
@@ -3982,11 +3924,10 @@ function inviaAppSMS() {
   var msg = 'Hermosa Home Palermo: ciao ' + (nome ? nome.textContent.split(' ')[0] : '') + ', la tua app: ' + (link ? link.value : '');
   if (tel) {
     window.open('sms:+' + tel + '?body=' + encodeURIComponent(msg), '_blank');
-    notify('✅ SMS aperto verso +' + tel);
   } else {
     window.open('sms:?body=' + encodeURIComponent(msg), '_blank');
-    notify('⚠️ Inserisci il numero per inviare SMS diretto');
   }
+  notify('SMS aperto');
 }
 
 function inviaAppTutti() {
@@ -3994,53 +3935,50 @@ function inviaAppTutti() {
   var emailEl = document.getElementById('invia-email');
   var email = emailEl ? emailEl.value.trim() : '';
   if (!tel && !email) {
-    notify('⚠️ Inserisci telefono o email del cliente prima di inviare!');
+    notify('Inserisci telefono o email del cliente!');
     return;
   }
   inviaAppWhatsApp();
   if (email) setTimeout(function() { inviaAppEmail(); }, 600);
-  notify('✅ Invio avviato su tutti i canali!');
+  notify('Invio avviato!');
 }
 
 function copiaLinkApp() {
   var el = document.getElementById('invia-link');
   if (el && navigator.clipboard) {
-    navigator.clipboard.writeText(el.value).then(function() { notify('📋 Link copiato!'); });
+    navigator.clipboard.writeText(el.value).then(function() { notify('Link copiato!'); });
   }
 }
 
 function stampaQROspite() {
   var linkEl = document.getElementById('invia-link');
   var nomeEl = document.getElementById('invia-nome');
-  var suiteEl = document.getElementById('invia-suite');
-  if (!linkEl || !linkEl.value) { notify('⚠️ Nessun link da stampare'); return; }
-  var url = linkEl.value;
-  var nome = nomeEl ? nomeEl.textContent : 'Ospite';
-  var suite = suiteEl ? suiteEl.textContent : 'Suite';
-  // Genera QR tramite API Google Charts (nessun script tag necessario)
-  var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(url);
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR ' + nome + '</title>';
-  html += '<style>body{font-family:Georgia,serif;text-align:center;padding:40px;background:#FAF7F2;margin:0}';
-  html += 'h2{color:#2C2416;font-size:24px;margin-bottom:4px}';
-  html += 'p{color:#9B8B78;font-size:14px;margin-bottom:20px}';
-  html += '.qr{display:inline-block;padding:16px;background:white;border:2px solid #E8D5BE;border-radius:12px;margin:16px 0}';
-  html += '.footer{color:#C4956A;font-size:13px;margin-top:20px}</style></head><body>';
-  html += '<h2>Hermosa Home &middot; Palermo &#127801;</h2>';
-  html += '<p>App personale per <strong>' + nome + '</strong> &middot; ' + suite + '</p>';
-  html += '<div class="qr"><img src="' + qrUrl + '" width="220" height="220" alt="QR Code"></div>';
-  html += '<p style="font-size:11px;color:#9B8B78">Scansiona con la fotocamera del telefono</p>';
-  html += '<div class="footer">Via Mariano Stabile 124, 3&deg; piano &middot; +39 328 484 5555</div>';
-  html += '</body></html>';
-  var blob = new Blob([html], {type: 'text/html'});
-  var blobUrl = URL.createObjectURL(blob);
-  var win = window.open(blobUrl, '_blank');
-  setTimeout(function() {
-    if (win) win.print();
-    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
-  }, 1000);
+  if (!linkEl || !linkEl.value) { notify('Nessun link da stampare'); return; }
+  var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(linkEl.value);
+  notify('QR Code: ' + qrUrl);
+  window.open(qrUrl, '_blank');
 }
 
-// QR generazione integrata in openModal principale
+var _origOpenModal2 = window.openModal;
+window.openModal = function(id) {
+  if (_origOpenModal2) _origOpenModal2(id);
+  if (id === 'modal-invia-app') {
+    setTimeout(function() {
+      var container = document.getElementById('qr-ospite-container');
+      var linkEl = document.getElementById('invia-link');
+      if (container && linkEl && linkEl.value && typeof QRCode !== 'undefined') {
+        container.innerHTML = '';
+        new QRCode(container, {
+          text: linkEl.value,
+          width: 140, height: 140,
+          colorDark: '#2C2416',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
+    }, 300);
+  }
+};
 </script>
 </body>
 </html>
