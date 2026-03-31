@@ -597,121 +597,6 @@ function inviaLinkPagamento(canale) {
 const n=new Date();
 const _td=document.getElementById('topbar-date');if(_td)_td.textContent=n.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-// ── MANUTENZIONE ──
-var interventi = (function(){
-  try { return JSON.parse(localStorage.getItem('hh_interventi') || '[]'); } catch(e){ return []; }
-})();
-
-function salvaIntervento(){
-  var suite    = (document.getElementById('man-suite')||{}).value || '';
-  var tipo     = (document.getElementById('man-tipo')||{}).value || '';
-  var desc     = (document.getElementById('man-desc')||{}).value.trim() || '';
-  var priorita = (document.getElementById('man-priorita')||{}).value || 'media';
-  var data     = (document.getElementById('man-data')||{}).value || '';
-
-  if(!desc){ notify('⚠️ Descrivi il problema'); return; }
-
-  var priLabel = {alta:'🔴 Alta', media:'🟡 Media', bassa:'🟢 Bassa'};
-  var item = { id:'m'+Date.now(), suite:suite, tipo:tipo, desc:desc, priorita:priorita, data:data, stato:'aperto' };
-  interventi.push(item);
-  try { localStorage.setItem('hh_interventi', JSON.stringify(interventi)); } catch(e){}
-
-  // Aggiunge riga nella lista manutenzione
-  var lista = document.querySelector('#panel-pulizie .card:last-child .card-body > div');
-  if(lista){
-    var div = document.createElement('div');
-    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);';
-    div.innerHTML = '<span style="font-size:18px;">🔧</span>'
-      +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+tipo+' — '+suite+'</div>'
-      +'<div style="font-size:11px;color:var(--soft);">'+desc+(data?' · Data: '+new Date(data).toLocaleDateString('it-IT'):'')+'</div></div>'
-      +'<span style="background:#FFF0E0;color:#C07820;padding:2px 8px;border-radius:20px;font-size:11px;">'+priLabel[priorita]+' · Aperto</span>';
-    lista.appendChild(div);
-  }
-
-  document.getElementById('man-desc').value = '';
-  closeModal('modal-manutenzione');
-  notify('✅ Intervento registrato · '+ priLabel[priorita]);
-}
-
-// ── CONTRATTI: visualizza / sollecita ──
-var currentContrattoId = null;
-
-function generaTestoContratto(bk){
-  if(!bk) return 'Prenotazione non trovata.';
-  var fmt = function(d){ return d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; };
-  var notti = bk.checkin && bk.checkout ? Math.round((new Date(bk.checkout)-new Date(bk.checkin))/86400000) : '—';
-  return 'CONTRATTO DI LOCAZIONE TURISTICA BREVE\n'
-    +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
-    +'LOCATORE\n'
-    +CFG.ragione+'\nP.IVA: '+CFG.piva+' · C.F.: '+CFG.cf+'\n'
-    +'Via Mariano Stabile 124, Piano 3° · 90139 Palermo (PA)\n'
-    +'Tel: '+CFG.tel+' · '+CFG.email+'\n\n'
-    +'CONDUTTORE\n'
-    +'Nome: '+bk.guest+'\n'
-    +(bk.phone?'Tel: '+bk.phone+'\n':'')
-    +(bk.email?'Email: '+bk.email+'\n':'')+'\n'
-    +'IMMOBILE\n'
-    +'Suite '+bk.suite+'\nVia Mariano Stabile 124, Piano 3° · Palermo\n\n'
-    +'PERIODO\n'
-    +'Check-in: '+fmt(bk.checkin)+' ore 14:00\n'
-    +'Check-out: '+fmt(bk.checkout)+' ore 10:00\n'
-    +'Durata: '+notti+' notti\n'
-    +'N° ospiti: '+(bk.ospiti||2)+'\n\n'
-    +'CANONE\n'
-    +'Totale: € '+bk.importo+'\n'
-    +'Piattaforma: '+(bk.source||'Diretto')+'\n\n'
-    +'CONDIZIONI\n'
-    +'1. La locazione è turistica ai sensi dell\'art. 4 D.L. 50/2017.\n'
-    +'2. Check-in: presentare documento d\'identità valido.\n'
-    +'3. Non sono ammessi animali domestici salvo accordo preventivo.\n'
-    +'4. Vietato fumare in tutti gli spazi interni.\n'
-    +'5. Silenzio dalle 22:00 alle 08:00.\n'
-    +'6. Il conduttore risponde dei danni causati all\'immobile.\n'
-    +'7. Cedolare secca 26% applicata (2° immobile locatore).\n\n'
-    +'Palermo, '+new Date().toLocaleDateString('it-IT')+'\n\n'
-    +'Firma locatore: ___________________\n'
-    +'Firma conduttore: ___________________';
-}
-
-function visualizzaContratto(bookingId){
-  var bk = bookings.find(function(b){ return b.id === bookingId; });
-  currentContrattoId = bookingId;
-  document.getElementById('cv-title').textContent = (bk?bk.guest:'Contratto') + ' — Contratto locazione';
-  document.getElementById('cv-body').textContent = generaTestoContratto(bk);
-  openModal('modal-contratto-view');
-}
-
-function copiaContratto(){
-  var testo = document.getElementById('cv-body').textContent;
-  if(navigator.clipboard){ navigator.clipboard.writeText(testo).then(function(){ notify('📋 Contratto copiato!'); }); }
-}
-
-function inviaContrattoView(){
-  var bk = bookings.find(function(b){ return b.id === currentContrattoId; });
-  if(!bk){ notify('⚠️ Ospite non trovato'); return; }
-  var waNum = bk.waNum || CFG.whatsapp;
-  var testo = generaTestoContratto(bk);
-  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(testo),'_blank');
-  notify('📄 Contratto inviato via WhatsApp ✓');
-  closeModal('modal-contratto-view');
-}
-
-function sollecitaContratto(bookingId){
-  var bk = bookings.find(function(b){ return b.id === bookingId; });
-  if(!bk){ notify('Reminder inviato ✓'); return; }
-  var waNum = bk.waNum || CFG.whatsapp;
-  var appLink = APP_URL + '?booking=HH-' + bk.id;
-  var msg = 'Gentile '+bk.guest+',\n\nti ricordiamo che il contratto per la Suite '+bk.suite+' è ancora in attesa di firma.\n\n📱 Firma qui:\n'+appLink+'\n\nHermosa Home · '+CFG.tel+' 🌹';
-  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
-  notify('📤 Sollecito inviato via WhatsApp ✓');
-}
-
-function apriContrattoId(bookingId){
-  var sel = document.getElementById('sel-contratto-ospite');
-  if(sel) sel.value = bookingId;
-  openModal('modal-contratto');
-}
-
 // ── PREZZI ──
 var prezziStagione = (function(){
   try { return JSON.parse(localStorage.getItem('hh_prezzi') || 'null'); } catch(e){ return null; }
@@ -904,144 +789,322 @@ function notify(msg){
   nt=setTimeout(function(){e.classList.remove('show');},2800);
 }
 
+const APP_URL = 'https://hermosa-home.github.io/hermosa-home';
+
+function normalizzaWA(tel){
+  var n = (tel||'').replace(/[\s\-\(\)]/g,'').replace(/^\+/,'');
+  if(n.startsWith('0')) n='39'+n.substring(1);
+  if(!n.startsWith('39')&&n.length===10) n='39'+n;
+  return n;
+}
+
 function saveBooking(){
-  var mbInputs = document.querySelectorAll('#modal-booking input[type="text"]');
-  var guestName = mbInputs.length > 0 ? mbInputs[0].value.trim() : '';
-  var suiteEl = document.querySelector('#modal-booking select');
-  var suite = suiteEl ? suiteEl.value : '';
-  var dateInputs = document.querySelectorAll('#modal-booking input[type="date"]');
-  var checkin = dateInputs.length > 0 ? dateInputs[0].value : '';
-  var checkout = dateInputs.length > 1 ? dateInputs[1].value : '';
-  var importoEl = document.querySelector('#modal-booking input[type="number"]');
-  var importo = importoEl ? importoEl.value : '';
-
-  if(!guestName){ notify('⚠️ Inserisci il nome ospite'); return; }
-  if(!checkin || !checkout){ notify('⚠️ Inserisci le date di soggiorno'); return; }
-
-  const suiteColors = {
-    'Tomasi di Lampedusa': {bg:'#2C2416', color:'var(--terra)', letter:'T'},
-    'Florio': {bg:'#1A2C35', color:'#7AB8D0', letter:'F'},
-    'Stabile': {bg:'#1F2C1A', color:'#8DB87A', letter:'S'}
-  };
-  const suiteName = suite ? suite.replace(/^[^)]+\) /,'').replace(/ \(fino a.*/,'').trim() : 'Tomasi di Lampedusa';
-  const suiteKey = Object.keys(suiteColors).find(k => suiteName.includes(k)) || 'Tomasi di Lampedusa';
-  const sc = suiteColors[suiteKey];
-  const fmt = d => d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}) : '—';
-
-  // Salva in array persistente
-  var newB = { id:'b'+Date.now(), guest:guestName, suite:suiteKey, checkin:checkin, checkout:checkout, importo:parseInt(importo)||0, contratto:'non_inviato', doc:'mancante', pagamento:'mancante' };
-  bookings.push(newB);
-  saveBookings();
-
-  // Aggiorna tabella prenotazioni
-  var tbody = document.querySelector('#panel-prenotazioni table tbody');
+  var guestName=(document.getElementById('mb-guest')||{}).value||'';
+  var phone    =(document.getElementById('mb-phone')||{}).value||'';
+  var email    =(document.getElementById('mb-email')||{}).value||'';
+  var suiteKey =(document.getElementById('mb-suite')||{}).value||'Tomasi di Lampedusa';
+  var ospiti   =(document.getElementById('mb-ospiti')||{}).value||'2';
+  var checkin  =(document.getElementById('mb-checkin')||{}).value||'';
+  var checkout =(document.getElementById('mb-checkout')||{}).value||'';
+  var importo  =parseInt((document.getElementById('mb-importo')||{}).value)||0;
+  var source   =(document.getElementById('mb-source')||{}).value||'diretto';
+  guestName=guestName.trim(); phone=phone.trim();
+  if(!guestName){notify('⚠️ Inserisci il nome ospite');return;}
+  if(!phone){notify('⚠️ Inserisci il numero WhatsApp dell ospite');return;}
+  if(!checkin||!checkout){notify('⚠️ Inserisci le date');return;}
+  if(new Date(checkout)<=new Date(checkin)){notify('⚠️ Check-out deve essere dopo il check-in');return;}
+  var waNum=normalizzaWA(phone);
+  var sc={
+    'Tomasi di Lampedusa':{bg:'#2C2416',color:'var(--terra)',letter:'T'},
+    'Florio':{bg:'#1A2C35',color:'#7AB8D0',letter:'F'},
+    'Stabile':{bg:'#1F2C1A',color:'#8DB87A',letter:'S'}
+  }[suiteKey]||{bg:'#2C2416',color:'var(--terra)',letter:'T'};
+  var fmt=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}):'—';};
+  var fmtL=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';};
+  var newB={id:'b'+Date.now(),guest:guestName,phone:phone,waNum:waNum,email:email,
+    suite:suiteKey,ospiti:parseInt(ospiti)||2,checkin:checkin,checkout:checkout,
+    importo:importo,source:source,contratto:'non_inviato',doc:'mancante',pagamento:'mancante'};
+  bookings.push(newB); saveBookings(); aggiornaBadge(); aggiornaSelectOspiti();
+  // Tabella prenotazioni
+  var tbody=document.querySelector('#panel-prenotazioni table tbody');
   if(tbody){
-    var tr = document.createElement('tr');
-    var dot = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+sc.bg+';margin-right:5px;border:1px solid '+sc.color+';"></span>';
-    tr.innerHTML = '<td>'+dot+suiteKey+'</td><td><strong>'+guestName+'</strong></td><td>'+fmt(checkin)+' 14:00</td><td>'+fmt(checkout)+' 10:00</td><td><span class="badge bo">⏳ Da inviare</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge br">€ '+(importo||'—')+' ✗</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal(\'modal-dettaglio\')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal(\'modal-notifica\')">🔔</button></td>';
+    var tr=document.createElement('tr');
+    var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+sc.bg+';margin-right:5px;border:1px solid '+sc.color+';"></span>';
+    tr.innerHTML='<td>'+dot+suiteKey+'</td>'
+      +'<td><strong>'+guestName+'</strong><br><span style="font-size:10px;color:var(--soft);">'+phone+'</span></td>'
+      +'<td>'+fmt(checkin)+' 14:00</td><td>'+fmt(checkout)+' 10:00</td>'
+      +'<td><span class="badge bo">⏳ Da inviare</span></td><td><span class="badge br">⚠️</span></td>'
+      +'<td><span class="badge br">€ '+importo+' ✗</span></td>'
+      +'<td><button class="btn btn-ghost btn-sm" onclick="openDettaglio(''+newB.id+'')">👁</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="openNotificaOspite(''+newB.id+'')">🔔</button></td>';
     tbody.appendChild(tr);
   }
-
-  // Aggiorna dashboard
-  var biList = document.querySelector('#panel-dashboard .card-body');
+  // Dashboard
+  var biList=document.querySelector('#panel-dashboard .card-body');
   if(biList){
-    var div = document.createElement('div');
-    div.className = 'booking-item';
-    div.innerHTML = '<div class="bi-apt" style="background:'+sc.bg+';color:'+sc.color+';">'+sc.letter+'</div><div class="bi-info"><div class="bi-guest">'+guestName+'</div><div class="bi-dates">Suite '+suiteKey+' · '+fmt(checkin)+' → '+fmt(checkout)+' · ⚠️ Da completare</div></div><div class="bi-meta"><div class="bi-price">€ '+(importo||'—')+'</div><span class="badge bo">Nuovo</span></div>';
+    var div=document.createElement('div'); div.className='booking-item';
+    div.innerHTML='<div class="bi-apt" style="background:'+sc.bg+';color:'+sc.color+';">'+sc.letter+'</div>'
+      +'<div class="bi-info"><div class="bi-guest">'+guestName+'</div>'
+      +'<div class="bi-dates">Suite '+suiteKey+' · '+fmt(checkin)+' → '+fmt(checkout)+'</div></div>'
+      +'<div class="bi-meta"><div class="bi-price">€ '+importo+'</div><span class="badge bo">Nuovo</span></div>';
     biList.appendChild(div);
   }
-
-  // Automazioni WhatsApp con link app personalizzato
-  var appLink  = APP_URL + '?booking=HH-' + newB.id;
-  var autoCont = document.getElementById('mb-auto-contratto');
-  var autoDoc2 = document.getElementById('mb-auto-doc');
-  var autoPag2 = document.getElementById('mb-auto-pag');
-
-  if(autoCont && autoCont.checked && waNum){
-    var msgConf = '♦ Benvenuto a Hermosa Home, Palermo!\n\nGentile '+guestName+',\n\nLa tua prenotazione è confermata per la Suite '+suiteKey+'.\n\n♦ La tua app personale:\n'+appLink+'\n\nNell\'app trovi tutto ciò di cui hai bisogno:\n♦ Apertura porte · ♦ Documenti · ♦ Contratto · ♦ Pagamento · ♦ Mappa\n\n♦ '+CFG.tel+'\n♦ '+CFG.email+'\n\nHermosa Home · Via Mariano Stabile 124, 3° piano · Palermo 🌹';
-    window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msgConf),'_blank');
+  // Automazioni WA con link app personalizzato
+  var appLink=APP_URL+'?booking=HH-'+newB.id;
+  var ac=document.getElementById('mb-auto-contratto');
+  var ad=document.getElementById('mb-auto-doc');
+  var ap=document.getElementById('mb-auto-pag');
+  if(ac&&ac.checked){
+    var mC='♦ Benvenuto a Hermosa Home, Palermo!\n\nGentile '+guestName+',\n\nPrenotazione confermata per la Suite '+suiteKey+'.\n\n📅 Check-in: '+fmtL(checkin)+' ore 14:00\n📅 Check-out: '+fmtL(checkout)+' ore 10:00\n💶 Importo: €'+importo+'\n\n♦ La tua app personale:\n'+appLink+'\n\nNell app: Porte · Documenti · Contratto · Pagamento · Mappa\n\n📞 '+CFG.tel+'\n✉ '+CFG.email+'\n\nHermosa Home · Via Mariano Stabile 124 🌹';
+    window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(mC),'_blank');
   }
-  if(autoDoc2 && autoDoc2.checked && waNum){
-    setTimeout(function(){
-      var msgDoc = 'Gentile '+guestName+',\n\nper completare la prenotazione, carica i documenti di identità:\n\n📱 Accedi alla tua app:\n'+appLink+'\n→ sezione Documenti\n\nGrazie! 🙏\nHermosa Home 🌹';
-      window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msgDoc),'_blank');
-    }, 1200);
-  }
-  if(autoPag2 && autoPag2.checked && waNum){
-    setTimeout(function(){
-      var msgPag = 'Gentile '+guestName+',\n\ncompleta il pagamento del soggiorno (€'+importo+'):\n\n💳 '+CFG.paypal+'\n\n📱 Oppure dalla tua app:\n'+appLink+'\n\nHermosa Home 🌹';
-      window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msgPag),'_blank');
-    }, 2400);
-  }
-
-  // Reset form
-  document.querySelectorAll('#modal-booking input').forEach(function(i){ if(i.type!=='checkbox') i.value=''; });
+  if(ad&&ad.checked){setTimeout(function(){
+    var mD='Gentile '+guestName+',\n\ncarica i documenti dalla tua app:\n\n📱 '+appLink+'\n→ sezione Documenti\n\nGrazie! 🙏\nHermosa Home 🌹';
+    window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(mD),'_blank');
+  },1200);}
+  if(ap&&ap.checked){setTimeout(function(){
+    var mP='Gentile '+guestName+',\n\ncompleta il pagamento (€'+importo+'):\n\n💳 '+CFG.paypal+'\n\n📱 Dalla tua app:\n'+appLink+'\n\nHermosa Home 🌹';
+    window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(mP),'_blank');
+  },2400);}
+  ['mb-guest','mb-phone','mb-email','mb-checkin','mb-checkout','mb-importo'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
   closeModal('modal-booking');
   notify('✅ Prenotazione salvata · automazioni avviate');
   aggiornaCalendario();
 }
 
-// Templates
-const APP_URL = 'https://hermosa-home.github.io/hermosa-home';
-
+// Templates  
 const tmpl={
-  acc:'Gentile {nome},\n\ntramite questo link puoi aprire il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\n📱 La tua app personale:\n{app_url}\n\nHermosa Home di Alessandra Trapani · Palermo 🌹',
-  ben:'♦ Benvenuto a Hermosa Home, Palermo!\n\nGentile {nome},\n\nLa tua prenotazione è confermata per la Suite {suite}.\n\n♦ La tua app personale:\n{app_url}\n\nNell\'app trovi tutto ciò di cui hai bisogno:\n♦ Apertura porte · ♦ Documenti · ♦ Contratto · ♦ Pagamento · ♦ Mappa\n\n♦ '+CFG.tel+'\n♦ '+CFG.email+'\n\nHermosa Home · Via Mariano Stabile 124, 3° piano · Palermo 🌹',
-  doc:'Gentile {nome},\n\nper completare la tua prenotazione a Hermosa Home carica i documenti di identità:\n\n📱 Accedi alla tua app:\n{app_url}\n\n→ sezione Documenti\n\nGrazie! 🙏\nHermosa Home 🌹',
-  pag:'Gentile {nome},\n\ncompleta il pagamento del tuo soggiorno a Hermosa Home:\n\n💳 {paypal}\nImporto: €{importo}\n\n📱 Oppure dalla tua app:\n{app_url}\n\nHermosa Home · '+CFG.tel+' 🌹',
-  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home di Alessandra Trapani a Palermo! 🌹',
-  map:'Gentile {nome},\n\nHermosa Home di Alessandra Trapani si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall\'aeroporto: treno → Centrale, poi 15 min a piedi (~60 min totali)\n🚗 Auto: ZTL attiva in centro — comunicaci la targa!\n\n📍 Google Maps: maps.app.goo.gl/hermosahome\n\n📱 La tua app:\n{app_url}\n\nA presto! 🌹'
+  acc:'Gentile {nome},\n\ntramite questo link apri il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\n📱 La tua app personale:\n{app_url}\n\nHermosa Home · Palermo 🌹',
+  ben:'♦ Benvenuto a Hermosa Home, Palermo!\n\nGentile {nome},\n\nLa tua prenotazione è confermata per la Suite {suite}.\n\n♦ La tua app personale:\n{app_url}\n\nNell app trovi tutto ciò di cui hai bisogno:\n♦ Apertura porte · ♦ Documenti · ♦ Contratto · ♦ Pagamento · ♦ Mappa\n\n📞 {tel}\n✉ {email}\n\nHermosa Home · Via Mariano Stabile 124, 3° piano · Palermo 🌹',
+  doc:'Gentile {nome},\n\nper completare la prenotazione carica i documenti di identità dalla tua app:\n\n📱 {app_url}\n→ sezione Documenti\n\nGrazie! 🙏\nHermosa Home 🌹',
+  pag:'Gentile {nome},\n\ncompleta il pagamento del soggiorno (€{importo}):\n\n💳 {paypal}\n\n📱 Dalla tua app:\n{app_url}\n\nHermosa Home · {tel} 🌹',
+  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home! 🌹',
+  map:'Gentile {nome},\n\nHermosa Home si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall aeroporto: treno → Centrale (~60 min)\n🚗 Auto: ZTL attiva — comunicaci la targa!\n\n📱 La tua app:\n{app_url}\n\nA presto! 🌹'
 };
 function loadTmpl(sel){
-  if(!sel.value || !tmpl[sel.value]) return;
-  var ospiteEl = document.querySelector('#modal-notifica select, #notif-ospite-sel');
-  var ospiteStr = ospiteEl ? ospiteEl.value : '';
-  var bk = bookings.find(function(b){ return b.id === ospiteStr; }) || {};
-  var guestName = bk.guest || ospiteStr.split(' — ')[0] || 'Ospite';
-  var suiteName = bk.suite || ospiteStr.split('Suite ')[1] || 'Suite';
-  var fmt = function(d){ return d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; };
-  // ID prenotazione per link app personalizzato
-  var bookingId = bk.id || ospiteStr;
-  var appLink = APP_URL + '?booking=HH-' + bookingId;
-  var msg = tmpl[sel.value]
-    .replace(/{nome}/g, guestName)
-    .replace(/{suite}/g, suiteName)
-    .replace(/{checkin}/g, fmt(bk.checkin))
-    .replace(/{checkout}/g, fmt(bk.checkout))
-    .replace(/{importo}/g, bk.importo || '—')
-    .replace(/{paypal}/g, CFG.paypal || 'paypal.me/HERMOSAHOME')
-    .replace(/{app_url}/g, appLink)
-    .replace(/{link_accesso}/g, 'chiavistello.it/open/HH-PA-001')
-    .replace(/{pin}/g, '742');
-  document.getElementById('notif-text').value = msg;
+  if(!sel.value||!tmpl[sel.value]) return;
+  var ospSel=document.getElementById('notif-ospite-sel');
+  var bk=bookings.find(function(b){return b.id===(ospSel?ospSel.value:'');})||{};
+  var guestName=bk.guest||(ospSel?ospSel.value.split(' — ')[0]:'Ospite')||'Ospite';
+  var fmt=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';};
+  var appLink=APP_URL+'?booking=HH-'+(bk.id||Date.now());
+  var msg=tmpl[sel.value]
+    .replace(/{nome}/g,guestName)
+    .replace(/{suite}/g,bk.suite||'Suite')
+    .replace(/{checkin}/g,fmt(bk.checkin))
+    .replace(/{checkout}/g,fmt(bk.checkout))
+    .replace(/{importo}/g,bk.importo||'—')
+    .replace(/{app_url}/g,appLink)
+    .replace(/{tel}/g,CFG.tel||'+39 328 484 5555')
+    .replace(/{email}/g,CFG.email||'info@hermosahome.it')
+    .replace(/{paypal}/g,CFG.paypal||'paypal.me/HERMOSAHOME')
+    .replace(/{link_accesso}/g,'chiavistello.it/open/HH-PA-001')
+    .replace(/{pin}/g,'742');
+  document.getElementById('notif-text').value=msg;
 }
 
-function inviaNotifica() {
-  var msgEl = document.getElementById('notif-text');
-  var msg = msgEl ? msgEl.value : '';
-  if (!msg.trim()) { notify('⚠️ Scrivi un messaggio prima di inviare'); return; }
-  var wa = document.getElementById('notif-ch-wa');
-  var tg = document.getElementById('notif-ch-tg');
-  var em = document.getElementById('notif-ch-em');
-  var sent = [];
-  if (wa && wa.checked) {
-    window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
-    sent.push('WhatsApp');
+function inviaNotifica(){
+  var msgEl=document.getElementById('notif-text');
+  var msg=msgEl?msgEl.value:'';
+  if(!msg.trim()){notify('⚠️ Scrivi un messaggio prima di inviare');return;}
+  var ospSel=document.getElementById('notif-ospite-sel');
+  var bk=ospSel?bookings.find(function(b){return b.id===ospSel.value;}):null;
+  var waNum  = bk&&bk.waNum  ? bk.waNum   : CFG.whatsapp;
+  var emailTo= bk&&bk.email  ? bk.email   : CFG.email;
+  var wa =document.getElementById('notif-ch-wa');
+  var tg =document.getElementById('notif-ch-tg');
+  var em =document.getElementById('notif-ch-em');
+  var sent=[];
+  if(wa&&wa.checked){ window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank'); sent.push('WhatsApp'); }
+  if(tg&&tg.checked){ window.open('https://t.me/'+CFG.telegram,'_blank'); sent.push('Telegram'); }
+  if(em&&em.checked){ window.open('mailto:'+emailTo+'?body='+encodeURIComponent(msg),'_blank'); sent.push('Email'); }
+  if(sent.length>0){ notify('📤 Inviato via '+sent.join(', ')+' ✓'); closeModal('modal-notifica'); }
+  else notify('⚠️ Seleziona almeno un canale');
+}
+
+
+// ── HELPERS NOTIFICA OSPITE ──
+function aggiornaSelectOspiti(){
+  var opts=bookings.map(function(b){
+    return '<option value="'+b.id+'">'+b.guest+' — Suite '+b.suite+(b.phone?' ('+b.phone+')':'')+'</option>';
+  }).join('');
+  var s=document.getElementById('notif-ospite-sel');
+  if(s){ s.innerHTML='<option value="">— Seleziona ospite —</option>'+opts+'<option value="tutti">📢 Tutti gli ospiti</option>'; }
+  var sc=document.getElementById('sel-contratto-ospite');
+  if(sc) sc.innerHTML=bookings.map(function(b){return '<option value="'+b.id+'">'+b.guest+'</option>';}).join('');
+}
+function aggiornaInfoOspiteNotifica(){
+  var sel=document.getElementById('notif-ospite-sel');
+  var info=document.getElementById('notif-ospite-info');
+  var phoneEl=document.getElementById('notif-ospite-phone');
+  var emailEl=document.getElementById('notif-ospite-email');
+  if(!sel||!info) return;
+  var bk=bookings.find(function(b){return b.id===sel.value;});
+  if(bk&&(bk.phone||bk.email)){
+    info.style.display='block';
+    if(phoneEl) phoneEl.textContent=bk.phone||'—';
+    if(emailEl) emailEl.textContent=bk.email||'—';
+  } else { info.style.display='none'; }
+}
+function openNotificaOspite(bookingId){
+  var el=document.getElementById('notif-ospite-sel');
+  if(el) el.value=bookingId;
+  aggiornaInfoOspiteNotifica();
+  openModal('modal-notifica');
+}
+function openDettaglio(bookingId){
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  if(!bk){openModal('modal-dettaglio');return;}
+  currentBookingId=bookingId;
+  var fmt=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';};
+  var notti=bk.checkin&&bk.checkout?Math.round((new Date(bk.checkout)-new Date(bk.checkin))/86400000):'—';
+  document.querySelector('#modal-dettaglio .modal-title').textContent=bk.guest+' — Suite '+bk.suite;
+  var sc=bk.contratto==='firmato'?'<span class="badge bg">✍️ Firmato</span>':bk.contratto==='attesa'?'<span class="badge bo">⏳ In attesa</span>':'<span class="badge br">⚠️ Non inviato</span>';
+  var sd=bk.doc==='ok'?'<span class="badge bg">🪪 Verificati</span>':'<span class="badge br">⚠️ Mancanti</span>';
+  var sp=bk.pagamento==='ok'?'<span class="badge bg">💳 Pagato</span>':'<span class="badge br">💳 Non pagato</span>';
+  document.getElementById('det-badges').innerHTML='<span class="badge bg">Attivo</span><span class="badge bb">'+(bk.ospiti||2)+' ospiti</span><span class="badge bgr">'+notti+' notti</span>'+sc+sd+sp;
+  document.getElementById('det-checkin').textContent=fmt(bk.checkin);
+  document.getElementById('det-checkout').textContent=fmt(bk.checkout);
+  document.getElementById('det-suite').textContent='Suite '+bk.suite+' · Via M. Stabile 124 / 3°';
+  document.getElementById('det-importo').textContent='€ '+(bk.importo||'—');
+  var ci=document.getElementById('det-contatti');
+  if(ci){
+    var waBtn=bk.waNum?'<a href="https://wa.me/'+bk.waNum+'" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none">🟢 WhatsApp</a>':'';
+    var emBtn=bk.email?'<a href="mailto:'+bk.email+'" class="btn btn-outline btn-sm" style="text-decoration:none">✉️ Email</a>':'';
+    ci.innerHTML='<div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Contatti ospite</div>'
+      +'<div style="font-size:13px;margin-bottom:8px;">📱 '+(bk.phone||'—')+(bk.email?' &nbsp;·&nbsp; ✉️ '+bk.email:'')+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+waBtn+emBtn+'</div>';
   }
-  if (tg && tg.checked) {
-    window.open('https://t.me/' + CFG.telegram, '_blank');
-    sent.push('Telegram');
+  var srcEl=document.getElementById('det-source');
+  if(srcEl) srcEl.textContent=bk.source?bk.source.charAt(0).toUpperCase()+bk.source.slice(1):'Diretto';
+  openModal('modal-dettaglio');
+}
+function cancellaPrenotazione(){
+  if(!currentBookingId){notify('Prenotazione cancellata');closeModal('modal-dettaglio');return;}
+  if(!confirm('Cancellare questa prenotazione?')) return;
+  bookings=bookings.filter(function(b){return b.id!==currentBookingId;});
+  saveBookings(); aggiornaBadge(); aggiornaCalendario();
+  closeModal('modal-dettaglio');
+  notify('🗑 Prenotazione cancellata');
+  setTimeout(function(){location.reload();},800);
+}
+function aggiornaBadge(){
+  var cp=bookings.filter(function(b){return b.contratto!=='firmato';}).length;
+  var dm=bookings.filter(function(b){return b.doc!=='ok';}).length;
+  var az=bookings.filter(function(b){return b.contratto!=='firmato'||b.doc!=='ok'||b.pagamento!=='ok';}).length;
+  var bc=document.querySelector('.nav-item[onclick*="contratti"] .nav-badge');
+  var bd=document.querySelector('.nav-item[onclick*="documenti"] .nav-badge');
+  var bn=document.querySelector('.nav-item[onclick*="notifiche"] .nav-badge');
+  var sv=document.querySelector('#panel-dashboard .stat-card.sc-r .sv');
+  if(bc){bc.textContent=cp||'';bc.style.display=cp?'':'none';}
+  if(bd){bd.textContent=dm||'';bd.style.display=dm?'':'none';}
+  if(bn) bn.textContent=az||'';
+  if(sv) sv.textContent=az;
+}
+
+
+// ── CONTRATTO: genera, visualizza, invia ──
+var currentBookingId = null;
+var currentContrattoId = null;
+
+function generaTestoContratto(bk){
+  if(!bk) return 'Prenotazione non trovata.';
+  var fmt=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';};
+  var notti=bk.checkin&&bk.checkout?Math.round((new Date(bk.checkout)-new Date(bk.checkin))/86400000):'—';
+  return 'CONTRATTO DI LOCAZIONE TURISTICA BREVE\n'
+    +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+    +'LOCATORE\n'+CFG.ragione+'\nP.IVA: '+CFG.piva+' · C.F.: '+CFG.cf+'\n'
+    +'Via Mariano Stabile 124, Piano 3° · 90139 Palermo (PA)\n'
+    +'Tel: '+CFG.tel+' · '+CFG.email+'\n\n'
+    +'CONDUTTORE\nNome: '+bk.guest+'\n'
+    +(bk.phone?'Tel: '+bk.phone+'\n':'')
+    +(bk.email?'Email: '+bk.email+'\n':'')+'\n'
+    +'IMMOBILE\nSuite '+bk.suite+'\nVia Mariano Stabile 124, Piano 3° · Palermo\n\n'
+    +'PERIODO\nCheck-in: '+fmt(bk.checkin)+' ore 14:00\n'
+    +'Check-out: '+fmt(bk.checkout)+' ore 10:00\n'
+    +'Durata: '+notti+' notti · N° ospiti: '+(bk.ospiti||2)+'\n\n'
+    +'CANONE\nTotale: € '+bk.importo+' · Piattaforma: '+(bk.source||'Diretto')+'\n\n'
+    +'CONDIZIONI\n'
+    +'1. Locazione turistica ai sensi art. 4 D.L. 50/2017.\n'
+    +'2. Check-in: presentare documento d identità valido.\n'
+    +'3. Animali non ammessi salvo accordo preventivo.\n'
+    +'4. Vietato fumare in tutti gli spazi interni.\n'
+    +'5. Silenzio dalle 22:00 alle 08:00.\n'
+    +'6. Il conduttore risponde dei danni all immobile.\n'
+    +'7. Cedolare secca 26% applicata (2° immobile locatore).\n\n'
+    +'Palermo, '+new Date().toLocaleDateString('it-IT')+'\n\n'
+    +'Firma locatore: ___________________\n'
+    +'Firma conduttore: ___________________';
+}
+
+function visualizzaContratto(bookingId){
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  currentContrattoId=bookingId;
+  document.getElementById('cv-title').textContent=(bk?bk.guest:'Contratto')+' — Locazione';
+  document.getElementById('cv-body').textContent=generaTestoContratto(bk);
+  openModal('modal-contratto-view');
+}
+function copiaContratto(){
+  var t=document.getElementById('cv-body').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){notify('📋 Contratto copiato!');});
+}
+function inviaContrattoWA(){
+  var bk=bookings.find(function(b){return b.id===currentContrattoId;});
+  if(!bk){notify('⚠️ Ospite non trovato');return;}
+  var waNum=bk.waNum||CFG.whatsapp;
+  var t=generaTestoContratto(bk);
+  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(t),'_blank');
+  notify('📄 Contratto inviato via WhatsApp ✓');
+  closeModal('modal-contratto-view');
+}
+function inviaContrattoEmail(){
+  var bk=bookings.find(function(b){return b.id===currentContrattoId;});
+  if(!bk){notify('⚠️ Ospite non trovato');return;}
+  var emailTo=bk.email||CFG.email;
+  var t=generaTestoContratto(bk);
+  window.open('mailto:'+emailTo+'?subject=Contratto locazione Suite '+bk.suite+' - Hermosa Home&body='+encodeURIComponent(t),'_blank');
+  notify('📄 Contratto inviato via Email ✓');
+  closeModal('modal-contratto-view');
+}
+function sollecitaContratto(bookingId){
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  if(!bk){notify('Reminder inviato ✓');return;}
+  var waNum=bk.waNum||CFG.whatsapp;
+  var appLink=APP_URL+'?booking=HH-'+bk.id;
+  var msg='Gentile '+bk.guest+',\n\nricordiamo che il contratto per la Suite '+bk.suite+' è ancora in attesa di firma.\n\n📱 Firma qui:\n'+appLink+'\n\nHermosa Home · '+CFG.tel+' 🌹';
+  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
+  notify('📤 Sollecito inviato ✓');
+}
+
+// ── MANUTENZIONE ──
+var interventi=(function(){try{return JSON.parse(localStorage.getItem('hh_interventi')||'[]');}catch(e){return[];}})();
+function salvaIntervento(){
+  var suite   =(document.getElementById('man-suite')||{}).value||'';
+  var tipo    =(document.getElementById('man-tipo')||{}).value||'';
+  var desc    =((document.getElementById('man-desc')||{}).value||'').trim();
+  var priorita=(document.getElementById('man-priorita')||{}).value||'media';
+  var data    =(document.getElementById('man-data')||{}).value||'';
+  if(!desc){notify('⚠️ Descrivi il problema');return;}
+  var priLabel={alta:'🔴 Alta',media:'🟡 Media',bassa:'🟢 Bassa'};
+  var item={id:'m'+Date.now(),suite:suite,tipo:tipo,desc:desc,priorita:priorita,data:data,stato:'aperto'};
+  interventi.push(item);
+  try{localStorage.setItem('hh_interventi',JSON.stringify(interventi));}catch(e){}
+  // Aggiunge alla lista
+  var lista=document.querySelector('#panel-pulizie .grid-2 .card:last-child .card-body > div');
+  if(lista){
+    var div=document.createElement('div');
+    div.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--sand);';
+    div.innerHTML='<span style="font-size:18px;">🔧</span>'
+      +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+tipo+' — '+suite+'</div>'
+      +'<div style="font-size:11px;color:var(--soft);">'+desc+(data?' · '+new Date(data).toLocaleDateString('it-IT'):'')+'</div></div>'
+      +'<span style="background:#FFF0E0;color:#C07820;padding:2px 8px;border-radius:20px;font-size:11px;">'+priLabel[priorita]+' · Aperto</span>';
+    lista.prepend(div);
   }
-  if (em && em.checked) {
-    window.open('mailto:' + CFG.email + '?body=' + encodeURIComponent(msg), '_blank');
-    sent.push('Email');
-  }
-  if (sent.length > 0) {
-    notify('📤 Inviato via ' + sent.join(', ') + ' ✓');
-    closeModal('modal-notifica');
-  } else {
-    notify('⚠️ Seleziona almeno un canale');
-  }
+  document.getElementById('man-desc').value='';
+  closeModal('modal-manutenzione');
+  notify('✅ Intervento registrato · '+priLabel[priorita]);
 }
 
 // MAP
@@ -1573,32 +1636,34 @@ function initMap(){
           <table>
             <thead><tr><th>Ospite</th><th>Suite</th><th>Soggiorno</th><th>Stato</th><th>Azioni</th></tr></thead>
             <tbody id="contratti-tbody">
-              <tr><td><strong>Marco Rossi</strong></td><td>Tomasi di Lampedusa</td><td>7–12 mar</td>
+              <tr>
+                <td><strong>Marco Rossi</strong></td><td>Tomasi di Lampedusa</td><td>7–12 mar</td>
                 <td><span class="badge bg">✍️ Firmato · 07/03</span></td>
                 <td>
-                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b1')">👁 Visualizza</button>
-                  <button class="btn btn-ghost btn-sm" onclick="notify('Download PDF in corso...')">📥 PDF</button>
+                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b1')">👁 Vedi</button>
+                  <button class="btn btn-ghost btn-sm" onclick="notify('Download PDF...')">📥</button>
                 </td>
               </tr>
-              <tr><td><strong>Sophie Müller</strong></td><td>Florio</td><td>8–15 mar</td>
+              <tr>
+                <td><strong>Sophie Müller</strong></td><td>Florio</td><td>8–15 mar</td>
                 <td><span class="badge bo">⏳ Inviato · in attesa</span></td>
                 <td>
-                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b2')">👁 Visualizza</button>
+                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b2')">👁 Vedi</button>
                   <button class="btn btn-outline btn-sm" onclick="sollecitaContratto('b2')">📤 Sollecita</button>
                 </td>
               </tr>
-              <tr><td><strong>Luca Ferrari</strong></td><td>Stabile</td><td>10–13 mar</td>
+              <tr>
+                <td><strong>Luca Ferrari</strong></td><td>Stabile</td><td>10–13 mar</td>
                 <td><span class="badge bg">✍️ Firmato · 06/03</span></td>
                 <td>
-                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b3')">👁 Visualizza</button>
-                  <button class="btn btn-ghost btn-sm" onclick="notify('Download PDF in corso...')">📥 PDF</button>
+                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b3')">👁 Vedi</button>
+                  <button class="btn btn-ghost btn-sm" onclick="notify('Download PDF...')">📥</button>
                 </td>
               </tr>
-              <tr><td><strong>Anna Bianchi</strong></td><td>Tomasi di Lampedusa</td><td>14–18 mar</td>
+              <tr>
+                <td><strong>Anna Bianchi</strong></td><td>Tomasi di Lampedusa</td><td>14–18 mar</td>
                 <td><span class="badge br">⚠️ Non inviato</span></td>
-                <td>
-                  <button class="btn btn-primary btn-sm" onclick="apriContrattoId('b4')">📄 Invia ora</button>
-                </td>
+                <td><button class="btn btn-primary btn-sm" onclick="openModal('modal-contratto')">📄 Invia ora</button></td>
               </tr>
             </tbody>
           </table>
@@ -2360,36 +2425,47 @@ function initMap(){
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Nuova prenotazione</div><button class="modal-close" onclick="closeModal('modal-booking')">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label class="lbl">Nome ospite</label><input type="text" placeholder="Nome e cognome"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Nome ospite</label><input type="text" id="mb-guest" placeholder="Nome e cognome"></div>
+        <div class="form-group"><label class="lbl">📱 WhatsApp ospite</label><input type="tel" id="mb-phone" placeholder="+39 333 1234567"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="lbl">Email ospite</label><input type="email" id="mb-email" placeholder="email@esempio.com"></div>
+        <div class="form-group"><label class="lbl">N° ospiti</label><input type="number" id="mb-ospiti" value="2" min="1" max="4"></div>
+      </div>
       <div class="form-row">
         <div class="form-group"><label class="lbl">Suite</label>
-          <select>
-            <option>🌹 Tomasi di Lampedusa (fino a 4 ospiti)</option>
-            <option>⚓ Florio (fino a 3 ospiti)</option>
-            <option>🌿 Stabile (fino a 2 ospiti)</option>
+          <select id="mb-suite">
+            <option value="Tomasi di Lampedusa">🌹 Tomasi di Lampedusa (fino a 4)</option>
+            <option value="Florio">⚓ Florio (fino a 3)</option>
+            <option value="Stabile">🌿 Stabile (fino a 2)</option>
           </select>
         </div>
-        <div class="form-group"><label class="lbl">N° ospiti</label><input type="number" value="2" min="1"></div>
+        <div class="form-group"><label class="lbl">Piattaforma</label>
+          <select id="mb-source">
+            <option value="diretto">Diretto</option>
+            <option value="airbnb">Airbnb</option>
+            <option value="booking">Booking.com</option>
+            <option value="altro">Altro</option>
+          </select>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="lbl">Check-in</label><input type="date"></div>
-        <div class="form-group"><label class="lbl">Orario</label><input type="time" value="14:00"></div>
+        <div class="form-group"><label class="lbl">Check-in</label><input type="date" id="mb-checkin"></div>
+        <div class="form-group"><label class="lbl">Orario check-in</label><input type="time" id="mb-ora-ci" value="14:00"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="lbl">Check-out</label><input type="date"></div>
-        <div class="form-group"><label class="lbl">Orario</label><input type="time" value="10:00"></div>
+        <div class="form-group"><label class="lbl">Check-out</label><input type="date" id="mb-checkout"></div>
+        <div class="form-group"><label class="lbl">Orario check-out</label><input type="time" id="mb-ora-co" value="10:00"></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label class="lbl">Importo (€)</label><input type="number" placeholder="0"></div>
-        <div class="form-group"><label class="lbl">Email ospite</label><input type="email"></div>
-      </div>
+      <div class="form-group"><label class="lbl">Importo totale (€)</label><input type="number" id="mb-importo" placeholder="0" min="0"></div>
       <div style="background:var(--terra-xl);border-radius:10px;padding:14px;margin-top:4px;">
         <div style="font-size:11px;font-weight:600;color:var(--terra-d);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;">🤖 Automazioni al salvataggio</div>
         <div style="display:flex;flex-wrap:wrap;gap:10px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--terra);"> Contratto digitale</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--terra);"> Modulo documenti</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" checked style="accent-color:var(--terra);"> Link accesso (2h prima)</label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" style="accent-color:var(--terra);"> Richiesta pagamento</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" id="mb-auto-contratto" checked style="accent-color:var(--terra);"> Conferma + app</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" id="mb-auto-doc" checked style="accent-color:var(--terra);"> Modulo documenti</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" id="mb-auto-accesso" checked style="accent-color:var(--terra);"> Link accesso</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer;"><input type="checkbox" id="mb-auto-pag" style="accent-color:var(--terra);"> Richiesta pagamento</label>
         </div>
       </div>
     </div>
@@ -2450,7 +2526,19 @@ function initMap(){
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Invia notifica</div><button class="modal-close" onclick="closeModal('modal-notifica')">✕</button></div>
     <div class="modal-body">
-      <div class="form-group"><label class="lbl">Ospite</label><select><option>Marco Rossi — Suite Lampedusa</option><option>Sophie Müller — Suite Florio</option><option>Luca Ferrari — Suite Stabile</option><option>Tutti gli ospiti</option></select></div>
+      <div class="form-group">
+        <label class="lbl">Ospite</label>
+        <select id="notif-ospite-sel" onchange="aggiornaInfoOspiteNotifica()">
+          <option value="">— Seleziona ospite —</option>
+          <option value="b1">Marco Rossi — Suite Lampedusa</option>
+          <option value="b2">Sophie Müller — Suite Florio</option>
+          <option value="b3">Luca Ferrari — Suite Stabile</option>
+          <option value="tutti">📢 Tutti gli ospiti</option>
+        </select>
+        <div id="notif-ospite-info" style="display:none;margin-top:6px;padding:8px 10px;background:var(--sand);border-radius:8px;font-size:12px;color:var(--mid);">
+          📱 <strong id="notif-ospite-phone"></strong> &nbsp;·&nbsp; ✉️ <span id="notif-ospite-email"></span>
+        </div>
+      </div>
       <div class="form-group"><label class="lbl">Template</label>
         <select onchange="loadTmpl(this)">
           <option value="">— Messaggio personalizzato —</option>
@@ -2500,11 +2588,34 @@ function initMap(){
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Dettaglio prenotazione</div><button class="modal-close" onclick="closeModal('modal-dettaglio')">✕</button></div>
     <div class="modal-body">
-      <div id="det-badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div style="background:var(--sand);border-radius:8px;padding:12px;"><div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Check-in</div><div id="det-checkin" style="font-size:16px;font-weight:700;">—</div><div style="font-size:12px;color:var(--soft);">ore 14:00</div></div>
-        <div style="background:var(--sand);border-radius:8px;padding:12px;"><div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Check-out</div><div id="det-checkout" style="font-size:16px;font-weight:700;">—</div><div style="font-size:12px;color:var(--soft);">ore 10:00</div></div>
+      <div id="det-badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div style="background:var(--sand);border-radius:8px;padding:12px;">
+          <div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Check-in</div>
+          <div id="det-checkin" style="font-size:16px;font-weight:700;">—</div>
+          <div style="font-size:12px;color:var(--soft);">ore 14:00</div>
+        </div>
+        <div style="background:var(--sand);border-radius:8px;padding:12px;">
+          <div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Check-out</div>
+          <div id="det-checkout" style="font-size:16px;font-weight:700;">—</div>
+          <div style="font-size:12px;color:var(--soft);">ore 10:00</div>
+        </div>
       </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--terra-xl);border-radius:8px;padding:12px;margin-bottom:10px;">
+        <span id="det-suite" style="font-size:13px;color:var(--mid);">—</span>
+        <span id="det-importo" style="font-family:'Cormorant Garamond',serif;font-size:26px;">—</span>
+      </div>
+      <div id="det-contatti" style="background:var(--sand);border-radius:8px;padding:12px;margin-bottom:10px;min-height:44px;"></div>
+      <div style="font-size:11px;color:var(--soft);margin-bottom:12px;">Piattaforma: <strong id="det-source">—</strong></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="openNotificaOspite(currentBookingId);closeModal('modal-dettaglio')">🔔 Messaggio</button>
+        <button class="btn btn-outline btn-sm" onclick="visualizzaContratto(currentBookingId);closeModal('modal-dettaglio')">📄 Contratto</button>
+        <button class="btn btn-outline btn-sm" onclick="nav('documenti',null,'Documenti');closeModal('modal-dettaglio')">🪪 Documenti</button>
+        <button class="btn btn-danger btn-sm" onclick="cancellaPrenotazione()">🗑 Cancella</button>
+      </div>
+    </div>
+  </div>
+</div>
       <div style="display:flex;justify-content:space-between;align-items:center;background:var(--terra-xl);border-radius:8px;padding:12px;margin-bottom:14px;">
         <span id="det-suite" style="font-size:13px;color:var(--mid);">—</span>
         <span id="det-importo" style="font-family:'Cormorant Garamond',serif;font-size:26px;">—</span>
@@ -2569,6 +2680,7 @@ function initMap(){
 
 
 
+
 <!-- MODAL MANUTENZIONE -->
 <div class="modal-backdrop" id="modal-manutenzione">
   <div class="modal">
@@ -2584,14 +2696,10 @@ function initMap(){
       </div>
       <div class="form-group"><label class="lbl">Tipo problema</label>
         <select id="man-tipo">
-          <option>🚿 Idraulica</option>
-          <option>💡 Elettricità</option>
-          <option>🔐 Smart lock / Serratura</option>
-          <option>❄️ Climatizzatore</option>
-          <option>🪟 Finestre / Porte</option>
-          <option>🛋 Mobili / Arredamento</option>
-          <option>📶 WiFi / Internet</option>
-          <option>🔧 Altro</option>
+          <option>🚿 Idraulica</option><option>💡 Elettricità</option>
+          <option>🔐 Smart lock / Serratura</option><option>❄️ Climatizzatore</option>
+          <option>🪟 Finestre / Porte</option><option>🛋 Mobili / Arredamento</option>
+          <option>📶 WiFi / Internet</option><option>🔧 Altro</option>
         </select>
       </div>
       <div class="form-group"><label class="lbl">Descrizione</label>
@@ -2625,12 +2733,13 @@ function initMap(){
       <button class="modal-close" onclick="closeModal('modal-contratto-view')">✕</button>
     </div>
     <div class="modal-body">
-      <div id="cv-body" style="font-size:13px;line-height:1.9;color:var(--mid);background:var(--sand);border-radius:10px;padding:18px;white-space:pre-wrap;font-family:'DM Sans',sans-serif;"></div>
+      <div id="cv-body" style="font-size:12.5px;line-height:1.9;color:var(--mid);background:var(--sand);border-radius:10px;padding:18px;white-space:pre-wrap;font-family:'DM Sans',sans-serif;max-height:50vh;overflow-y:auto;"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-contratto-view')">Chiudi</button>
       <button class="btn btn-ghost" onclick="copiaContratto()">📋 Copia</button>
-      <button class="btn btn-primary" onclick="inviaContrattoView()">📤 Invia via WhatsApp</button>
+      <button class="btn btn-primary" onclick="inviaContrattoWA()">🟢 WhatsApp</button>
+      <button class="btn btn-outline" onclick="inviaContrattoEmail()">✉️ Email</button>
     </div>
   </div>
 </div>
@@ -2690,17 +2799,21 @@ if ('serviceWorker' in navigator) {
 
 // Init on load
 document.addEventListener('DOMContentLoaded', function(){
-  caricaAnagrafica();
-  aggiornaBadge();
-  loadIcalInputs();
-  caricaPrezzi();
-
-  var metodoSel = document.getElementById('pay-metodo-sel');
-  if (metodoSel) {
-    metodoSel.addEventListener('change', function() {
-      var bonInfo = document.getElementById('bonifico-info');
-      if (bonInfo) bonInfo.style.display = this.value === 'bonifico' ? 'block' : 'none';
-    });
+  if(typeof caricaAnagrafica==='function') caricaAnagrafica();
+  if(typeof aggiornaBadge==='function') aggiornaBadge();
+  if(typeof aggiornaSelectOspiti==='function') aggiornaSelectOspiti();
+  if(typeof caricaPrezzi==='function') caricaPrezzi();
+  try{var ic=JSON.parse(localStorage.getItem('hh_ical')||'{}');
+    Object.keys(ic).forEach(function(k){var el=document.getElementById('ical-'+k);if(el)el.value=ic[k];});
+  }catch(e){}
+  var oggi=new Date().toISOString().split('T')[0];
+  var md=document.getElementById('man-data'); if(md) md.value=oggi;
+  var metodoSel=document.getElementById('pay-metodo-sel');
+  if(metodoSel){metodoSel.addEventListener('change',function(){
+    var bonInfo=document.getElementById('bonifico-info');
+    if(bonInfo) bonInfo.style.display=this.value==='bonifico'?'block':'none';
+  });}
+});
   }
 
   var oggi = new Date().toISOString().split('T')[0];

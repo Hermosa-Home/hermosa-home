@@ -2,2424 +2,538 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hermosa Home</title>
-
-<!-- PWA Meta Tags -->
-<meta name="application-name" content="Hermosa Home">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Hermosa Home">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#2C2416">
-<meta name="description" content="La tua app personale per il soggiorno a Hermosa Home, Palermo">
-<meta name="msapplication-TileColor" content="#2C2416">
-
-<!-- Manifest -->
+<meta name="theme-color" content="#1A140D">
 <link rel="manifest" href="manifest.json">
-
-<!-- Apple Touch Icons (inline SVG come data URI) -->
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%232C2416'/%3E%3Ccircle cx='256' cy='200' r='80' fill='%23C4956A'/%3E%3Cpath d='M130 380 Q256 300 382 380' stroke='%23C4956A' stroke-width='20' fill='none'/%3E%3Ctext x='256' y='460' text-anchor='middle' font-size='60' fill='%23C4956A' font-family='Georgia'>HH%3C/text%3E%3C/svg%3E">
-
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --sand: #F5F0E8;
-    --cream: #FAF7F2;
-    --terra: #C4956A;
-    --terra-dark: #A07550;
-    --terra-light: #E8D5BE;
-    --terra-xlight: #F5EAD8;
-    --olive: #7A8B6F;
-    --deep: #2C2416;
-    --mid: #6B5C48;
-    --soft: #9B8B78;
-    --white: #FFFFFF;
-    --success: #5A8A6A;
-    --danger: #C4706A;
-    --info: #6A7A9B;
-    --phone-w: 390px;
-    --phone-h: 844px;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: #1A1410;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
-
-  /* ── PHONE SHELL ── */
-  .phone-shell {
-    width: var(--phone-w);
-    height: var(--phone-h);
-    background: var(--cream);
-    border-radius: 50px;
-    box-shadow:
-      0 0 0 2px #3A3028,
-      0 0 0 6px #1A1410,
-      0 40px 80px rgba(0,0,0,0.6);
-    overflow: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Notch */
-  .phone-notch {
-    position: absolute;
-    top: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 120px; height: 32px;
-    background: #1A1410;
-    border-radius: 0 0 20px 20px;
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .notch-cam {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: #2A2020;
-    border: 1px solid #3A3030;
-  }
-
-  .notch-speaker {
-    width: 50px; height: 4px;
-    background: #2A2020;
-    border-radius: 4px;
-  }
-
-  /* Status bar */
-  .status-bar {
-    height: 44px;
-    padding: 0 24px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    padding-bottom: 6px;
-    flex-shrink: 0;
-  }
-
-  .status-time { font-size: 15px; font-weight: 600; color: var(--deep); }
-  .status-icons { display: flex; gap: 5px; align-items: center; font-size: 12px; color: var(--deep); }
-
-  /* ── SCREEN CONTAINER ── */
-  .screen-container {
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
-
-  /* ── SCREENS ── */
-  .screen {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-    background: var(--cream);
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .screen.active {
-    transform: translateX(0);
-  }
-
-  .screen.slide-left {
-    transform: translateX(-30%);
-  }
-
-  /* ── HERO SECTION ── */
-  .hero {
-    background: var(--deep);
-    padding: 32px 24px 28px;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 200px; height: 200px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(196,149,106,0.25) 0%, transparent 70%);
-  }
-
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: -40px; left: -40px;
-    width: 140px; height: 140px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(122,139,111,0.2) 0%, transparent 70%);
-  }
-
-  .hero-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--terra);
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero-greeting {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 30px;
-    font-weight: 300;
-    color: var(--white);
-    line-height: 1.2;
-    margin-bottom: 6px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero-name {
-    font-style: italic;
-    color: var(--terra);
-  }
-
-  .hero-apt {
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  /* ── STAY CARD ── */
-  .stay-card {
-    margin: 20px 20px 0;
-    background: var(--white);
-    border-radius: 16px;
-    border: 1px solid var(--terra-light);
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .stay-header {
-    background: var(--terra);
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .stay-header-label {
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.7);
-  }
-
-  .stay-status {
-    font-size: 11px;
-    font-weight: 600;
-    color: white;
-    background: rgba(255,255,255,0.2);
-    padding: 3px 8px;
-    border-radius: 10px;
-  }
-
-  .stay-dates {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 14px 16px;
-    gap: 10px;
-  }
-
-  .stay-date-block { }
-  .sdl { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--soft); margin-bottom: 3px; }
-  .sdv { font-size: 16px; font-weight: 600; color: var(--deep); }
-  .sds { font-size: 11px; color: var(--soft); }
-
-  .stay-divider {
-    width: 1px;
-    background: var(--terra-light);
-    position: absolute;
-    top: 14px; bottom: 14px;
-    left: 50%;
-  }
-
-  .stay-dates-wrap { position: relative; }
-
-  /* ── MENU GRID ── */
-  .menu-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    padding: 20px;
-    flex-shrink: 0;
-  }
-
-  .menu-item {
-    background: var(--white);
-    border-radius: 16px;
-    border: 1px solid var(--terra-light);
-    padding: 18px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .menu-item:active { transform: scale(0.97); background: var(--terra-xlight); }
-
-  .menu-item::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--terra);
-    transform: scaleX(0);
-    transition: transform 0.2s;
-  }
-
-  .menu-item:active::after { transform: scaleX(1); }
-
-  .menu-icon { font-size: 26px; }
-  .menu-label { font-size: 13.5px; font-weight: 600; color: var(--deep); line-height: 1.2; }
-  .menu-sub { font-size: 11px; color: var(--soft); }
-
-  .menu-badge {
-    position: absolute;
-    top: 12px; right: 12px;
-    background: var(--danger);
-    color: white;
-    font-size: 10px;
-    font-weight: 700;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .menu-item.full-width {
-    grid-column: span 2;
-    flex-direction: row;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 18px;
-  }
-
-  .menu-item.full-width .menu-icon { font-size: 22px; }
-
-  .menu-item.accent {
-    background: var(--deep);
-    border-color: var(--deep);
-  }
-
-  .menu-item.accent .menu-label { color: white; }
-  .menu-item.accent .menu-sub { color: rgba(255,255,255,0.5); }
-  .menu-item.accent::after { background: var(--terra); }
-
-  /* ── SCREEN HEADER ── */
-  .screen-header {
-    background: var(--deep);
-    padding: 50px 20px 20px;
-    flex-shrink: 0;
-  }
-
-  .back-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--terra);
-    cursor: pointer;
-    margin-bottom: 16px;
-    background: none;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .screen-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 26px;
-    font-weight: 300;
-    color: var(--white);
-    line-height: 1.2;
-  }
-
-  .screen-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 4px; }
-
-  /* ── CONTENT AREA ── */
-  .screen-content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
-
-  /* ── CARD ── */
-  .s-card {
-    background: var(--white);
-    border-radius: 16px;
-    border: 1px solid var(--terra-light);
-    overflow: hidden;
-    margin-bottom: 14px;
-  }
-
-  .s-card-header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--terra-light);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--soft);
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-  }
-
-  .s-card-body { padding: 16px; }
-
-  /* ── LOCK BUTTON ── */
-  .lock-btn-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 20px;
-    gap: 12px;
-  }
-
-  .lock-btn {
-    width: 100px; height: 100px;
-    border-radius: 50%;
-    background: var(--deep);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    box-shadow: 0 8px 24px rgba(44,36,22,0.3);
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .lock-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.1), transparent);
-  }
-
-  .lock-btn:active { transform: scale(0.93); }
-  .lock-btn.open { background: var(--success); box-shadow: 0 8px 24px rgba(90,138,106,0.4); }
-  .lock-btn.opening { animation: pulse-open 0.6s ease; }
-
-  @keyframes pulse-open {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.08); box-shadow: 0 0 0 16px rgba(90,138,106,0.15); }
-    100% { transform: scale(1); }
-  }
-
-  .lock-label { font-size: 14px; font-weight: 600; color: var(--deep); }
-  .lock-sublabel { font-size: 11px; color: var(--soft); text-align: center; }
-
-  .door-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .door-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--sand);
-    border-radius: 12px;
-    padding: 12px 14px;
-    cursor: pointer;
-    transition: all 0.18s;
-  }
-
-  .door-item:active { background: var(--terra-xlight); transform: scale(0.98); }
-
-  .door-icon-wrap {
-    width: 42px; height: 42px;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    background: var(--terra-light);
-    flex-shrink: 0;
-  }
-
-  .door-name { font-size: 14px; font-weight: 600; color: var(--deep); }
-  .door-status { font-size: 11px; color: var(--soft); margin-top: 1px; }
-  .door-arrow { margin-left: auto; color: var(--soft); font-size: 16px; }
-
-  /* ── BADGE ── */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  .badge-green { background: #E6F4EA; color: #3A7A4A; }
-  .badge-orange { background: #FFF0E0; color: #C07820; }
-  .badge-red { background: #FDECEA; color: #B84040; }
-  .badge-blue { background: #E8EDF8; color: #3A508A; }
-
-  /* ── UPLOAD AREA ── */
-  .upload-zone {
-    border: 2px dashed var(--terra-light);
-    border-radius: 14px;
-    padding: 28px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--sand);
-  }
-
-  .upload-zone:active { border-color: var(--terra); background: var(--terra-xlight); }
-  .upload-zone .uz-icon { font-size: 32px; margin-bottom: 8px; }
-  .upload-zone .uz-label { font-size: 14px; font-weight: 600; color: var(--deep); margin-bottom: 4px; }
-  .upload-zone .uz-sub { font-size: 11.5px; color: var(--soft); }
-
-  /* ── GUEST ROW ── */
-  .guest-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--sand);
-  }
-
-  .guest-row:last-child { border-bottom: none; }
-
-  .guest-num {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: var(--terra-light);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--terra-dark);
-    flex-shrink: 0;
-  }
-
-  .guest-doc-name { font-size: 13px; font-weight: 500; color: var(--deep); }
-  .guest-doc-sub { font-size: 11px; color: var(--soft); }
-
-  /* ── INFO LIST ── */
-  .info-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--sand);
-  }
-
-  .info-item:last-child { border-bottom: none; }
-  .info-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-  .info-label { font-size: 10.5px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--soft); margin-bottom: 3px; font-weight: 500; }
-  .info-value { font-size: 14px; font-weight: 500; color: var(--deep); }
-  .info-sub { font-size: 11.5px; color: var(--soft); margin-top: 2px; }
-
-  /* ── BTN ── */
-  .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 20px;
-    border-radius: 14px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.18s;
-    font-family: 'DM Sans', sans-serif;
-    width: 100%;
-  }
-
-  .btn-primary { background: var(--terra); color: white; }
-  .btn-primary:active { background: var(--terra-dark); transform: scale(0.98); }
-  .btn-outline { background: transparent; border: 1.5px solid var(--terra-light); color: var(--mid); }
-  .btn-outline:active { border-color: var(--terra); background: var(--terra-xlight); transform: scale(0.98); }
-  .btn-dark { background: var(--deep); color: white; }
-  .btn-dark:active { transform: scale(0.98); }
-  .btn-success { background: var(--success); color: white; }
-  .btn-success:active { transform: scale(0.98); }
-
-  /* ── QR CODE ── */
-  .qr-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px;
-    gap: 12px;
-  }
-
-  .qr-placeholder {
-    width: 140px; height: 140px;
-    background: var(--deep);
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 64px;
-    color: white;
-  }
-
-  /* ── WIFI BOX ── */
-  .wifi-box {
-    background: var(--deep);
-    border-radius: 14px;
-    padding: 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 14px;
-  }
-
-  .wifi-icon { font-size: 28px; }
-  .wifi-name { font-size: 16px; font-weight: 700; color: white; }
-  .wifi-pw { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
-  .wifi-pw span { color: var(--terra); font-weight: 600; }
-
-  /* ── PAYMENT ── */
-  .pay-total {
-    text-align: center;
-    padding: 24px 20px 16px;
-  }
-
-  .pay-amount {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 52px;
-    font-weight: 300;
-    color: var(--deep);
-    line-height: 1;
-  }
-
-  .pay-label { font-size: 12px; color: var(--soft); margin-top: 4px; }
-
-  .pay-method {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 14px;
-    border: 2px solid var(--terra-light);
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: all 0.15s;
-    background: var(--white);
-  }
-
-  .pay-method:active { border-color: var(--terra); background: var(--terra-xlight); transform: scale(0.98); }
-  .pay-method.sel { border-color: var(--terra); background: var(--terra-xlight); }
-  .pay-logo { font-size: 24px; }
-  .pay-name { font-size: 14px; font-weight: 600; color: var(--deep); }
-  .pay-desc { font-size: 11px; color: var(--soft); }
-  .pay-check { margin-left: auto; color: var(--terra); font-size: 18px; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 60px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--deep);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 40px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 999;
-    opacity: 0;
-    transition: all 0.3s;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    pointer-events: none;
-  }
-
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ── HOME INDICATOR ── */
-  .home-indicator {
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .hi-bar {
-    width: 120px; height: 4px;
-    background: rgba(44,36,22,0.25);
-    border-radius: 4px;
-  }
-
-  /* ── PHOTO PREVIEW ── */
-  .photo-preview {
-    width: 100%;
-    height: 140px;
-    background: linear-gradient(135deg, #3A3028 0%, #2C2416 100%);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 10px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .photo-preview::after {
-    content: '✓ Documento caricato';
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-  }
-
-  /* ── SUCCESS ANIMATION ── */
-  @keyframes success-pop {
-    0% { transform: scale(0.5); opacity: 0; }
-    70% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  .success-icon {
-    font-size: 48px;
-    animation: success-pop 0.4s ease forwards;
-  }
-
-  /* ── SCROLLBAR ── */
-  ::-webkit-scrollbar { width: 3px; }
-  ::-webkit-scrollbar-thumb { background: var(--terra-light); border-radius: 3px; }
-
-  /* ── PROGRESS BAR ── */
-  .progress-bar {
-    height: 4px;
-    background: var(--terra-light);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 16px;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: var(--terra);
-    border-radius: 4px;
-    transition: width 0.4s ease;
-  }
-
-  /* ── STEP INDICATOR ── */
-  .step-dots {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    margin: 16px 0;
-  }
-
-  .step-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--terra-light);
-    transition: all 0.3s;
-  }
-
-  .step-dot.active { background: var(--terra); width: 18px; border-radius: 3px; }
-
-  /* LANG TOGGLE */
-  .lang-toggle {
-    display: flex;
-    background: rgba(255,255,255,0.08);
-    border-radius: 20px;
-    padding: 2px;
-    margin-top: 12px;
-    width: fit-content;
-  }
-
-  .lang-btn {
-    padding: 5px 14px;
-    border-radius: 18px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    color: rgba(255,255,255,0.45);
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.2s;
-  }
-
-  .lang-btn.active { background: var(--terra); color: white; }
-
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --dark:#1A140D;--terra:#C4956A;--terra-l:#E8D5BE;--terra-xl:#F5EAD8;
+  --sand:#F5F0E8;--cream:#FAF7F2;--mid:#6B5C48;--soft:#9B8B78;
+  --success:#5A8A6A;--danger:#C4706A;--info:#6A7A9B;
+  --safe-top:env(safe-area-inset-top,0px);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:white;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+
+/* HERO */
+.hero{background:linear-gradient(160deg,#1A140D 0%,#2C2416 50%,#3D3020 100%);padding:calc(var(--safe-top) + 28px) 24px 28px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:40px;background:var(--sand);clip-path:ellipse(55% 100% at 50% 100%)}
+.lang-row{display:flex;gap:8px;margin-bottom:24px}
+.lang-btn{padding:5px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.15);font-size:12px;cursor:pointer;background:transparent;color:rgba(255,255,255,.5);font-family:inherit;transition:all .2s}
+.lang-btn.active{background:var(--terra);border-color:var(--terra);color:white;font-weight:500}
+.eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--terra);margin-bottom:8px}
+.guest-name{font-family:'Cormorant Garamond',serif;font-size:36px;font-style:italic;color:var(--terra);line-height:1.1;margin-bottom:4px}
+.suite-tag{font-size:13px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:6px}
+
+/* CONTENT */
+.content{background:var(--sand);padding:24px 20px;min-height:calc(100vh - 220px)}
+
+/* SOGGIORNO CARD */
+.stay-card{background:var(--terra);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stay-dates{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1}
+.date-block{}
+.date-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:.7;margin-bottom:2px}
+.date-val{font-size:22px;font-weight:700}
+.date-sub{font-size:11px;opacity:.7}
+.stay-badge{background:rgba(255,255,255,.2);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+
+/* GRID */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.tile{background:white;border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .18s;position:relative;border:1.5px solid transparent}
+.tile:active{transform:scale(.97)}
+.tile:hover{border-color:var(--terra-l);box-shadow:0 4px 16px rgba(196,149,106,.15)}
+.tile.dark{background:var(--dark);color:white}
+.tile-badge{position:absolute;top:12px;right:12px;width:20px;height:20px;background:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.tile-icon{font-size:28px;margin-bottom:10px;display:block}
+.tile-title{font-size:15px;font-weight:600;margin-bottom:3px;color:inherit}
+.tile-sub{font-size:12px;color:var(--soft);line-height:1.3}
+.tile.dark .tile-sub{color:rgba(255,255,255,.5)}
+
+/* SEZIONI */
+.section{background:white;border-radius:16px;padding:18px;margin-bottom:14px}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--dark);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--sand)}
+.info-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--sand);align-items:flex-start}
+.info-row:last-child{border-bottom:none}
+.info-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center;margin-top:2px}
+.info-label{font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.info-val{font-size:13.5px;font-weight:500;color:var(--dark)}
+.info-sub{font-size:11.5px;color:var(--soft);margin-top:2px}
+
+/* STATO ITEM */
+.stato-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--sand)}
+.stato-row:last-child{border-bottom:none}
+.stato-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-ok{background:var(--success)}.dot-warn{background:#E8A020}.dot-err{background:var(--danger)}
+.stato-txt{flex:1;font-size:13px}
+.stato-badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600}
+.badge-ok{background:#E6F4EA;color:#3A7A4A}.badge-warn{background:#FFF0E0;color:#C07820}.badge-err{background:#FDECEA;color:#B84040}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .18s;text-decoration:none;justify-content:center}
+.btn-primary{background:var(--terra);color:white;width:100%}
+.btn-primary:active{background:#A07550}
+.btn-outline{background:transparent;border:1.5px solid var(--terra-l);color:var(--mid);width:100%}
+.btn-ghost{background:var(--sand);color:var(--mid);width:100%}
+
+/* HIDDEN */
+.page{display:none}.page.active{display:block}
+.section-hidden{display:none}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--terra-l);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:50}
+.nav-item2{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+.nav-item2 span{font-size:20px}
+.nav-item2 small{font-size:9px;color:var(--soft)}
+.nav-item2.active small{color:var(--terra);font-weight:600}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--terra-l);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-zone:hover{border-color:var(--terra);background:var(--terra-xl)}
+.upload-zone input{display:none}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:white;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:all .3s;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
-
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDb_qrNtRxLhMYGkha2bXEJP3jf5SAsIIA",
-    authDomain: "hermosahome-82675.firebaseapp.com",
-    projectId: "hermosahome-82675",
-    storageBucket: "hermosahome-82675.firebasestorage.app",
-    messagingSenderId: "1067621957341",
-    appId: "1:1067621957341:web:1a290245daec64ce362534"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // ── CARICA DATI OSPITE DAL DATABASE ──
-  async function caricaOspite() {
-    // Legge il codice prenotazione dall'URL: ?booking=ABC123
-    const params = new URLSearchParams(window.location.search);
-    const bookingId = params.get('booking') || 'demo';
-    
-    try {
-      const docRef = doc(db, 'prenotazioni', bookingId);
-      const docSnap = await getDoc(docRef);
-      
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        // Aggiorna UI con dati reali
-        const nomeEl = document.getElementById('h-greeting');
-        if (nomeEl) nomeEl.innerHTML = 'Benvenuto,<br><span class="hero-name">' + (data.ospite || 'Ospite') + '</span>';
-        const aptEl = document.getElementById('h-apt');
-        if (aptEl) aptEl.textContent = 'Suite ' + (data.suite || 'Tomasi di Lampedusa') + ' · 3° piano';
-        const accSubEl = document.getElementById('acc-sub');
-        if (accSubEl) accSubEl.textContent = (data.suite || 'Tomasi di Lampedusa') + ' · ' + (data.checkin || '—') + ' – ' + (data.checkout || '—');
-        // Salva bookingId globalmente
-        window.HH_BOOKING_ID = bookingId;
-        window.HH_DATA = data;
-        console.log('Ospite caricato:', data.ospite);
-      } else {
-        console.log('Prenotazione demo - usando dati di esempio');
-      }
-    } catch(e) {
-      console.log('Errore caricamento:', e.message);
-    }
-  }
-
-  // ── AGGIORNA STATO NEL DATABASE ──
-  window.hhUpdateStatus = async function(campo, valore) {
-    if (!window.HH_BOOKING_ID || window.HH_BOOKING_ID === 'demo') return;
-    try {
-      const docRef = doc(db, 'prenotazioni', window.HH_BOOKING_ID);
-      const update = {};
-      update[campo] = valore;
-      update['ultimoAggiornamento'] = serverTimestamp();
-      await updateDoc(docRef, update);
-      console.log('Aggiornato:', campo, '=', valore);
-    } catch(e) {
-      console.log('Errore update:', e.message);
-    }
-  };
-
-  // ── SALVA FIRMA CONTRATTO ──
-  window.hhSalvaFirma = async function() {
-    const oggi = new Date().toLocaleDateString('it-IT');
-    const ospiteNome = window.HH_DATA ? window.HH_DATA.ospite : (new URLSearchParams(window.location.search).get('nome') || 'Ospite');
-    const suiteNome = window.HH_DATA ? window.HH_DATA.suite : (new URLSearchParams(window.location.search).get('suite') || 'Suite');
-    
-    // 1. Aggiorna prenotazione se bookingId disponibile
-    if (window.HH_BOOKING_ID && window.HH_BOOKING_ID !== 'demo') {
-      await window.hhUpdateStatus('contrattoFirmato', true);
-      await window.hhUpdateStatus('contrattoFirmatoIl', oggi);
-      await window.hhUpdateStatus('contratto', 'firmato');
-    }
-    
-    // 2. Scrivi SEMPRE nella collezione contratti (il gestionale la ascolta)
-    try {
-      const firmaId = 'firma_' + Date.now();
-      await setDoc(doc(db, 'contratti', firmaId), {
-        ospite: ospiteNome,
-        suite: suiteNome,
-        stato: 'firmato',
-        firmato_il: oggi,
-        bookingId: window.HH_BOOKING_ID || 'demo',
-        timestamp: serverTimestamp()
-      });
-      
-      // 3. Scrivi nella collezione notifiche per il gestionale
-      await setDoc(doc(db, 'notifiche', 'contr_' + Date.now()), {
-        tipo: 'contratto_firmato',
-        ospite: ospiteNome,
-        suite: suiteNome,
-        messaggio: ospiteNome + ' ha firmato il contratto per la Suite ' + suiteNome,
-        letto: false,
-        creato: serverTimestamp()
-      });
-      console.log('✅ Contratto firmato salvato su Firebase');
-    } catch(e) {
-      console.log('Errore salvataggio firma:', e.message);
-    }
-  };
-
-  // ── SALVA DOCUMENTO CARICATO ──
-  window.hhSalvaDocumento = async function(tipo) {
-    const oggi = new Date().toLocaleDateString('it-IT');
-    const ospiteNome = window.HH_DATA ? window.HH_DATA.ospite : (new URLSearchParams(window.location.search).get('nome') || 'Ospite');
-    const suiteNome = window.HH_DATA ? window.HH_DATA.suite : (new URLSearchParams(window.location.search).get('suite') || 'Suite');
-    
-    // Aggiorna prenotazione
-    if (window.HH_BOOKING_ID && window.HH_BOOKING_ID !== 'demo') {
-      await window.hhUpdateStatus('documentoCaricato', true);
-      await window.hhUpdateStatus('documentoTipo', tipo);
-      await window.hhUpdateStatus('documentoCaricatoIl', oggi);
-      await window.hhUpdateStatus('documenti', 'caricati');
-    }
-    
-    // Scrivi nella collezione documenti e notifiche
-    try {
-      await setDoc(doc(db, 'documenti', 'doc_' + Date.now()), {
-        ospite: ospiteNome,
-        suite: suiteNome,
-        tipo: tipo,
-        stato: 'da_verificare',
-        caricato_il: oggi,
-        bookingId: window.HH_BOOKING_ID || 'demo',
-        timestamp: serverTimestamp()
-      });
-      
-      await setDoc(doc(db, 'notifiche', 'doc_' + Date.now()), {
-        tipo: 'documento_caricato',
-        ospite: ospiteNome,
-        suite: suiteNome,
-        messaggio: ospiteNome + ' ha caricato il documento (' + tipo + ') per la Suite ' + suiteNome,
-        letto: false,
-        creato: serverTimestamp()
-      });
-      console.log('✅ Documento salvato su Firebase');
-    } catch(e) {
-      console.log('Errore salvataggio documento:', e.message);
-    }
-  };
-
-  // Avvia al caricamento
-  document.addEventListener('DOMContentLoaded', caricaOspite);
-</script>
-
 </head>
 <body>
 
-<div class="phone-shell">
-  <!-- Notch -->
-  <div class="phone-notch">
-    <div class="notch-cam"></div>
-    <div class="notch-speaker"></div>
-    <div class="notch-cam"></div>
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="lang-row">
+      <button class="lang-btn active" onclick="setLang('it',this)">🇮🇹 IT</button>
+      <button class="lang-btn" onclick="setLang('en',this)">🇬🇧 EN</button>
+    </div>
+    <div class="eyebrow">HERMOSA HOME</div>
+    <div class="guest-name" id="hero-name">Benvenuto</div>
+    <div class="suite-tag">🏠 <span id="hero-suite">Suite · 3° piano</span></div>
   </div>
 
-  <!-- Status Bar -->
-  <div class="status-bar">
-    <div class="status-time" id="status-time">19:42</div>
-    <div class="status-icons">
-      <span>●●●</span>
-      <span>WiFi</span>
-      <span>🔋</span>
+  <div class="content">
+    <!-- SOGGIORNO -->
+    <div class="stay-card" id="stay-card">
+      <div class="stay-dates">
+        <div class="date-block">
+          <div class="date-lbl" data-it="CHECK-IN" data-en="CHECK-IN">CHECK-IN</div>
+          <div class="date-val" id="ci-date">—</div>
+          <div class="date-sub" id="ci-time">ore 14:00</div>
+        </div>
+        <div class="date-block">
+          <div class="date-lbl" data-it="CHECK-OUT" data-en="CHECK-OUT">CHECK-OUT</div>
+          <div class="date-val" id="co-date">—</div>
+          <div class="date-sub" id="co-time">ore 10:00</div>
+        </div>
+      </div>
+      <div class="stay-badge" id="stay-status">In corso ▶</div>
     </div>
+
+    <!-- TILES -->
+    <div class="tiles">
+      <div class="tile dark" onclick="showSection('lock')">
+        <span class="tile-icon">🔐</span>
+        <div class="tile-title" data-it="Apri le porte" data-en="Open doors">Apri le porte</div>
+        <div class="tile-sub" data-it="Smart lock" data-en="Smart lock">Smart lock</div>
+      </div>
+      <div class="tile" onclick="showSection('docs')">
+        <div class="tile-badge" id="doc-badge" style="display:none">!</div>
+        <span class="tile-icon">📋</span>
+        <div class="tile-title" data-it="Documenti" data-en="Documents">Documenti</div>
+        <div class="tile-sub" data-it="Carica la tua carta" data-en="Upload your ID">Carica la tua carta</div>
+      </div>
+      <div class="tile" onclick="showSection('contract')">
+        <div class="tile-badge" id="contract-badge" style="display:none">!</div>
+        <span class="tile-icon">✍️</span>
+        <div class="tile-title" data-it="Contratto" data-en="Contract">Contratto</div>
+        <div class="tile-sub" data-it="Leggi e firma" data-en="Read and sign">Leggi e firma</div>
+      </div>
+      <div class="tile" onclick="showSection('info')">
+        <span class="tile-icon">ℹ️</span>
+        <div class="tile-title" data-it="Info struttura" data-en="House info">Info struttura</div>
+        <div class="tile-sub" data-it="WiFi, regole, guida" data-en="WiFi, rules, guide">WiFi, regole, guida</div>
+      </div>
+      <div class="tile" onclick="showSection('payment')">
+        <div class="tile-badge" id="pay-badge" style="display:none">!</div>
+        <span class="tile-icon">💳</span>
+        <div class="tile-title" data-it="Pagamento" data-en="Payment">Pagamento</div>
+        <div class="tile-sub" id="pay-sub" data-it="Saldo soggiorno" data-en="Balance">Saldo soggiorno</div>
+      </div>
+      <div class="tile" onclick="showSection('map')">
+        <span class="tile-icon">🗺️</span>
+        <div class="tile-title" data-it="Mappa & Arrivo" data-en="Map & Arrival">Mappa & Arrivo</div>
+        <div class="tile-sub" data-it="Come raggiungerci" data-en="How to reach us">Come raggiungerci</div>
+      </div>
+    </div>
+
+    <!-- STATO PRENOTAZIONE -->
+    <div class="section">
+      <div class="sec-title" data-it="Stato prenotazione" data-en="Booking status">Stato prenotazione</div>
+      <div class="stato-row">
+        <div class="stato-dot" id="dot-contratto"></div>
+        <div class="stato-txt" data-it="Contratto" data-en="Contract">Contratto</div>
+        <span class="stato-badge" id="badge-contratto">—</span>
+      </div>
+      <div class="stato-row">
+        <div class="stato-dot" id="dot-doc"></div>
+        <div class="stato-txt" data-it="Documenti identità" data-en="Identity documents">Documenti identità</div>
+        <span class="stato-badge" id="badge-doc">—</span>
+      </div>
+      <div class="stato-row">
+        <div class="stato-dot" id="dot-pag"></div>
+        <div class="stato-txt" data-it="Pagamento" data-en="Payment">Pagamento</div>
+        <span class="stato-badge" id="badge-pag">—</span>
+      </div>
+    </div>
+
+    <!-- CONTATTI -->
+    <div class="section">
+      <div class="sec-title">Hermosa Home</div>
+      <div class="info-row">
+        <div class="info-icon">📍</div>
+        <div><div class="info-label">Indirizzo</div><div class="info-val">Via Mariano Stabile 124, Piano 3°</div><div class="info-sub">90139 Palermo (PA)</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">📞</div>
+        <div><div class="info-label">Assistenza</div><div class="info-val"><a href="tel:+393284845555" style="color:var(--terra);text-decoration:none">+39 328 484 5555</a></div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">✉️</div>
+        <div><div class="info-label">Email</div><div class="info-val"><a href="mailto:info.hermosahome@gmail.com" style="color:var(--terra);text-decoration:none">info.hermosahome@gmail.com</a></div></div>
+      </div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+        <a href="https://wa.me/393284845555" target="_blank" class="btn btn-primary">🟢 Scrivi su WhatsApp</a>
+        <a href="https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo" target="_blank" class="btn btn-ghost">📍 Apri in Maps</a>
+      </div>
+    </div>
+
   </div>
-
-  <!-- SCREENS -->
-  <div class="screen-container">
-
-    <!-- ══════════════ HOME ══════════════ -->
-    <div class="screen active" id="screen-home">
-
-      <!-- Hero -->
-      <div class="hero">
-        <div class="hero-logo">Hermosa Home</div>
-        <div class="lang-toggle">
-          <button class="lang-btn active" onclick="setLang('it', this)">🇮🇹 IT</button>
-          <button class="lang-btn" onclick="setLang('en', this)">🇬🇧 EN</button>
-        </div>
-        <div style="height:14px;"></div>
-        <div class="hero-greeting" id="h-greeting">
-          Benvenuto,<br><span class="hero-name">Marco Rossi</span>
-        </div>
-        <div class="hero-apt" style="margin-top:8px;">
-          <span>🏠</span>
-          <span id="h-apt">Suite Tomasi di Lampedusa · 3° piano</span>
-        </div>
-      </div>
-
-      <!-- Stay card -->
-      <div class="stay-card">
-        <div class="stay-header">
-          <div class="stay-header-label" id="h-stay-label">Il tuo soggiorno</div>
-          <div class="stay-status" id="h-stay-status">In corso ●</div>
-        </div>
-        <div style="position:relative;">
-          <div class="stay-dates">
-            <div class="stay-date-block">
-              <div class="sdl" id="h-checkin-lbl">Check-in</div>
-              <div class="sdv">07 mar</div>
-              <div class="sds">ore 12:00</div>
-            </div>
-            <div style="width:1px;background:var(--terra-light);position:absolute;top:14px;bottom:14px;left:50%;"></div>
-            <div class="stay-date-block" style="text-align:right;">
-              <div class="sdl" id="h-checkout-lbl">Check-out</div>
-              <div class="sdv">12 mar</div>
-              <div class="sds">ore 10:00</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Menu -->
-      <div class="menu-grid">
-
-        <div class="menu-item accent" onclick="goTo('screen-accesso')">
-          <div class="menu-icon">🔓</div>
-          <div class="menu-label" id="m-accesso">Apri le porte</div>
-          <div class="menu-sub" id="m-accesso-sub">Smart lock</div>
-        </div>
-
-        <div class="menu-item" onclick="goTo('screen-documenti')">
-          <div class="menu-badge" id="doc-badge">!</div>
-          <div class="menu-icon">📋</div>
-          <div class="menu-label" id="m-docs">Documenti</div>
-          <div class="menu-sub" id="m-docs-sub">Carica la tua carta</div>
-        </div>
-
-        <div class="menu-item" onclick="goTo('screen-contratto')">
-          <div class="menu-badge" id="contratto-badge">!</div>
-          <div class="menu-icon">✍️</div>
-          <div class="menu-label" id="m-contratto">Contratto</div>
-          <div class="menu-sub" id="m-contratto-sub">Leggi e firma</div>
-        </div>
-
-        <div class="menu-item" onclick="goTo('screen-info')">
-          <div class="menu-icon">ℹ️</div>
-          <div class="menu-label" id="m-info">Info struttura</div>
-          <div class="menu-sub" id="m-info-sub">WiFi, regole, guida</div>
-        </div>
-
-        <div class="menu-item" onclick="goTo('screen-pagamento')">
-          <div class="menu-icon">💳</div>
-          <div class="menu-label" id="m-pag">Pagamento</div>
-          <div class="menu-sub" id="m-pag-sub">€ 225 in attesa</div>
-        </div>
-
-        <div class="menu-item full-width" onclick="goTo('screen-chat')">
-          <div class="menu-icon">💬</div>
-          <div>
-            <div class="menu-label" id="m-chat">Contatta il gestore</div>
-            <div class="menu-sub" id="m-chat-sub">WhatsApp · Telegram · Email</div>
-          </div>
-          <div style="margin-left:auto;color:var(--soft);">›</div>
-        </div>
-
-      </div>
-
-        <div class="menu-item" onclick="goTo('screen-pagamento')">
-          <div class="menu-icon">💳</div>
-          <div class="menu-label" id="m-pag">Pagamento</div>
-          <div class="menu-sub" id="m-pag-sub">€ 225 in attesa</div>
-        </div>
-
-        <div class="menu-item" onclick="goTo('screen-meteo')">
-          <div class="menu-icon">🌤</div>
-          <div class="menu-label">Meteo Palermo</div>
-          <div class="menu-sub" id="m-meteo-sub">Caricamento...</div>
-        </div>
-
-        <div class="menu-item" onclick="goTo('screen-ristoranti')">
-          <div class="menu-icon">🍽</div>
-          <div class="menu-label">Ristoranti</div>
-          <div class="menu-sub">I migliori vicino a noi</div>
-        </div>
-
-        <div class="menu-item full-width" onclick="goTo('screen-chat')">
-          <div class="menu-icon">💬</div>
-          <div>
-            <div class="menu-label" id="m-chat">Contatta il gestore</div>
-            <div class="menu-sub" id="m-chat-sub">WhatsApp · Telegram · Email</div>
-          </div>
-          <div style="margin-left:auto;color:var(--soft);">›</div>
-        </div>
-
-        <div class="menu-item full-width" onclick="goTo('screen-feedback')">
-          <div class="menu-icon">⭐</div>
-          <div>
-            <div class="menu-label">Lascia un feedback</div>
-            <div class="menu-sub">La tua opinione conta</div>
-          </div>
-          <div style="margin-left:auto;color:var(--soft);">›</div>
-        </div>
-
-      </div>
-
-      <div style="height:8px;"></div>
-    </div>
-
-    <!-- ══════════════ METEO ══════════════ -->
-    <div class="screen" id="screen-meteo">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title">Meteo Palermo</div>
-        <div class="screen-sub">Aggiornato in tempo reale</div>
-      </div>
-      <div class="screen-content" style="padding:20px 16px;">
-        <div id="meteo-card" style="background:linear-gradient(135deg,#1A3A5C,#2E6FA8);border-radius:16px;padding:24px;color:white;text-align:center;margin-bottom:16px;">
-          <div style="font-size:64px;" id="meteo-icon">⏳</div>
-          <div style="font-size:48px;font-weight:300;font-family:'Cormorant Garamond',serif;" id="meteo-temp">--°</div>
-          <div style="font-size:16px;opacity:.8;margin-top:4px;" id="meteo-desc">Caricamento...</div>
-          <div style="font-size:13px;opacity:.6;margin-top:8px;">Palermo, Sicilia · <span id="meteo-time">--</span></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">💧</div>
-            <div style="font-size:18px;font-weight:600;" id="meteo-umidita">--%</div>
-            <div style="font-size:11px;color:var(--soft);">Umidità</div>
-          </div>
-          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">💨</div>
-            <div style="font-size:18px;font-weight:600;" id="meteo-vento">-- km/h</div>
-            <div style="font-size:11px;color:var(--soft);">Vento</div>
-          </div>
-          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">🌡</div>
-            <div style="font-size:18px;font-weight:600;" id="meteo-percepita">--°</div>
-            <div style="font-size:11px;color:var(--soft);">Percepita</div>
-          </div>
-          <div style="background:var(--sand);border-radius:12px;padding:14px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:4px;">👁</div>
-            <div style="font-size:18px;font-weight:600;" id="meteo-visibilita">-- km</div>
-            <div style="font-size:11px;color:var(--soft);">Visibilità</div>
-          </div>
-        </div>
-        <div style="background:var(--terra-xlight);border-radius:12px;padding:14px;font-size:13px;color:var(--mid);line-height:1.7;">
-          💡 <strong>Consiglio:</strong> Palermo è soleggiata quasi tutto l'anno. Porta crema solare anche in inverno — il sole siciliano è forte!
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════════ RISTORANTI ══════════════ -->
-    <div class="screen" id="screen-ristoranti">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title">🍽 I migliori ristoranti</div>
-        <div class="screen-sub">Selezionati da noi · tutti a piedi</div>
-      </div>
-      <div class="screen-content" style="padding:16px;">
-        <div style="display:flex;flex-direction:column;gap:12px;">
-
-          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Osteria+dei+Vespri+Palermo','_blank')">
-            <div style="display:flex;align-items:flex-start;gap:12px;">
-              <div style="font-size:32px;">🍝</div>
-              <div style="flex:1;">
-                <div style="font-size:15px;font-weight:600;color:var(--deep);">Osteria dei Vespri</div>
-                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐⭐ · Cucina siciliana · €€€</div>
-                <div style="font-size:12.5px;color:var(--mid);">La migliore cucina siciliana del centro storico. Piazza Croce dei Vespri — 12 min a piedi</div>
-                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Trattoria+del+Pesce+Palermo','_blank')">
-            <div style="display:flex;align-items:flex-start;gap:12px;">
-              <div style="font-size:32px;">🐟</div>
-              <div style="flex:1;">
-                <div style="font-size:15px;font-weight:600;color:var(--deep);">Trattoria del Pesce</div>
-                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐ · Pesce fresco · €€</div>
-                <div style="font-size:12.5px;color:var(--mid);">Frittura di paranza e spaghetti con le vongole. Via Cala — 10 min a piedi</div>
-                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Bar+Spinnato+Palermo','_blank')">
-            <div style="display:flex;align-items:flex-start;gap:12px;">
-              <div style="font-size:32px;">☕</div>
-              <div style="flex:1;">
-                <div style="font-size:15px;font-weight:600;color:var(--deep);">Bar Spinnato</div>
-                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐⭐ · Bar storico · €</div>
-                <div style="font-size:12.5px;color:var(--mid);">Il bar più famoso di Palermo dal 1860. Granita, brioche e cannoli. Via Principe di Belmonte — 6 min a piedi</div>
-                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Mercato+Ballaro+Palermo','_blank')">
-            <div style="display:flex;align-items:flex-start;gap:12px;">
-              <div style="font-size:32px;">🥘</div>
-              <div style="flex:1;">
-                <div style="font-size:15px;font-weight:600;color:var(--deep);">Mercato Ballarò — Street Food</div>
-                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐⭐ · Street food · €</div>
-                <div style="font-size:12.5px;color:var(--mid);">Panelle, arancine, sfincione, pani ca meusa. L'esperienza autentica di Palermo. 15 min a piedi</div>
-                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div style="background:var(--sand);border-radius:14px;padding:16px;" onclick="window.open('https://maps.google.com/?q=Cin+Cin+Palermo','_blank')">
-            <div style="display:flex;align-items:flex-start;gap:12px;">
-              <div style="font-size:32px;">🍷</div>
-              <div style="flex:1;">
-                <div style="font-size:15px;font-weight:600;color:var(--deep);">Cin Cin</div>
-                <div style="font-size:12px;color:var(--terra);font-weight:500;margin-bottom:4px;">⭐⭐⭐⭐ · Pasta siciliana · €€</div>
-                <div style="font-size:12.5px;color:var(--mid);">Pasta con le sarde e caponata perfetta. Via Maniscalchi — 8 min a piedi</div>
-                <div style="margin-top:8px;"><span style="background:var(--terra);color:white;padding:3px 10px;border-radius:20px;font-size:11px;">📍 Apri su Maps</span></div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════════════ FEEDBACK ══════════════ -->
-    <div class="screen" id="screen-feedback">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title">⭐ Il tuo feedback</div>
-        <div class="screen-sub">Ci aiuta a migliorare</div>
-      </div>
-      <div class="screen-content" style="padding:20px 16px;">
-        <div style="text-align:center;margin-bottom:24px;">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--deep);margin-bottom:8px;">Come è stato il tuo soggiorno?</div>
-          <div style="display:flex;justify-content:center;gap:12px;margin:16px 0;" id="star-rating">
-            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(1)">★</span>
-            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(2)">★</span>
-            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(3)">★</span>
-            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(4)">★</span>
-            <span style="font-size:40px;cursor:pointer;opacity:.4;" onclick="setRating(5)">★</span>
-          </div>
-          <div style="font-size:14px;color:var(--soft);" id="rating-label">Tocca le stelle per votare</div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <label style="display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);margin-bottom:8px;font-weight:600;">Cosa hai apprezzato di più?</label>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;" id="tag-buttons">
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🛏 Comfort</button>
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🌇 Vista</button>
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🧹 Pulizia</button>
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">📍 Posizione</button>
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">👋 Accoglienza</button>
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">📶 WiFi</button>
-            <button onclick="toggleTag(this)" style="padding:7px 14px;border-radius:20px;border:1.5px solid var(--terra-light);background:white;font-size:12px;color:var(--mid);cursor:pointer;">🔐 Smart lock</button>
-          </div>
-          <textarea id="feedback-text" placeholder="Scrivi qui la tua esperienza (opzionale)..." style="width:100%;padding:12px;border:1.5px solid var(--terra-light);border-radius:12px;font-size:13px;min-height:100px;font-family:inherit;resize:none;background:var(--sand);"></textarea>
-        </div>
-        <button class="btn btn-primary" onclick="inviaFeedback()" style="width:100%;justify-content:center;padding:14px;font-size:15px;">
-          Invia feedback
-        </button>
-        <div style="margin-top:16px;display:flex;gap:10px;">
-          <a href="https://airbnb.com" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:var(--sand);border-radius:12px;text-decoration:none;color:var(--mid);font-size:13px;font-weight:500;">
-            🏠 Recensione Airbnb
-          </a>
-          <a href="https://google.com/search?q=Hermosa+Home+Palermo" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;background:var(--sand);border-radius:12px;text-decoration:none;color:var(--mid);font-size:13px;font-weight:500;">
-            ⭐ Recensione Google
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="screen" id="screen-accesso">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title" id="acc-title">Apri le porte</div>
-        <div class="screen-sub" id="acc-sub">Tomasi di Lampedusa · 07/03 – 12/03/2026</div>
-      </div>
-
-      <div class="screen-content">
-
-        <div class="s-card">
-          <div class="s-card-body">
-            <div class="door-list">
-
-              <div class="door-item" onclick="openDoor(this, 'Portone Via M. Stabile 124')">
-                <div class="door-icon-wrap">🏢</div>
-                <div>
-                  <div class="door-name" id="d-portone">Portone Via M. Stabile 124</div>
-                  <div class="door-status" id="d-portone-s">Tocca per aprire</div>
-                </div>
-                <div class="door-arrow">›</div>
-              </div>
-
-              <div class="door-item" onclick="openDoor(this, 'Porta piano')">
-                <div class="door-icon-wrap">🚪</div>
-                <div>
-                  <div class="door-name" id="d-piano">Porta di ingresso piano</div>
-                  <div class="door-status" id="d-piano-s">Tocca per aprire</div>
-                </div>
-                <div class="door-arrow">›</div>
-              </div>
-
-              <div class="door-item" onclick="openDoor(this, 'Appartamento')">
-                <div class="door-icon-wrap">🏠</div>
-                <div>
-                  <div class="door-name" id="d-apt">Suite Tomasi di Lampedusa</div>
-                  <div class="door-status" id="d-apt-s">Tocca per aprire</div>
-                </div>
-                <div class="door-arrow">›</div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-        <div class="s-card">
-          <div class="s-card-header" id="acc-pin-lbl">PIN di sicurezza</div>
-          <div style="padding:16px;text-align:center;">
-            <div style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;letter-spacing:10px;color:var(--deep);">742</div>
-            <div style="font-size:11.5px;color:var(--soft);margin-top:4px;" id="acc-pin-desc">Usa questo PIN sui tastierini delle porte</div>
-          </div>
-        </div>
-
-        <div class="s-card">
-          <div class="s-card-body" style="font-size:12.5px;color:var(--soft);line-height:1.6;" id="acc-validity">
-            ⏰ Accesso valido dal <strong>07/03 ore 12:00</strong> al <strong>12/03 ore 10:00</strong>
-          </div>
-        </div>
-
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-    <!-- ══════════════ DOCUMENTI ══════════════ -->
-    <div class="screen" id="screen-documenti">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title" id="doc-title">Documenti</div>
-        <div class="screen-sub" id="doc-sub">Carica i documenti di tutti gli ospiti</div>
-      </div>
-
-      <div class="screen-content">
-
-        <div class="progress-bar">
-          <div class="progress-fill" style="width:33%" id="doc-progress"></div>
-        </div>
-
-        <div class="s-card" style="margin-bottom:14px;">
-          <div class="s-card-header" id="doc-req-lbl">Documenti richiesti (1 / 2)</div>
-          <div class="s-card-body" style="padding:8px 16px;">
-
-            <div class="guest-row">
-              <div class="guest-num">1</div>
-              <div>
-                <div class="guest-doc-name" id="doc-g1-name">Marco Rossi</div>
-                <div class="guest-doc-sub" id="doc-g1-status">Carta d'identità — Caricata ✓</div>
-              </div>
-              <span class="badge badge-green" style="margin-left:auto;">✓</span>
-            </div>
-
-            <div class="guest-row">
-              <div class="guest-num">2</div>
-              <div>
-                <div class="guest-doc-name" id="doc-g2-name">Ospite 2</div>
-                <div class="guest-doc-sub" id="doc-g2-status">Nessun documento</div>
-              </div>
-              <span class="badge badge-orange" style="margin-left:auto;" id="doc-g2-badge">!</span>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="s-card">
-          <div class="s-card-header" id="doc-upload-lbl">Carica documento</div>
-          <div class="s-card-body">
-
-            <!-- Input file nascosto - apre fotocamera su mobile -->
-            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhoto(this)">
-            <input type="file" id="gallery-input" accept="image/*" style="display:none;" onchange="handlePhoto(this)">
-
-            <div id="upload-area" style="display:flex;flex-direction:column;gap:10px;">
-              <button onclick="document.getElementById('camera-input').click()" style="width:100%;padding:18px;border-radius:14px;background:var(--terra);color:white;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;">
-                📷 Scatta foto documento
-              </button>
-              <button onclick="document.getElementById('gallery-input').click()" style="width:100%;padding:14px;border-radius:14px;background:transparent;color:var(--mid);border:1.5px solid var(--terra-l);font-size:13.5px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
-                🖼 Scegli dalla galleria
-              </button>
-            </div>
-
-            <div id="photo-preview" class="photo-preview" style="display:none;"></div>
-
-            <div style="height:12px;"></div>
-
-            <button class="btn btn-primary" id="upload-btn" onclick="confirmUpload()" style="display:none;">
-              <span id="doc-send-label">📤 Invia documento</span>
-            </button>
-
-            <p style="font-size:11px;color:var(--soft);text-align:center;margin-top:10px;line-height:1.5;" id="doc-privacy">
-              🔒 I tuoi dati vengono trasmessi in modo sicuro al registro alloggiati della Polizia di Stato, come previsto dalla normativa italiana.
-            </p>
-
-          </div>
-        </div>
-
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-    <!-- ══════════════ INFO ══════════════ -->
-    <div class="screen" id="screen-info">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title" id="info-title">Info struttura</div>
-        <div class="screen-sub" id="info-sub">Tutto ciò che ti serve sapere</div>
-      </div>
-
-      <div class="screen-content">
-
-        <!-- WiFi -->
-        <div class="wifi-box">
-          <div class="wifi-icon">📶</div>
-          <div style="flex:1;">
-            <div class="wifi-name">HermosaHome_Lampedusa</div>
-            <div class="wifi-pw">Password: <span>welcome2026</span></div>
-          </div>
-          <button class="btn btn-primary" style="width:auto;padding:8px 14px;font-size:12px;" onclick="copyWifi()">Copia</button>
-        </div>
-
-        <div class="s-card">
-          <div class="s-card-header" id="info-apt-lbl">Appartamento</div>
-          <div class="s-card-body" style="padding:8px 16px;">
-
-            <div class="info-item" onclick="window.open('https://maps.google.com/?daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=walking','_blank')" style="cursor:pointer;">
-              <div class="info-icon">📍</div>
-              <div style="flex:1;">
-                <div class="info-label" id="il-indirizzo">Indirizzo</div>
-                <div class="info-value">Via Mariano Stabile 124 — Piano 3°</div>
-                <div class="info-sub">Palermo, Sicilia</div>
-              </div>
-              <div style="color:var(--terra);font-size:20px;margin-left:auto;">›</div>
-            </div>
-            <button onclick="window.open('https://maps.google.com/?daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=walking','_blank')" style="width:100%;margin-top:4px;padding:9px;border-radius:10px;background:var(--terra);color:white;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;">
-              🗺 Apri in Google Maps
-            </button>
-
-            <div class="info-item">
-              <div class="info-icon">🅿️</div>
-              <div>
-                <div class="info-label" id="il-parking">Parcheggio</div>
-                <div class="info-value">Parcheggio Trinacria (200m)</div>
-                <div class="info-sub" id="il-parking-sub">Via Gagini · ~€12/giorno</div>
-              </div>
-            </div>
-
-            <div class="info-item">
-              <div class="info-icon">🗑️</div>
-              <div>
-                <div class="info-label" id="il-trash">Rifiuti</div>
-                <div class="info-value" id="il-trash-val">Raccolta differenziata</div>
-                <div class="info-sub" id="il-trash-sub">Cassonetti in Via Stabile (piano terra)</div>
-              </div>
-            </div>
-
-            <div class="info-item">
-              <div class="info-icon">🌡️</div>
-              <div>
-                <div class="info-label" id="il-climate">Climatizzatore</div>
-                <div class="info-value" id="il-climate-val">Telecomando nel cassetto</div>
-                <div class="info-sub" id="il-climate-sub">Spegnere prima del checkout</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="s-card">
-          <div class="s-card-header" id="info-rules-lbl">Regole della casa</div>
-          <div class="s-card-body" style="padding:12px 16px;">
-            <div style="font-size:13px;color:var(--mid);line-height:1.8;" id="info-rules-text">
-              🚭 Vietato fumare in tutta la suite<br>
-              🔇 Silenzio dopo le 22:00<br>
-              🐾 Animali non ammessi<br>
-              🎉 No feste o eventi<br>
-              🗝 Chiavi nel cassetto al checkout
-            </div>
-          </div>
-        </div>
-
-        <div class="s-card" style="margin-bottom:20px;">
-          <div class="s-card-header" id="info-contact-lbl">Contatti di emergenza</div>
-          <div class="s-card-body" style="padding:8px 16px;">
-            <div class="info-item">
-              <div class="info-icon">📞</div>
-              <div>
-                <div class="info-label">Gestore</div>
-                <div class="info-value">+39 328 484 5555</div>
-                <div class="info-sub" style="color:var(--terra);">⚠️ Da aggiornare con numero reale</div>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:6px;margin-left:auto;">
-                <button class="btn btn-success" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('https://wa.me/393284845555','_blank')">WhatsApp</button>
-                <button class="btn btn-outline" style="width:auto;padding:6px 10px;font-size:11.5px;" onclick="window.open('tel:+393284845555')">Chiama</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- QR WiFi -->
-        <div class="s-card" style="margin-bottom:20px;">
-          <div class="s-card-header" id="info-qr-lbl">QR Code WiFi</div>
-          <div class="qr-area">
-            <div class="qr-placeholder">📶</div>
-            <div style="font-size:12px;color:var(--soft);text-align:center;" id="info-qr-sub">Inquadra per connetterti automaticamente</div>
-          </div>
-        </div>
-
-        <!-- COME ARRIVARE -->
-        <div class="s-card" style="margin-bottom:20px;">
-          <div class="s-card-header">🗺 Come arrivare</div>
-          <div class="s-card-body" style="padding:10px 16px;display:flex;flex-direction:column;gap:10px;">
-
-            <!-- Aereo -->
-            <div style="background:var(--sand);border-radius:12px;padding:14px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span style="font-size:18px;">✈️</span>
-                <div style="font-size:13.5px;font-weight:700;color:var(--deep);">Aeroporto Falcone Borsellino</div>
-                <span style="margin-left:auto;font-size:10px;background:var(--terra-xl);color:var(--terra-d);padding:3px 8px;border-radius:20px;font-weight:600;">~60 min</span>
-              </div>
-              <div style="font-size:12.5px;color:var(--mid);line-height:1.7;">
-                🚂 <strong>Treno Trinacria Express</strong> fino a Palermo Centrale (ogni 30 min · €6,90 · ~50 min)<br>
-                🚌 Da Centrale: bus 101/102 o <strong>15 min a piedi</strong> lungo Via Roma<br>
-                🚕 Taxi diretto aeroporto → Via Stabile: ~€45 · ~35 min
-              </div>
-              <button onclick="window.open('https://maps.google.com/?saddr=Palermo+Airport&daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=transit','_blank')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:var(--terra);color:white;border:none;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
-                📍 Apri percorso in Maps
-              </button>
-            </div>
-
-            <!-- Treno -->
-            <div style="background:var(--sand);border-radius:12px;padding:14px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span style="font-size:18px;">🚂</span>
-                <div style="font-size:13.5px;font-weight:700;color:var(--deep);">Da Palermo Centrale</div>
-                <span style="margin-left:auto;font-size:10px;background:#E8EDF8;color:#3A508A;padding:3px 8px;border-radius:20px;font-weight:600;">15 min</span>
-              </div>
-              <div style="font-size:12.5px;color:var(--mid);line-height:1.7;">
-                🚶 <strong>A piedi</strong>: 15 min · Via Roma → Via Mariano Stabile<br>
-                🚌 <strong>Bus 101/102</strong>: fermata "Teatro Massimo" (3 stop · €1,40)<br>
-                🚕 <strong>Taxi</strong>: ~€8 · disponibili in piazza
-              </div>
-            </div>
-
-            <!-- Auto -->
-            <div style="background:var(--sand);border-radius:12px;padding:14px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-                <span style="font-size:18px;">🚗</span>
-                <div style="font-size:13.5px;font-weight:700;color:var(--deep);">In auto</div>
-                <span style="margin-left:auto;font-size:10px;background:#FDECEA;color:#B84040;padding:3px 8px;border-radius:20px;font-weight:600;">⚠️ ZTL</span>
-              </div>
-              <div style="font-size:12.5px;color:var(--mid);line-height:1.7;">
-                ⚠️ Zona ZTL attiva in centro — comunicaci la targa per il permesso<br>
-                🅿️ <strong>Parcheggio Trinacria</strong>: Via Gagini · 200m · ~€12/giorno<br>
-                🅿️ Parcheggio Basile: Via Basile · 400m
-              </div>
-            </div>
-
-            <!-- Indirizzo preciso -->
-            <div style="border:1.5px solid var(--terra-l);border-radius:12px;padding:14px;text-align:center;">
-              <div style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Indirizzo esatto</div>
-              <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--deep);margin-bottom:4px;">Via Mariano Stabile 124</div>
-              <div style="font-size:12.5px;color:var(--soft);">Piano Terzo · 90139 Palermo (PA)</div>
-              <div style="font-size:12px;color:var(--terra);margin-top:8px;font-weight:500;">🏛 300m dal Teatro Massimo</div>
-              <button onclick="window.open('https://maps.google.com/?daddr=Via+Mariano+Stabile+124,+Palermo,+Italia&travelmode=walking','_blank')" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;background:transparent;color:var(--terra);border:1.5px solid var(--terra-l);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">
-                🗺 Apri su Google Maps
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-    <!-- ══════════════ PAGAMENTO ══════════════ -->
-    <div class="screen" id="screen-pagamento">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title" id="pay-title">Pagamento</div>
-        <div class="screen-sub" id="pay-sub">Saldo soggiorno · Suite Tomasi di Lampedusa</div>
-      </div>
-
-      <div class="screen-content">
-
-        <div class="pay-total">
-          <div class="pay-amount">€ 225</div>
-          <div class="pay-label" id="pay-label-sub">Saldo soggiorno · 07 – 12 marzo 2026</div>
-        </div>
-
-        <div id="pay-method-lbl" style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:10px;">Scegli metodo</div>
-
-        <div class="pay-method sel" id="pay-pp" onclick="selPay(this,'paypal')">
-          <div class="pay-logo">🅿️</div>
-          <div>
-            <div class="pay-name">PayPal</div>
-            <div class="pay-desc" id="pm-pp-desc">Sicuro e immediato</div>
-          </div>
-          <div class="pay-check">✓</div>
-        </div>
-
-        <div class="pay-method" id="pay-stripe" onclick="selPay(this,'stripe')">
-          <div class="pay-logo">💳</div>
-          <div>
-            <div class="pay-name">Carta di credito</div>
-            <div class="pay-desc" id="pm-cc-desc">Visa, Mastercard, Amex · via Stripe</div>
-          </div>
-          <div class="pay-check" style="opacity:0;">✓</div>
-        </div>
-
-        <div style="height:16px;"></div>
-
-        <div style="background:#FFF8E8;border:1.5px solid #E8D5BE;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11.5px;color:#A07550;line-height:1.5;">
-          ⚠️ <strong>Link pagamento da configurare</strong><br>
-          Inserisci il tuo link PayPal.me e Stripe nel file nelle variabili PAYPAL_URL e STRIPE_URL
-        </div>
-
-        <button class="btn btn-primary" onclick="confirmPayment()" id="pay-btn">
-          🔐 Paga € 225
-        </button>
-
-        <p style="font-size:11px;color:var(--soft);text-align:center;margin-top:12px;line-height:1.5;" id="pay-security">
-          🔒 Pagamento sicuro · I tuoi dati non vengono conservati
-        </p>
-
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-    <!-- ══════════════ CHAT ══════════════ -->
-    <div class="screen" id="screen-chat">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title" id="chat-title">Contattaci</div>
-        <div class="screen-sub" id="chat-sub">Siamo qui per aiutarti</div>
-      </div>
-
-      <div class="screen-content">
-
-        <div style="text-align:center;padding:24px 0 20px;">
-          <div style="font-size:48px;margin-bottom:8px;">🏡</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--deep);" id="chat-welcome">Ciao Marco!</div>
-          <div style="font-size:13px;color:var(--soft);margin-top:4px;" id="chat-available">Siamo disponibili 9:00 – 22:00</div>
-        </div>
-
-        <div class="s-card" style="margin-bottom:12px;">
-          <div class="s-card-body" style="display:flex;flex-direction:column;gap:10px;padding:14px;">
-
-            <button class="btn btn-success" onclick="window.open('https://wa.me/393284845555?text=Ciao%2C%20sono%20un%20ospite%20di%20Hermosa%20Home','_blank')" style="background:#25D366;">
-              🟢 WhatsApp
-            </button>
-
-            <button class="btn btn-outline" style="border-color:#229ED9;color:#229ED9;" onclick="window.open('https://t.me/hermosahome_pa','_blank')">
-              ✈ Telegram
-            </button>
-
-            <button class="btn btn-outline" onclick="window.open('mailto:info@hermosahome.it','_blank')">
-              ✉ Email
-            </button>
-
-          </div>
-        </div>
-
-        <div class="s-card" style="margin-bottom:20px;">
-          <div class="s-card-header" id="chat-faq-lbl">Domande frequenti</div>
-          <div class="s-card-body" style="padding:8px 16px;">
-
-            <div class="info-item" onclick="toast('FAQ: WiFi')">
-              <div class="info-icon">📶</div>
-              <div>
-                <div class="info-value" style="font-size:13px;" id="faq-wifi">Come mi connetto al WiFi?</div>
-              </div>
-              <div style="color:var(--soft);margin-left:auto;">›</div>
-            </div>
-
-            <div class="info-item" onclick="toast('FAQ: Checkout')">
-              <div class="info-icon">🗝</div>
-              <div>
-                <div class="info-value" style="font-size:13px;" id="faq-checkout">Come funziona il checkout?</div>
-              </div>
-              <div style="color:var(--soft);margin-left:auto;">›</div>
-            </div>
-
-            <div class="info-item" onclick="toast('FAQ: Parcheggio')">
-              <div class="info-icon">🅿️</div>
-              <div>
-                <div class="info-value" style="font-size:13px;" id="faq-parking">Dove parcheggio l'auto?</div>
-              </div>
-              <div style="color:var(--soft);margin-left:auto;">›</div>
-            </div>
-
-          </div>
-        </div>
-
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-    <!-- ══════════════ SUCCESS ══════════════ -->
-    <div class="screen" id="screen-success">
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;">
-        <div class="success-icon" id="success-icon">✅</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--deep);margin-top:16px;" id="success-title">Documento caricato!</div>
-        <div style="font-size:14px;color:var(--soft);margin-top:8px;line-height:1.6;" id="success-msg">Il documento è stato inviato correttamente.<br>Grazie per la collaborazione!</div>
-        <div style="height:30px;"></div>
-        <button class="btn btn-primary" onclick="goTo('screen-home')" style="max-width:240px;" id="success-btn">
-          Torna alla home
-        </button>
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-    <!-- ══════════════ CONTRATTO ══════════════ -->
-    <div class="screen" id="screen-contratto">
-      <div class="screen-header">
-        <button class="back-btn" onclick="goBack()">‹ Indietro</button>
-        <div class="screen-title">Contratto</div>
-        <div class="screen-sub">Locazione turistica breve</div>
-      </div>
-
-      <div class="screen-content">
-
-        <!-- STEP INDICATOR -->
-        <div id="contratto-steps" style="display:flex;gap:0;margin-bottom:16px;">
-          <div id="cstep-1" style="flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:600;color:var(--terra);border-bottom:2px solid var(--terra);">1 · Leggi</div>
-          <div id="cstep-2" style="flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:500;color:var(--soft);border-bottom:2px solid var(--terra-l);">2 · Accetta</div>
-          <div id="cstep-3" style="flex:1;padding:8px 4px;text-align:center;font-size:10.5px;font-weight:500;color:var(--soft);border-bottom:2px solid var(--terra-l);">3 · Firma</div>
-        </div>
-
-        <!-- STEP 1: TESTO CONTRATTO -->
-        <div id="contratto-step1">
-          <div class="s-card" style="margin-bottom:14px;">
-            <div class="s-card-header" style="font-size:12px;">📄 CONTRATTO DI LOCAZIONE AD USO TURISTICO</div>
-            <div id="contratto-testo" class="s-card-body" style="padding:14px 16px;font-size:12px;color:var(--mid);line-height:1.8;max-height:320px;overflow-y:auto;" onscroll="checkContrattoScroll(this)">
-              <strong>Hermosa Home</strong>, con sede in Via Mariano Stabile 124, Piano Terzo, 90139 Palermo (PA), di seguito denominato <em>Locatore</em>,<br><br>
-              e il/la Sig./Sig.ra <strong>Marco Rossi</strong>, di seguito denominato <em>Conduttore</em>,<br><br>
-              stipulano il seguente contratto di locazione ad uso turistico ai sensi dell'art. 1, comma 2, lett. c) della L. 431/1998.<br><br>
-              <strong>Art. 1 — Oggetto</strong><br>
-              Il Locatore concede in locazione al Conduttore la <strong>Suite Tomasi di Lampedusa</strong>, sita in Via Mariano Stabile 124, Piano Terzo, Palermo (PA).<br><br>
-              <strong>Art. 2 — Durata</strong><br>
-              Il soggiorno ha durata dal <strong>07/03/2026 ore 14:00</strong> al <strong>12/03/2026 ore 10:00</strong>, per un totale di 5 notti. Il contratto non è rinnovabile tacitamente.<br><br>
-              <strong>Art. 3 — Corrispettivo</strong><br>
-              Il corrispettivo totale è pari a <strong>€ 450,00</strong>, da versarsi tramite PayPal o Stripe entro la data di check-in.<br><br>
-              <strong>Art. 4 — Consegna e restituzione</strong><br>
-              L'accesso avviene tramite smart lock. Il Conduttore si impegna a riconsegnare la suite nelle stesse condizioni di consegna, libera da persone e cose.<br><br>
-              <strong>Art. 5 — Obblighi del conduttore</strong><br>
-              Il Conduttore si obbliga a: utilizzare la suite solo per uso turistico; non cedere il godimento a terzi; rispettare il regolamento della casa; non fumare all'interno; rispettare il silenzio dopo le ore 22:00; non introdurre animali senza previa autorizzazione scritta.<br><br>
-              <strong>Art. 6 — Caparra</strong><br>
-              Non è prevista caparra confirmatoria. In caso di danni alla suite, il Conduttore risponderà secondo le norme del codice civile.<br><br>
-              <strong>Art. 7 — Foro competente</strong><br>
-              Per qualsiasi controversia è competente il Foro di Palermo.<br><br>
-              <strong>Art. 8 — Privacy</strong><br>
-              I dati personali sono trattati ai sensi del GDPR 2016/679 esclusivamente per finalità connesse al presente contratto e agli obblighi di legge (Portale Alloggiati — Polizia di Stato).<br><br>
-              <em>Palermo, 07/03/2026</em>
-            </div>
-          </div>
-          <div id="scroll-hint" style="font-size:11.5px;color:var(--terra);text-align:center;margin-bottom:12px;font-weight:500;">
-            ↓ Scorri fino in fondo per continuare
-          </div>
-          <button id="btn-avanti-1" class="btn btn-primary" onclick="contrattoStep(2)" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
-            Avanti — Accetta le clausole →
-          </button>
-        </div>
-
-        <!-- STEP 2: CLAUSOLE -->
-        <div id="contratto-step2" style="display:none;">
-          <div class="s-card" style="margin-bottom:14px;">
-            <div class="s-card-header">✅ Accettazione clausole</div>
-            <div class="s-card-body" style="padding:12px 16px;display:flex;flex-direction:column;gap:12px;">
-              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-                <input type="checkbox" id="cl1" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
-                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Ho letto e accetto integralmente il contratto di locazione turistica</span>
-              </label>
-              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-                <input type="checkbox" id="cl2" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
-                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Accetto il regolamento della casa (no fumo, silenzio ore 22, no animali)</span>
-              </label>
-              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-                <input type="checkbox" id="cl3" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
-                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Autorizzo il trattamento dei dati personali ai sensi del GDPR per gli obblighi di legge</span>
-              </label>
-              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
-                <input type="checkbox" id="cl4" style="margin-top:3px;accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;" onchange="checkClausole()">
-                <span style="font-size:12.5px;color:var(--mid);line-height:1.5;">Confermo i dati del soggiorno: Suite Tomasi di Lampedusa · 07–12 marzo 2026 · € 450</span>
-              </label>
-            </div>
-          </div>
-          <button id="btn-avanti-2" class="btn btn-primary" onclick="contrattoStep(3)" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
-            Avanti — Firma il contratto →
-          </button>
-        </div>
-
-        <!-- STEP 3: FIRMA -->
-        <div id="contratto-step3" style="display:none;">
-          <div class="s-card" style="margin-bottom:14px;">
-            <div class="s-card-header">✍️ Firma qui sotto con il dito</div>
-            <div class="s-card-body" style="padding:12px 16px;">
-              <canvas id="firma-canvas" width="320" height="150" style="border:1.5px solid var(--terra-l);border-radius:10px;background:white;display:block;width:100%;touch-action:none;cursor:crosshair;"></canvas>
-              <div style="display:flex;gap:8px;margin-top:10px;">
-                <button onclick="clearFirma()" class="btn btn-ghost btn-sm" style="flex:1;">🗑 Cancella</button>
-                <div style="font-size:11px;color:var(--soft);flex:2;text-align:center;line-height:1.4;padding-top:4px;">Firma con il dito o con il mouse</div>
-              </div>
-            </div>
-          </div>
-          <div style="background:var(--sand);border-radius:10px;padding:12px;font-size:11.5px;color:var(--soft);line-height:1.6;margin-bottom:14px;text-align:center;">
-            🔒 Firmando digitalmente accetti tutte le condizioni.<br>Riceverai copia via email a <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ff929e8d9c90d18d908c8c96bf9a929e9693d19c9092">[email&#160;protected]</a></strong>
-          </div>
-          <button id="btn-firma" class="btn btn-primary" onclick="submitFirma()" style="width:100%;justify-content:center;opacity:.4;pointer-events:none;">
-            ✍️ Firma e invia contratto
-          </button>
-        </div>
-
-      </div>
-      <div class="home-indicator"><div class="hi-bar"></div></div>
-    </div>
-
-  </div><!-- /screen-container -->
-
-  <!-- Home Indicator (main) -->
-  <div class="home-indicator"><div class="hi-bar"></div></div>
-
-</div><!-- /phone-shell -->
-
-<!-- Toast -->
-<div class="toast" id="toast-el"></div>
-
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // ── CLOCK ──
-  function tick() {
-    const now = new Date();
-    document.getElementById('status-time').textContent =
-      now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  }
-  tick();
-  setInterval(tick, 10000);
-
-  // ── NAVIGATION ──
-  let history = ['screen-home'];
-
-  function goTo(id) {
-    const current = document.querySelector('.screen.active');
-    const next = document.getElementById(id);
-    if (!next || current.id === id) return;
-
-    current.classList.add('slide-left');
-    setTimeout(() => current.classList.remove('active', 'slide-left'), 350);
-
-    next.style.transform = 'translateX(100%)';
-    next.classList.add('active');
-    requestAnimationFrame(() => { next.style.transform = ''; });
-
-    history.push(id);
-  }
-
-  function goBack() {
-    if (history.length <= 1) return;
-    history.pop();
-    const prev = history[history.length - 1];
-
-    const current = document.querySelector('.screen.active');
-    const prevEl = document.getElementById(prev);
-
-    current.style.transform = 'translateX(100%)';
-    setTimeout(() => {
-      current.classList.remove('active');
-      current.style.transform = '';
-    }, 350);
-
-    prevEl.classList.add('active');
-    prevEl.style.transform = 'translateX(-30%)';
-    requestAnimationFrame(() => { prevEl.style.transform = ''; });
-  }
-
-  // ── TOAST ──
-  let toastTimer;
-  function toast(msg) {
-    const el = document.getElementById('toast-el');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
-  }
-
-  // ── CONTRATTO ──
-  let firmaDrawing = false;
-  let firmaHasData = false;
-
-  function checkContrattoScroll(el) {
-    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
-    if (atBottom) {
-      document.getElementById('btn-avanti-1').style.opacity = '1';
-      document.getElementById('btn-avanti-1').style.pointerEvents = 'auto';
-      document.getElementById('scroll-hint').style.display = 'none';
-    }
-  }
-
-  function contrattoStep(step) {
-    // Nascondi tutti gli step
-    document.getElementById('contratto-step1').style.display = 'none';
-    document.getElementById('contratto-step2').style.display = 'none';
-    document.getElementById('contratto-step3').style.display = 'none';
-
-    // Aggiorna indicatori
-    ['1','2','3'].forEach(s => {
-      const el = document.getElementById('cstep-'+s);
-      el.style.color = s == step ? 'var(--terra)' : 'var(--soft)';
-      el.style.borderBottomColor = s == step ? 'var(--terra)' : 'var(--terra-l)';
-      el.style.fontWeight = s == step ? '600' : '500';
-    });
-
-    document.getElementById('contratto-step'+step).style.display = 'block';
-
-    if (step === 3) initFirma();
-  }
-
-  function checkClausole() {
-    const all = ['cl1','cl2','cl3','cl4'].every(id => document.getElementById(id).checked);
-    const btn = document.getElementById('btn-avanti-2');
-    btn.style.opacity = all ? '1' : '0.4';
-    btn.style.pointerEvents = all ? 'auto' : 'none';
-  }
-
-  function initFirma() {
-    const canvas = document.getElementById('firma-canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#2C2416';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const src = e.touches ? e.touches[0] : e;
-      return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
-    }
-
-    canvas.addEventListener('mousedown',  e => { firmaDrawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('mousemove',  e => { if (!firmaDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); firmaHasData = true; updateFirmaBtn(); });
-    canvas.addEventListener('mouseup',    () => firmaDrawing = false);
-    canvas.addEventListener('touchstart', e => { e.preventDefault(); firmaDrawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }, {passive:false});
-    canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!firmaDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); firmaHasData = true; updateFirmaBtn(); }, {passive:false});
-    canvas.addEventListener('touchend',   () => firmaDrawing = false);
-  }
-
-  function updateFirmaBtn() {
-    const btn = document.getElementById('btn-firma');
-    if (firmaHasData) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
-  }
-
-  function clearFirma() {
-    const canvas = document.getElementById('firma-canvas');
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-    firmaHasData = false;
-    const btn = document.getElementById('btn-firma');
-    btn.style.opacity = '0.4';
-    btn.style.pointerEvents = 'none';
-  }
-
-  function submitFirma() {
-    if (window.hhSalvaFirma) window.hhSalvaFirma();
-    document.getElementById('btn-firma').innerHTML = '⏳ Invio in corso...';
-    document.getElementById('btn-firma').style.opacity = '0.7';
-    setTimeout(() => {
-      // Nascondi badge contratto
-      const badge = document.getElementById('contratto-badge');
-      if (badge) badge.style.display = 'none';
-      const sub = document.getElementById('m-contratto-sub');
-      if (sub) sub.textContent = 'Firmato ✓';
-      // Vai a schermata successo
-      document.getElementById('success-title').textContent = 'Contratto firmato!';
-      document.getElementById('success-msg').textContent = 'Il contratto è stato firmato e inviato correttamente. Riceverai copia via email. Grazie!';
-      document.getElementById('success-icon').textContent = '✍️';
-      history = ['screen-home'];
-      goTo('screen-success');
-    }, 1800);
-  }
-
-  // ── OPEN DOOR ──
-  function openDoor(el, name) {
-    const status = el.querySelector('.door-status');
-    const icon = el.querySelector('.door-icon-wrap');
-
-    status.textContent = '⏳ Apertura in corso...';
-    el.style.opacity = '0.7';
-
-    setTimeout(() => {
-      status.textContent = '✅ Aperto';
-      icon.textContent = '🔓';
-      el.style.opacity = '1';
-      el.style.background = '#E6F4EA';
-      toast('✓ ' + name + ' aperto!');
-      setTimeout(() => {
-        status.textContent = 'Tocca per aprire';
-        icon.textContent = el.querySelector('.door-name').textContent.includes('Portone') ? '🏢' :
-                           el.querySelector('.door-name').textContent.includes('piano') ? '🚪' : '🏠';
-        el.style.background = '';
-      }, 3000);
-    }, 1200);
-  }
-
-  // ── CONFIGURAZIONE PAGAMENTI (modifica questi link) ──
-  const PAYPAL_URL  = 'https://paypal.me/hermosahome';   // ← inserisci il tuo link PayPal.me
-  const STRIPE_URL  = 'https://buy.stripe.com/XXXXXXXX'; // ← inserisci il tuo link Stripe
-  const WHATSAPP_NUM = '393284845555';                     // ← inserisci il tuo numero (senza +)
-  const TELEGRAM_USER = 'hermosahome_pa';                 // ← inserisci il tuo username Telegram
-  const EMAIL_INFO   = 'info@hermosahome.it';             // ← inserisci la tua email
-
-  // ── COPIA WIFI ──
-  function copyWifi() {
-    const pw = document.querySelector('.wifi-pw span').textContent;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(pw).then(() => toast('📶 Password WiFi copiata!'));
-    } else {
-      // fallback per Safari su iOS
-      const el = document.createElement('textarea');
-      el.value = pw;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      toast('📶 Password WiFi copiata!');
-    }
-  }
-
-  // ── FOTOCAMERA / GALLERIA ──
-  function handlePhoto(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const preview = document.getElementById('photo-preview');
-      const uploadArea = document.getElementById('upload-area');
-      const btn = document.getElementById('upload-btn');
-      preview.style.display = 'block';
-      preview.style.textAlign = 'center';
-      preview.innerHTML = `
-        <img src="${e.target.result}" style="max-width:100%;max-height:200px;border-radius:12px;border:2px solid var(--terra-l);object-fit:cover;" />
-        <div style="font-size:12px;color:var(--success);margin-top:8px;font-weight:600;">✓ Foto acquisita correttamente</div>
-      `;
-      uploadArea.style.display = 'none';
-      btn.style.display = 'flex';
-      toast('📸 Foto acquisita!');
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function confirmUpload() {
-    const btn = document.getElementById('upload-btn');
-    btn.innerHTML = '⏳ Invio in corso...';
-    btn.style.opacity = '0.7';
-    btn.disabled = true;
-
-    // Leggi dati ospite dai parametri URL
-    const params = new URLSearchParams(window.location.search);
-    const ospiteId = params.get('ospite') || 'ospite_' + Date.now();
-    const ospiteNome = params.get('nome') || document.querySelector('.hero-name') ? document.querySelector('.hero-name').textContent : 'Ospite';
-    const suite = params.get('suite') || 'Suite';
-    const tipoDoc = '🪪 Documento identità';
-
-    // Salva notifica documento su Firebase (senza foto - solo metadati)
-    // Salva documento su Firebase con notifica al gestionale
-    var tipoLabel = tipoDoc || 'Documento identità';
-    if (window.hhSalvaDocumento) {
-      window.hhSalvaDocumento(tipoLabel);
-    }
-    if (window.fbCaricaDocumento) {
-      window.fbCaricaDocumento(tipoLabel, 'foto_' + Date.now() + '.jpg').then(function(ok) {
-        console.log('Documento notificato a Firebase:', ok);
-      });
-    }
-
-    // Aggiorna UI app ospiti
-    setTimeout(() => {
-      const g2 = document.getElementById('doc-g2-status');
-      if (g2) g2.textContent = 'Documento — Caricato ✓';
-      const badge = document.getElementById('doc-g2-badge');
-      if (badge) { badge.textContent = '✓'; badge.className = 'badge badge-green'; }
-      const progress = document.getElementById('doc-progress');
-      if (progress) progress.style.width = '100%';
-      const reqLbl = document.getElementById('doc-req-lbl');
-      if (reqLbl) reqLbl.textContent = 'Documenti richiesti (2 / 2)';
-      const docBadge = document.getElementById('doc-badge');
-      if (docBadge) docBadge.style.display = 'none';
-      history = ['screen-home'];
-      goTo('screen-success');
-    }, 1500);
-  }
-
-  // ── PAYMENT ──
-  let selectedPayMethod = 'paypal';
-
-  function selPay(el, method) {
-    selectedPayMethod = method;
-    document.querySelectorAll('.pay-method').forEach(p => {
-      p.classList.remove('sel');
-      p.querySelector('.pay-check').style.opacity = '0';
-    });
-    el.classList.add('sel');
-    el.querySelector('.pay-check').style.opacity = '1';
-  }
-
-  function confirmPayment() {
-    const url = selectedPayMethod === 'paypal' ? PAYPAL_URL : STRIPE_URL;
-    window.open(url, '_blank');
-    const btn = document.getElementById('pay-btn');
-    btn.textContent = '⏳ Elaborazione...';
-    btn.style.opacity = '0.7';
-    btn.disabled = true;
-
-    setTimeout(() => {
-      document.getElementById('success-icon').textContent = '💳';
-      document.getElementById('success-title').textContent = lang === 'it' ? 'Pagamento ricevuto!' : 'Payment received!';
-      document.getElementById('success-msg').innerHTML = lang === 'it'
-        ? 'Il pagamento di <strong>€ 225</strong> è andato a buon fine.<br>Grazie!'
-        : 'Payment of <strong>€ 225</strong> was successful.<br>Thank you!';
-      document.getElementById('m-pag-sub').textContent = lang === 'it' ? 'Pagato ✓' : 'Paid ✓';
-      history = ['screen-home'];
-      goTo('screen-success');
-    }, 1800);
-  }
-
-  // ── LANG ──
-  let lang = 'it';
-
-  const translations = {
-    it: {
-      'h-greeting': 'Benvenuto,',
-      'h-apt': 'Suite Tomasi di Lampedusa · 3° piano',
-      'h-stay-label': 'Il tuo soggiorno',
-      'h-stay-status': 'In corso ●',
-      'h-checkin-lbl': 'Check-in',
-      'h-checkout-lbl': 'Check-out',
-      'm-accesso': 'Apri le porte',
-      'm-accesso-sub': 'Smart lock',
-      'm-docs': 'Documenti',
-      'm-docs-sub': 'Carica la tua carta',
-      'm-info': 'Info struttura',
-      'm-info-sub': 'WiFi, regole, guida',
-      'm-pag': 'Pagamento',
-      'm-pag-sub': '€ 225 in attesa',
-      'm-chat': 'Contatta il gestore',
-      'm-chat-sub': 'WhatsApp · Telegram · Email',
-      'acc-title': 'Apri le porte',
-      'acc-sub': 'Tomasi di Lampedusa · 07/03 – 12/03/2026',
-      'acc-pin-lbl': 'PIN di sicurezza',
-      'acc-pin-desc': 'Usa questo PIN sui tastierini delle porte',
-      'acc-validity': '⏰ Accesso valido dal <strong>07/03 ore 12:00</strong> al <strong>12/03 ore 10:00</strong>',
-      'd-portone': 'Portone Via M. Stabile 124',
-      'd-portone-s': 'Tocca per aprire',
-      'd-piano': 'Porta di ingresso piano',
-      'd-piano-s': 'Tocca per aprire',
-      'd-apt': 'Suite Tomasi di Lampedusa',
-      'd-apt-s': 'Tocca per aprire',
-      'doc-title': 'Documenti',
-      'doc-sub': 'Carica i documenti di tutti gli ospiti',
-      'doc-req-lbl': 'Documenti richiesti (1 / 2)',
-      'doc-g1-name': 'Marco Rossi',
-      'doc-g1-status': 'Carta d\'identità — Caricata ✓',
-      'doc-g2-name': 'Ospite 2',
-      'doc-g2-status': 'Nessun documento',
-      'doc-upload-lbl': 'Carica documento',
-      'uz-label': 'Fotografa o carica documento',
-      'uz-sub': 'Carta d\'identità o Passaporto',
-      'doc-send-label': '📤 Invia documento',
-      'doc-privacy': '🔒 I tuoi dati vengono trasmessi in modo sicuro al registro alloggiati della Polizia di Stato.',
-      'info-title': 'Info struttura',
-      'info-sub': 'Tutto ciò che ti serve sapere',
-      'il-indirizzo': 'Indirizzo',
-      'il-parking': 'Parcheggio',
-      'il-parking-sub': 'Via Gagini · ~€12/giorno',
-      'il-trash': 'Rifiuti',
-      'il-trash-val': 'Raccolta differenziata',
-      'il-trash-sub': 'Cassonetti in Via Stabile (piano terra)',
-      'il-climate': 'Climatizzatore',
-      'il-climate-val': 'Telecomando nel cassetto',
-      'il-climate-sub': 'Spegnere prima del checkout',
-      'info-rules-lbl': 'Regole della casa',
-      'info-rules-text': '🚭 Vietato fumare in tutto l\'appartamento<br>🔇 Silenzio dopo le 22:00<br>🐾 Animali non ammessi<br>🎉 No feste o eventi<br>🗝 Chiavi nel cassetto al checkout',
-      'info-contact-lbl': 'Contatti di emergenza',
-      'info-qr-lbl': 'QR Code WiFi',
-      'info-qr-sub': 'Inquadra per connetterti automaticamente',
-      'pay-title': 'Pagamento',
-      'pay-sub': 'Saldo soggiorno · Suite Tomasi di Lampedusa',
-      'pay-label-sub': 'Saldo soggiorno · 07 – 12 marzo 2026',
-      'pm-pp-desc': 'Sicuro e immediato',
-      'pm-cc-desc': 'Visa, Mastercard, Amex',
-      'pay-btn': '🔐 Paga € 225',
-      'pay-security': '🔒 Pagamento sicuro · I tuoi dati non vengono conservati',
-      'chat-title': 'Contattaci',
-      'chat-sub': 'Siamo qui per aiutarti',
-      'chat-welcome': 'Ciao Marco!',
-      'chat-available': 'Siamo disponibili 9:00 – 22:00',
-      'chat-faq-lbl': 'Domande frequenti',
-      'faq-wifi': 'Come mi connetto al WiFi?',
-      'faq-checkout': 'Come funziona il checkout?',
-      'faq-parking': 'Dove parcheggio l\'auto?',
-      'success-title': 'Documento caricato!',
-      'success-msg': 'Il documento è stato inviato correttamente.<br>Grazie per la collaborazione!',
-      'success-btn': 'Torna alla home',
-    },
-    en: {
-      'h-greeting': 'Welcome,',
-      'h-apt': 'Suite Tomasi di Lampedusa · 3rd floor',
-      'h-stay-label': 'Your stay',
-      'h-stay-status': 'Active ●',
-      'h-checkin-lbl': 'Check-in',
-      'h-checkout-lbl': 'Check-out',
-      'm-accesso': 'Open doors',
-      'm-accesso-sub': 'Smart lock',
-      'm-docs': 'Documents',
-      'm-docs-sub': 'Upload your ID',
-      'm-info': 'Property info',
-      'm-info-sub': 'WiFi, rules, guide',
-      'm-pag': 'Payment',
-      'm-pag-sub': '€ 225 pending',
-      'm-chat': 'Contact host',
-      'm-chat-sub': 'WhatsApp · Telegram · Email',
-      'acc-title': 'Open doors',
-      'acc-sub': 'Tomasi di Lampedusa · 07/03 – 12/03/2026',
-      'acc-pin-lbl': 'Security PIN',
-      'acc-pin-desc': 'Use this PIN on the door keypads',
-      'acc-validity': '⏰ Access valid from <strong>07/03 at 12:00</strong> to <strong>12/03 at 10:00</strong>',
-      'd-portone': 'Main entrance Via M. Stabile 124',
-      'd-portone-s': 'Tap to open',
-      'd-piano': 'Floor entrance door',
-      'd-piano-s': 'Tap to open',
-      'd-apt': 'Suite Tomasi di Lampedusa',
-      'd-apt-s': 'Tap to open',
-      'doc-title': 'Documents',
-      'doc-sub': 'Upload all guests\' documents',
-      'doc-req-lbl': 'Required documents (1 / 2)',
-      'doc-g1-name': 'Marco Rossi',
-      'doc-g1-status': 'ID card — Uploaded ✓',
-      'doc-g2-name': 'Guest 2',
-      'doc-g2-status': 'No document',
-      'doc-upload-lbl': 'Upload document',
-      'uz-label': 'Take a photo or upload',
-      'uz-sub': 'ID card or Passport',
-      'doc-send-label': '📤 Send document',
-      'doc-privacy': '🔒 Your data is securely transmitted to the Italian Police accommodation register.',
-      'info-title': 'Property info',
-      'info-sub': 'Everything you need to know',
-      'il-indirizzo': 'Address',
-      'il-parking': 'Parking',
-      'il-parking-sub': 'Spot no. 2 assigned',
-      'il-trash': 'Waste',
-      'il-trash-val': 'Sorted recycling',
-      'il-trash-sub': 'Bins in the courtyard',
-      'il-climate': 'Air conditioning',
-      'il-climate-val': 'Remote in the drawer',
-      'il-climate-sub': 'Switch off before checkout',
-      'info-rules-lbl': 'House rules',
-      'info-rules-text': '🚭 No smoking anywhere<br>🔇 Quiet after 10:00 PM<br>🐾 No pets allowed<br>🎉 No parties or events<br>🗝 Keys in the drawer at checkout',
-      'info-contact-lbl': 'Emergency contacts',
-      'info-qr-lbl': 'WiFi QR Code',
-      'info-qr-sub': 'Scan to connect automatically',
-      'pay-title': 'Payment',
-      'pay-sub': 'Balance — Suite Tomasi di Lampedusa',
-      'pay-label-sub': 'Balance · March 7 – 12 2026',
-      'pm-pp-desc': 'Secure and instant',
-      'pm-cc-desc': 'Visa, Mastercard, Amex',
-      'pay-btn': '🔐 Pay € 225',
-      'pay-security': '🔒 Secure payment · Your data is not stored',
-      'chat-title': 'Contact us',
-      'chat-sub': 'We are here to help',
-      'chat-welcome': 'Hi Marco!',
-      'chat-available': 'Available 9:00 AM – 10:00 PM',
-      'chat-faq-lbl': 'Frequently asked questions',
-      'faq-wifi': 'How do I connect to WiFi?',
-      'faq-checkout': 'How does checkout work?',
-      'faq-parking': 'Where do I park?',
-      'success-title': 'Document uploaded!',
-      'success-msg': 'Your document was sent successfully.<br>Thank you!',
-      'success-btn': 'Back to home',
-    }
-  };
-
-  function setLang(l, btn) {
-    lang = l;
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    const t = translations[l];
-    for (const [id, val] of Object.entries(t)) {
-      const el = document.getElementById(id);
-      if (el) {
-        if (el.tagName === 'BUTTON') {
-          el.textContent = val;
-        } else {
-          el.innerHTML = val;
-        }
-      }
-    }
-
-    // Special: greeting keeps name italic
-    const gr = document.getElementById('h-greeting');
-    if (gr) {
-      gr.innerHTML = t['h-greeting'] + '<br><span class="hero-name">Marco Rossi</span>';
-    }
-
-    toast(l === 'it' ? '🇮🇹 Italiano' : '🇬🇧 English');
-  }
-
-  // ── METEO PALERMO ──
-  var currentRating = 0;
-
-  function caricaMeteo() {
-    // Open-Meteo API — gratuita, no API key
-    var url = 'https://api.open-meteo.com/v1/forecast?latitude=38.1157&longitude=13.3615&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,visibility&timezone=Europe/Rome';
-    fetch(url).then(function(r){ return r.json(); }).then(function(data) {
-      var c = data.current;
-      var icons = {0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'⛈',71:'❄️',73:'❄️',75:'❄️',80:'🌦',81:'🌧',82:'⛈',95:'⛈'};
-      var descs = {0:'Sereno',1:'Prevalentemente sereno',2:'Parzialmente nuvoloso',3:'Nuvoloso',45:'Nebbia',51:'Pioggia leggera',61:'Pioggia',63:'Pioggia moderata',80:'Acquazzone',95:'Temporale'};
-      var code = c.weather_code;
-      var icon = icons[code] || '🌤';
-      var desc = descs[code] || 'Variabile';
-      var temp = Math.round(c.temperature_2m);
-      var percepita = Math.round(c.apparent_temperature);
-      var umidita = c.relative_humidity_2m;
-      var vento = Math.round(c.wind_speed_10m);
-      var vis = Math.round((c.visibility || 10000) / 1000);
-
-      var iconEl = document.getElementById('meteo-icon'); if(iconEl) iconEl.textContent = icon;
-      var tempEl = document.getElementById('meteo-temp'); if(tempEl) tempEl.textContent = temp + '°C';
-      var descEl = document.getElementById('meteo-desc'); if(descEl) descEl.textContent = desc;
-      var timeEl = document.getElementById('meteo-time'); if(timeEl) timeEl.textContent = new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-      var umEl = document.getElementById('meteo-umidita'); if(umEl) umEl.textContent = umidita + '%';
-      var venEl = document.getElementById('meteo-vento'); if(venEl) venEl.textContent = vento + ' km/h';
-      var perEl = document.getElementById('meteo-percepita'); if(perEl) perEl.textContent = percepita + '°C';
-      var visEl = document.getElementById('meteo-visibilita'); if(visEl) visEl.textContent = vis + ' km';
-
-      // Aggiorna sub nel menu
-      var sub = document.getElementById('m-meteo-sub');
-      if(sub) sub.textContent = icon + ' ' + temp + '°C · ' + desc;
-
-      // Colore sfondo card meteo
-      var card = document.getElementById('meteo-card');
-      if(card) {
-        if(code === 0 || code === 1) card.style.background = 'linear-gradient(135deg,#F97316,#FBBF24)';
-        else if(code >= 61) card.style.background = 'linear-gradient(135deg,#374151,#6B7280)';
-        else card.style.background = 'linear-gradient(135deg,#1A3A5C,#2E6FA8)';
-      }
-    }).catch(function() {
-      var sub = document.getElementById('m-meteo-sub');
-      if(sub) sub.textContent = '🌤 Palermo';
-    });
-  }
-
-  // Carica meteo al primo accesso alla sezione
-  var meteoCaricato = false;
-  var origGoTo = goTo;
-  function goTo(id) {
-    origGoTo(id);
-    if (id === 'screen-meteo' && !meteoCaricato) {
-      meteoCaricato = true;
-      caricaMeteo();
-    }
-  }
-  // Precarica in background
-  setTimeout(caricaMeteo, 2000);
-
-  // ── RATING & FEEDBACK ──
-  function setRating(n) {
-    currentRating = n;
-    var stars = document.querySelectorAll('#star-rating span');
-    var labels = ['','Pessimo 😞','Non buono 😕','Nella media 😐','Buono 😊','Ottimo! 🤩'];
-    stars.forEach(function(s, i) {
-      s.style.opacity = i < n ? '1' : '0.3';
-      s.style.color = i < n ? '#F59E0B' : '';
-    });
-    var lbl = document.getElementById('rating-label');
-    if(lbl) lbl.textContent = labels[n] || '';
-  }
-
-  function toggleTag(btn) {
-    var active = btn.style.background === 'var(--terra)' || btn.style.background === 'rgb(196, 149, 106)';
-    btn.style.background = active ? 'white' : 'var(--terra)';
-    btn.style.color = active ? 'var(--mid)' : 'white';
-    btn.style.borderColor = active ? 'var(--terra-light)' : 'var(--terra)';
-  }
-
-  function inviaFeedback() {
-    if (currentRating === 0) { toast('⭐ Seleziona un voto prima di inviare'); return; }
-    var tags = [];
-    document.querySelectorAll('#tag-buttons button').forEach(function(b) {
-      if(b.style.background === 'var(--terra)' || b.style.background === 'rgb(196, 149, 106)') {
-        tags.push(b.textContent);
-      }
-    });
-    var note = document.getElementById('feedback-text');
-    var noteVal = note ? note.value.trim() : '';
-
-    // Salva su Firebase
-    if(window.fbRegistraPagamento) {
-      // Riutilizza Firebase connection
-    }
-    if(window.db && window.fbDoc && window.fbSetDoc && window.fbTimestamp) {
-      var guestName = document.querySelector('.hero-name');
-      window.fbSetDoc(window.fbDoc(window.db, 'feedback', 'fb_' + Date.now()), {
-        ospite: guestName ? guestName.textContent : 'Ospite',
-        voto: currentRating,
-        tags: tags,
-        note: noteVal,
-        data: window.fbTimestamp()
-      });
-    }
-    toast('🙏 Grazie per il feedback!');
-    setTimeout(function() { goBack(); }, 1500);
-  }
-</script>
-
-<!-- PWA Install Banner -->
-<div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--deep);color:white;padding:14px 18px;z-index:9999;display:none;align-items:center;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
-  <div style="flex:1;">
-    <div style="font-size:14px;font-weight:600;">📱 Installa Hermosa Home</div>
-    <div style="font-size:11.5px;color:rgba(255,255,255,.5);margin-top:2px;">Aggiungi alla schermata home per accesso rapido</div>
-  </div>
-  <button id="pwa-install-btn" style="background:var(--terra);color:white;border:none;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Installa</button>
-  <button onclick="document.getElementById('pwa-banner').style.display='none'" style="background:transparent;color:rgba(255,255,255,.4);border:none;font-size:20px;cursor:pointer;padding:4px;">✕</button>
 </div>
 
+<!-- ═══ SEZIONE SMART LOCK ═══ -->
+<div id="page-lock" class="page">
+  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
+    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">🔐 Smart Lock</div>
+  </div>
+  <div style="background:var(--sand);padding:20px;min-height:100vh;">
+    <div class="section">
+      <div class="sec-title">Apri con link</div>
+      <div style="font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:16px;">
+        Usa il link qui sotto per aprire il portone di Via Mariano Stabile 124 e la porta della tua suite direttamente dallo smartphone.
+      </div>
+      <a href="https://chiavistello.it/open/HH-PA-001" target="_blank" class="btn btn-primary" style="margin-bottom:10px;">🔓 Apri portone e suite</a>
+      <div style="background:white;border-radius:10px;padding:14px;margin-top:14px;">
+        <div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">PIN di backup</div>
+        <div style="font-size:32px;font-weight:700;letter-spacing:8px;color:var(--terra);font-family:'Cormorant Garamond',serif;">742</div>
+        <div style="font-size:11px;color:var(--soft);margin-top:6px;">Da usare solo se il link non funziona</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Orari accesso</div>
+      <div class="info-row"><div class="info-icon">🏠</div><div><div class="info-label">Check-in</div><div class="info-val" id="lock-ci">—</div></div></div>
+      <div class="info-row"><div class="info-icon">🚪</div><div><div class="info-label">Check-out</div><div class="info-val" id="lock-co">—</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEZIONE DOCUMENTI ═══ -->
+<div id="page-docs" class="page">
+  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
+    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">📋 Documenti</div>
+  </div>
+  <div style="background:var(--sand);padding:20px;min-height:100vh;">
+    <div class="section">
+      <div class="sec-title">Carica documento identità</div>
+      <div style="font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:16px;">
+        Per legge è obbligatorio fornire i dati del documento di identità entro 24h dall'arrivo. I dati vengono trasmessi al Portale Alloggiati della Polizia di Stato.
+      </div>
+      <div class="upload-zone" onclick="document.getElementById('doc-upload').click()">
+        <input type="file" id="doc-upload" accept="image/*,application/pdf" onchange="handleUpload(this)">
+        <div style="font-size:36px;margin-bottom:10px;">📄</div>
+        <div style="font-size:14px;font-weight:600;color:var(--dark);">Tocca per caricare</div>
+        <div style="font-size:12px;color:var(--soft);margin-top:4px;">Foto del documento · JPG, PNG, PDF</div>
+      </div>
+      <div id="upload-confirm" style="display:none;margin-top:14px;background:#E6F4EA;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:22px;margin-bottom:6px;">✅</div>
+        <div style="font-size:14px;font-weight:600;color:#3A7A4A;">Documento caricato!</div>
+        <div style="font-size:12px;color:#5A9A6A;margin-top:3px;">Il gestore lo verificherà a breve</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEZIONE CONTRATTO ═══ -->
+<div id="page-contract" class="page">
+  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
+    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">✍️ Contratto</div>
+  </div>
+  <div style="background:var(--sand);padding:20px;min-height:100vh;">
+    <div class="section">
+      <div class="sec-title">Contratto di locazione</div>
+      <div id="contract-text" style="font-size:12px;line-height:1.8;color:var(--mid);background:white;border-radius:10px;padding:14px;max-height:45vh;overflow-y:auto;white-space:pre-wrap;margin-bottom:16px;"></div>
+      <button class="btn btn-primary" style="margin-bottom:8px;" onclick="firmaContratto()">✍️ Accetto e firmo digitalmente</button>
+      <button class="btn btn-ghost" onclick="copiaContratto2()">📋 Copia testo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEZIONE INFO ═══ -->
+<div id="page-info" class="page">
+  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
+    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">ℹ️ Info struttura</div>
+  </div>
+  <div style="background:var(--sand);padding:20px;min-height:100vh;">
+    <div class="section">
+      <div class="sec-title">WiFi</div>
+      <div class="info-row"><div class="info-icon">📶</div><div><div class="info-label">Rete</div><div class="info-val" id="wifi-name">HermosaHome_Suite</div></div></div>
+      <div class="info-row"><div class="info-icon">🔑</div><div><div class="info-label">Password</div><div class="info-val">welcome2026</div></div></div>
+    </div>
+    <div class="section">
+      <div class="sec-title">Regole della casa</div>
+      <div class="info-row"><div class="info-icon">🚬</div><div><div class="info-val">Vietato fumare</div><div class="info-sub">In tutti gli spazi interni</div></div></div>
+      <div class="info-row"><div class="info-icon">🔇</div><div><div class="info-val">Silenzio notturno</div><div class="info-sub">Dalle 22:00 alle 08:00</div></div></div>
+      <div class="info-row"><div class="info-icon">🐾</div><div><div class="info-val">Animali</div><div class="info-sub">Solo su accordo preventivo</div></div></div>
+      <div class="info-row"><div class="info-icon">🗝</div><div><div class="info-val">Check-out</div><div class="info-sub">Chiavi nel cassetto ingresso · entro le 10:00</div></div></div>
+    </div>
+    <div class="section">
+      <div class="sec-title">🎭 Da vedere</div>
+      <div class="info-row"><div class="info-icon">🎭</div><div><div class="info-val">Teatro Massimo</div><div class="info-sub">4 min a piedi · Più grande d'Italia</div></div></div>
+      <div class="info-row"><div class="info-icon">✝️</div><div><div class="info-val">Quattro Canti</div><div class="info-sub">9 min · Cuore barocco di Palermo</div></div></div>
+      <div class="info-row"><div class="info-icon">🥘</div><div><div class="info-val">Mercato Ballarò</div><div class="info-sub">15 min · Street food eccellente</div></div></div>
+      <div class="info-row"><div class="info-icon">🏖</div><div><div class="info-val">Mondello</div><div class="info-sub">30 min in bus (linea 806)</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEZIONE PAGAMENTO ═══ -->
+<div id="page-payment" class="page">
+  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
+    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">💳 Pagamento</div>
+  </div>
+  <div style="background:var(--sand);padding:20px;min-height:100vh;">
+    <div class="section">
+      <div class="sec-title">Saldo da pagare</div>
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Importo</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:52px;color:var(--terra);" id="pay-amount">€ —</div>
+      </div>
+      <div id="pay-links" style="display:flex;flex-direction:column;gap:8px;">
+        <a id="paypal-btn" href="#" target="_blank" class="btn btn-primary">💙 Paga con PayPal</a>
+        <button class="btn btn-outline" onclick="copyIBAN()">🏦 Copia IBAN per bonifico</button>
+      </div>
+      <div style="margin-top:14px;font-size:11.5px;color:var(--soft);text-align:center;line-height:1.6;" id="pay-info">Causale: Soggiorno Hermosa Home</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEZIONE MAPPA ═══ -->
+<div id="page-map" class="page">
+  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
+    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">🗺️ Come arrivare</div>
+  </div>
+  <div style="background:var(--sand);padding:20px;min-height:100vh;">
+    <div class="section">
+      <div class="sec-title">Hermosa Home</div>
+      <div class="info-row"><div class="info-icon">📍</div><div><div class="info-val">Via Mariano Stabile 124</div><div class="info-sub">Piano Terzo · 90139 Palermo</div></div></div>
+      <a href="https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo" target="_blank" class="btn btn-primary" style="margin-top:12px;">📍 Apri in Google Maps</a>
+    </div>
+    <div class="section">
+      <div class="sec-title">Come arrivare</div>
+      <div class="info-row"><div class="info-icon">✈️</div><div><div class="info-val">Dall'aeroporto</div><div class="info-sub">Treno da Punta Raisi → Centrale (~35 min, €6,90) poi 15 min a piedi</div></div></div>
+      <div class="info-row"><div class="info-icon">🚂</div><div><div class="info-val">Dalla Stazione Centrale</div><div class="info-sub">15 min a piedi oppure bus 101/102 (3 fermate)</div></div></div>
+      <div class="info-row"><div class="info-icon">🚗</div><div><div class="info-val">In auto</div><div class="info-sub">⚠️ ZTL attiva in centro. Comunicare la targa per permesso temporaneo.</div></div></div>
+      <div class="info-row"><div class="info-icon">🚕</div><div><div class="info-val">Taxi</div><div class="info-sub">App inTaxi o ItTaxi · sempre disponibili in centro</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
-// ── SERVICE WORKER ──
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('sw.js').then(function(reg) {
-      console.log('SW registrato:', reg.scope);
-    }).catch(function(err) {
-      console.log('SW errore:', err);
-    });
+// ── BOOKING DATA ──
+var bookingData = {};
+var lang = 'it';
+
+var i18n = {
+  it: { welcome:'Benvenuto,', stay_active:'In corso ▶', stay_future:'Prossimo 📅', stay_past:'Concluso ✓',
+        doc_ok:'Verificato ✓', doc_wait:'In verifica', doc_miss:'Da caricare',
+        contr_ok:'Firmato ✓', contr_wait:'Da firmare', contr_miss:'Non inviato',
+        pag_ok:'Pagato ✓', pag_wait:'In attesa' },
+  en: { welcome:'Welcome,', stay_active:'Active ▶', stay_future:'Upcoming 📅', stay_past:'Completed ✓',
+        doc_ok:'Verified ✓', doc_wait:'Under review', doc_miss:'Upload needed',
+        contr_ok:'Signed ✓', contr_wait:'Sign needed', contr_miss:'Not sent',
+        pag_ok:'Paid ✓', pag_wait:'Pending' }
+};
+
+function setLang(l, btn){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  document.querySelectorAll('[data-'+l+']').forEach(function(el){
+    el.textContent = el.getAttribute('data-'+l);
   });
+  initUI();
 }
 
-// ── PWA INSTALL PROMPT ──
-var deferredPrompt;
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('pwa-banner').style.display = 'flex';
-});
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');}, 2500);
+}
 
-document.getElementById('pwa-install-btn').addEventListener('click', function() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(function(result) {
-    if (result.outcome === 'accepted') {
-      toast('✅ App installata!');
+function showSection(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+function backHome(){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-home').classList.add('active');
+}
+
+function handleUpload(input){
+  if(!input.files[0]) return;
+  document.getElementById('upload-confirm').style.display = 'block';
+  toast('✅ Documento caricato!');
+}
+
+function firmaContratto(){
+  toast('✍️ Firma registrata! Grazie.');
+  document.getElementById('badge-contratto').textContent = i18n[lang].contr_ok;
+  document.getElementById('badge-contratto').className = 'stato-badge badge-ok';
+  document.getElementById('dot-contratto').className = 'stato-dot dot-ok';
+}
+function copiaContratto2(){
+  var t = document.getElementById('contract-text').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('📋 Copiato!');});
+}
+function copyIBAN(){
+  var iban = bookingData.iban || 'IT00 X000 0000 0000 0000 0000 000';
+  if(navigator.clipboard) navigator.clipboard.writeText(iban).then(function(){toast('📋 IBAN copiato!');});
+}
+
+function initUI(){
+  var d = bookingData;
+  var t = i18n[lang];
+  // Hero
+  var nameEl = document.getElementById('hero-name');
+  if(nameEl) nameEl.textContent = d.guest || t.welcome;
+  var suiteEl = document.getElementById('hero-suite');
+  if(suiteEl) suiteEl.textContent = (d.suite ? 'Suite '+d.suite : 'Suite') + ' · 3° piano';
+
+  // Date soggiorno
+  var fmt = function(s){ return s ? new Date(s).toLocaleString(lang==='it'?'it-IT':'en-GB',{day:'2-digit',month:'short'}) : '—'; };
+  var ciEl = document.getElementById('ci-date'); if(ciEl) ciEl.textContent = fmt(d.checkin);
+  var coEl = document.getElementById('co-date'); if(coEl) coEl.textContent = fmt(d.checkout);
+
+  // Status badge
+  var now = new Date(); now.setHours(0,0,0,0);
+  var ci = d.checkin ? new Date(d.checkin) : null;
+  var co = d.checkout ? new Date(d.checkout) : null;
+  var statusEl = document.getElementById('stay-status');
+  if(statusEl && ci && co){
+    if(now < ci) statusEl.textContent = t.stay_future;
+    else if(now >= co) statusEl.textContent = t.stay_past;
+    else statusEl.textContent = t.stay_active;
+  }
+
+  // Smart lock orari
+  var lci = document.getElementById('lock-ci'); if(lci) lci.textContent = fmt(d.checkin) + ' · ore 14:00';
+  var lco = document.getElementById('lock-co'); if(lco) lco.textContent = fmt(d.checkout) + ' · ore 10:00';
+
+  // Stato prenotazione
+  var statiContr = {firmato:{cls:'badge-ok',txt:t.contr_ok,dot:'dot-ok'}, attesa:{cls:'badge-warn',txt:t.contr_wait,dot:'dot-warn'}, non_inviato:{cls:'badge-err',txt:t.contr_miss,dot:'dot-err'}};
+  var statiDoc   = {ok:{cls:'badge-ok',txt:t.doc_ok,dot:'dot-ok'}, da_verificare:{cls:'badge-warn',txt:t.doc_wait,dot:'dot-warn'}, mancante:{cls:'badge-err',txt:t.doc_miss,dot:'dot-err'}};
+  var statiPag   = {ok:{cls:'badge-ok',txt:t.pag_ok,dot:'dot-ok'}, mancante:{cls:'badge-warn',txt:t.pag_wait,dot:'dot-warn'}};
+
+  function setStato(dotId, badgeId, statiMap, key){
+    var s = statiMap[key] || statiMap[Object.keys(statiMap)[2]];
+    var dot = document.getElementById(dotId); if(dot){ dot.className='stato-dot '+s.dot; }
+    var badge = document.getElementById(badgeId); if(badge){ badge.textContent=s.txt; badge.className='stato-badge '+s.cls; }
+  }
+  setStato('dot-contratto','badge-contratto', statiContr, d.contratto||'non_inviato');
+  setStato('dot-doc','badge-doc', statiDoc, d.doc||'mancante');
+  setStato('dot-pag','badge-pag', statiPag, d.pagamento||'mancante');
+
+  // Badge tiles
+  if(document.getElementById('doc-badge')) document.getElementById('doc-badge').style.display = (d.doc==='mancante')?'flex':'none';
+  if(document.getElementById('contract-badge')) document.getElementById('contract-badge').style.display = (d.contratto!=='firmato')?'flex':'none';
+  if(document.getElementById('pay-badge')) document.getElementById('pay-badge').style.display = (d.pagamento!=='ok')?'flex':'none';
+
+  // Pagamento
+  var payAmtEl = document.getElementById('pay-amount'); if(payAmtEl) payAmtEl.textContent = d.importo ? '€ '+d.importo : '€ —';
+  var ppBtn = document.getElementById('paypal-btn');
+  if(ppBtn && d.paypal) ppBtn.href = d.paypal + (d.importo ? '/'+d.importo+'EUR' : '');
+  var payInfo = document.getElementById('pay-info');
+  if(payInfo && d.iban) payInfo.innerHTML = 'IBAN: <strong>'+d.iban+'</strong><br>Causale: Soggiorno Hermosa Home';
+
+  // WiFi per suite
+  var wifiEl = document.getElementById('wifi-name'); if(wifiEl && d.suite) wifiEl.textContent = 'HermosaHome_'+d.suite.replace('Tomasi di Lampedusa','Lampedusa');
+
+  // Contratto testo
+  var ctEl = document.getElementById('contract-text');
+  if(ctEl && d.guest){
+    var fmtL = function(s){ return s?new Date(s).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—'; };
+    ctEl.textContent = 'CONTRATTO DI LOCAZIONE TURISTICA\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+      +'Locatore: Hermosa Home di Alessandra Trapani\nP.IVA: 07218170822\nVia Mariano Stabile 124, 3° · Palermo\n\n'
+      +'Conduttore: '+d.guest+'\n\n'
+      +'Immobile: Suite '+d.suite+'\nVia Mariano Stabile 124, Piano 3° · Palermo\n\n'
+      +'Check-in: '+fmtL(d.checkin)+' ore 14:00\nCheck-out: '+fmtL(d.checkout)+' ore 10:00\n'
+      +'Importo: € '+(d.importo||'—')+'\n\n'
+      +'CONDIZIONI\n1. Locazione turistica ai sensi art. 4 D.L. 50/2017\n2. Presentare documento d\'identità al check-in\n3. Vietato fumare all\'interno\n4. Silenzio dalle 22:00 alle 08:00\n5. Checkout entro le 10:00\n\n'
+      +'Palermo, '+new Date().toLocaleDateString('it-IT')+'\n\n'
+      +'Firma conduttore: ___________________';
+  }
+}
+
+// ── LEGGI PARAMETRO BOOKING DALL'URL ──
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var bookingParam = params.get('booking');
+  if(bookingParam){
+    // Cerca nei dati del gestionale salvati in localStorage
+    try{
+      var bookings = JSON.parse(localStorage.getItem('hh_bookings') || '[]');
+      var cfg = JSON.parse(localStorage.getItem('hh_cfg') || '{}');
+      // Estrai ID dal parametro HH-{id}
+      var bookingId = bookingParam.replace('HH-','');
+      var bk = bookings.find(function(b){ return b.id === bookingId; });
+      if(bk){
+        bookingData = Object.assign({}, bk, {
+          paypal: cfg.paypal || 'https://paypal.me/HERMOSAHOME',
+          iban: cfg.iban || 'IT00 X000 0000 0000 0000 0000 000'
+        });
+      } else {
+        // Demo fallback
+        bookingData = {guest:'Ospite',suite:'Suite',checkin:'',checkout:'',importo:0,
+          contratto:'non_inviato',doc:'mancante',pagamento:'mancante',
+          paypal:'https://paypal.me/HERMOSAHOME', iban: cfg.iban||''};
+      }
+    } catch(e){
+      bookingData = {guest:'Ospite',suite:'Suite',checkin:'',checkout:'',importo:0,
+        contratto:'non_inviato',doc:'mancante',pagamento:'mancante'};
     }
-    deferredPrompt = null;
-    document.getElementById('pwa-ba
+  } else {
+    // Nessun parametro — mostra demo
+    bookingData = {guest:'Benvenuto',suite:'Florio',
+      checkin: new Date().toISOString().split('T')[0],
+      checkout: new Date(Date.now()+5*86400000).toISOString().split('T')[0],
+      importo:500, contratto:'attesa', doc:'mancante', pagamento:'mancante',
+      paypal:'https://paypal.me/HERMOSAHOME', iban:''};
+  }
+  initUI();
+})();
+</script>
+</body>
+</html>

@@ -1,16 +1,23 @@
-## Hi there 👋
+# Hermosa Home — Gestionale
 
-<!--
-**Hermosa-Home/hermosa-home** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+## Come usarlo
 
-Here are some ideas to get you started:
+1. **Su Google Drive**: carica tutti e 3 i file nella stessa cartella, apri `gestionale.html`
+2. **Su GitHub Pages**: carica nella root del repository, accedi tramite browser
+3. **Installazione PWA**: apri in Chrome/Safari → "Aggiungi a schermata Home"
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+## File inclusi
+- `gestionale.html` — app principale
+- `manifest-gestionale.json` — configurazione PWA
+- `sw-gestionale.js` — service worker per uso offline
+
+## Prima configurazione
+Aprire ⚙️ **Anagrafica** e aggiornare:
+- Numero WhatsApp (solo cifre con prefisso, es: `393284845555`)
+- Email
+- IBAN
+- Link PayPal
+
+## Note
+- I dati vengono salvati nel browser (`localStorage`)
+- Per backup: esporta dal pannello Statistiche
