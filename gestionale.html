@@ -715,8 +715,10 @@ function caricaAnagrafica() {
 // Modal
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.modal-backdrop').forEach(function(b){
-  b.addEventListener('click', function(e){ if(e.target===b) b.classList.remove('open'); });
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.modal-backdrop').forEach(function(b){
+    b.addEventListener('click', function(e){ if(e.target===b) b.classList.remove('open'); });
+  });
 });
 
 // Notify
@@ -777,8 +779,8 @@ function saveBooking(){
       +'<td>'+fmt(checkin)+' 14:00</td><td>'+fmt(checkout)+' 10:00</td>'
       +'<td><span class="badge bo">⏳ Da inviare</span></td><td><span class="badge br">⚠️</span></td>'
       +'<td><span class="badge br">€ '+importo+' ✗</span></td>'
-      +'<td><button class="btn btn-ghost btn-sm" onclick="openDettaglio(''+newB.id+'')">👁</button>'
-      +'<button class="btn btn-ghost btn-sm" onclick="openNotificaOspite(''+newB.id+'')">🔔</button></td>';
+      +'<td><button class="btn btn-ghost btn-sm" onclick="openDettaglio(\''+newB.id+'\')">👁</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="openNotificaOspite(\''+newB.id+'\')">🔔</button></td>';
     tbody.appendChild(tr);
   }
   // Dashboard
