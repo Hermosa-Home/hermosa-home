@@ -1,4 +1,6 @@
-const CACHE = 'hh-gestionale-v3';
+// Hermosa Home — Service Worker Gestionale
+// v5 — cache aggiornata (fix layout)
+const CACHE = 'hermosa-gestionale-v5';
 const ASSETS = [
   './gestionale.html',
   './manifest-gestionale.json'
@@ -6,28 +8,37 @@ const ASSETS = [
 
 self.addEventListener('install', function(e) {
   e.waitUntil(
-    caches.open(CACHE).then(function(c) {
-      return c.addAll(ASSETS);
+    caches.open(CACHE).then(function(cache) {
+      return cache.addAll(ASSETS);
+    }).then(function() {
+      return self.skipWaiting();
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
       return Promise.all(
-        keys.filter(function(k){ return k !== CACHE; }).map(function(k){ return caches.delete(k); })
+        keys.filter(function(k) { return k !== CACHE; })
+            .map(function(k) { return caches.delete(k); })
       );
+    }).then(function() {
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', function(e) {
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      return cached || fetch(e.request).catch(function() { return cached; });
+    fetch(e.request).then(function(response) {
+      var clone = response.clone();
+      caches.open(CACHE).then(function(cache) {
+        cache.put(e.request, clone);
+      });
+      return response;
+    }).catch(function() {
+      return caches.match(e.request);
     })
   );
 });

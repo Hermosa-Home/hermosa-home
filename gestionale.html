@@ -1111,6 +1111,19 @@ function initMap(){
 </script>
 </head>
 <body>
+<script>
+// Cache-buster: cancella vecchie versioni SW al primo caricamento
+(function(){
+  var V='hh-fix-20260401';
+  if(localStorage.getItem('hh_sw_ver')!==V && 'serviceWorker' in navigator){
+    localStorage.setItem('hh_sw_ver',V);
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      var ps=regs.map(function(r){return r.unregister();});
+      if(ps.length>0){Promise.all(ps).then(function(){location.reload(true);});}
+    });
+  }
+})();
+</script>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- ══════════ SIDEBAR ══════════ -->
