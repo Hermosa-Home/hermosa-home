@@ -923,6 +923,20 @@ function openDettaglio(bookingId){
   }
   var srcEl=document.getElementById('det-source');
   if(srcEl) srcEl.textContent=bk.source?bk.source.charAt(0).toUpperCase()+bk.source.slice(1):'Diretto';
+  // Bottoni aggiorna stato
+  var statoBtns=document.getElementById('det-stato-btns');
+  if(statoBtns){
+    var sb='<span style="font-size:10px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-right:6px;">Aggiorna:</span>';
+    if(bk.contratto!=='firmato') sb+='<button class="btn btn-success btn-sm" onclick="segnaContrattoFirmato(\''+bk.id+'\')">✍️ Segna firmato</button>';
+    if(bk.doc!=='ok'){
+      var hasDoc=localStorage.getItem('hh_doc_'+bk.id);
+      if(hasDoc) sb+='<button class="btn btn-outline btn-sm" onclick="segnaDocOk(\''+bk.id+'\')">🪪 Approva doc</button> <button class="btn btn-ghost btn-sm" onclick="scaricaDocumentoOspite(\''+bk.id+'\')">📥 Scarica</button> <button class="btn btn-ghost btn-sm" onclick="salvaSuDriveDocumento(\''+bk.id+'\')">☁️ Drive</button>';
+      else sb+='<button class="btn btn-outline btn-sm" onclick="segnaDocOk(\''+bk.id+'\')">🪪 Doc ok</button>';
+    }
+    if(bk.pagamento!=='ok') sb+='<button class="btn btn-outline btn-sm" onclick="segnaPagamentoOk(\''+bk.id+'\')">💳 Segna pagato</button>';
+    if(bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok') sb+='<span style="color:var(--success);font-size:12px;font-weight:600;">✅ Tutto completato</span>';
+    statoBtns.innerHTML=sb;
+  }
   openModal('modal-dettaglio');
 }
 function cancellaPrenotazione(){
@@ -1049,6 +1063,216 @@ function salvaIntervento(){
   document.getElementById('man-desc').value='';
   closeModal('modal-manutenzione');
   notify('✅ Intervento registrato · '+priLabel[priorita]);
+}
+
+// ══════════════════════════════════════════
+// ── RENDER DINAMICO DA BOOKINGS[] ──
+// ══════════════════════════════════════════
+var suiteColors={
+  'Tomasi di Lampedusa':{bg:'#2C2416',color:'var(--terra)',dot:'var(--terra)',letter:'T'},
+  'Florio':{bg:'#1A2C35',color:'#7AB8D0',dot:'var(--info)',letter:'F'},
+  'Stabile':{bg:'#1F2C1A',color:'#8DB87A',dot:'var(--success)',letter:'S'}
+};
+
+function fmtDate(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}):'—';}
+function fmtDateL(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';}
+
+function renderPrenotazioni(){
+  var tbody=document.getElementById('prenotazioni-tbody');
+  if(!tbody) return;
+  tbody.innerHTML=bookings.map(function(bk){
+    var sc=suiteColors[bk.suite]||{bg:'#2C2416',color:'var(--terra)',dot:'var(--terra)',letter:'?'};
+    var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+sc.dot+';margin-right:5px;"></span>';
+    var cBadge=bk.contratto==='firmato'?'<span class="badge bg">✍️ Firmato</span>':bk.contratto==='attesa'?'<span class="badge bo">⏳ Attesa</span>':'<span class="badge br">⚠️ Da inviare</span>';
+    var dBadge=bk.doc==='ok'?'<span class="badge bg">✓</span>':bk.doc==='da_verificare'?'<span class="badge bo">⏳</span>':'<span class="badge br">⚠️</span>';
+    var pBadge=bk.pagamento==='ok'?'<span class="badge bg">€ '+(bk.importo||0)+' ✓</span>':'<span class="badge br">€ '+(bk.importo||0)+' ✗</span>';
+    return '<tr>'+
+      '<td>'+dot+bk.suite+'</td>'+
+      '<td><strong>'+bk.guest+'</strong>'+(bk.phone?'<br><span style="font-size:10px;color:var(--soft);">'+bk.phone+'</span>':'')+'</td>'+
+      '<td>'+fmtDate(bk.checkin)+' 14:00</td>'+
+      '<td>'+fmtDate(bk.checkout)+' 10:00</td>'+
+      '<td>'+cBadge+'</td><td>'+dBadge+'</td><td>'+pBadge+'</td>'+
+      '<td><button class="btn btn-ghost btn-sm" onclick="openDettaglio(\''+bk.id+'\')">👁</button>'+
+      '<button class="btn btn-ghost btn-sm" onclick="openNotificaOspite(\''+bk.id+'\')">🔔</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderContratti(){
+  var tbody=document.getElementById('contratti-tbody');
+  if(!tbody) return;
+  tbody.innerHTML=bookings.map(function(bk){
+    var oggi=new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+    var soggiorno=fmtDate(bk.checkin)+' → '+fmtDate(bk.checkout);
+    var statoBadge,azioni;
+    if(bk.contratto==='firmato'){
+      statoBadge='<span class="badge bg">✍️ Firmato</span>';
+      azioni='<button class="btn btn-ghost btn-sm" onclick="visualizzaContratto(\''+bk.id+'\')">👁 Vedi</button> <button class="btn btn-ghost btn-sm" onclick="scaricaContratto(\''+bk.id+'\')">📥</button>';
+    } else if(bk.contratto==='attesa'){
+      statoBadge='<span class="badge bo">⏳ In attesa firma</span>';
+      azioni='<button class="btn btn-ghost btn-sm" onclick="visualizzaContratto(\''+bk.id+'\')">👁 Vedi</button> <button class="btn btn-outline btn-sm" onclick="sollecitaContratto(\''+bk.id+'\')">📤 Sollecita</button> <button class="btn btn-success btn-sm" onclick="segnaContrattoFirmato(\''+bk.id+'\')">✍️ Segna firmato</button>';
+    } else {
+      statoBadge='<span class="badge br">⚠️ Non inviato</span>';
+      azioni='<button class="btn btn-primary btn-sm" onclick="openModal(\'modal-contratto\')">📄 Invia ora</button>';
+    }
+    return '<tr>'+
+      '<td><strong>'+bk.guest+'</strong></td>'+
+      '<td>'+bk.suite+'</td>'+
+      '<td>'+soggiorno+'</td>'+
+      '<td>'+statoBadge+'</td>'+
+      '<td>'+azioni+'</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderDashboard(){
+  var list=document.getElementById('dash-bookings-list');
+  if(!list) return;
+  var oggi=new Date(); oggi.setHours(0,0,0,0);
+  var attive=bookings.filter(function(bk){
+    var co=new Date(bk.checkout); co.setHours(0,0,0,0);
+    return co>=oggi;
+  }).slice(0,5);
+  if(attive.length===0){
+    list.innerHTML='<div style="padding:16px;text-align:center;color:var(--soft);font-size:13px;">Nessuna prenotazione attiva</div>';
+    return;
+  }
+  list.innerHTML=attive.map(function(bk){
+    var sc=suiteColors[bk.suite]||{bg:'#2C2416',color:'var(--terra)',letter:'?'};
+    var statoInfo=bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok'?
+      '✅ Tutto completato':
+      (bk.contratto!=='firmato'?'⚠️ Contratto':'')+(bk.doc!=='ok'?' · Doc. mancanti':'')+(bk.pagamento!=='ok'?' · Pagamento mancante':'');
+    var badge=bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok'?
+      '<span class="badge bg">Completo</span>':
+      bk.contratto!=='firmato'?'<span class="badge bo">Incompleto</span>':'<span class="badge br">Azione req.</span>';
+    var today=new Date(); today.setHours(0,0,0,0);
+    var ci=new Date(bk.checkin); ci.setHours(0,0,0,0);
+    if(ci.getTime()===today.getTime()) badge='<span class="badge bb">Check-in oggi</span>';
+    return '<div class="booking-item" onclick="openDettaglio(\''+bk.id+'\')" style="cursor:pointer;">'+
+      '<div class="bi-apt" style="background:'+sc.bg+';color:'+sc.color+';">'+sc.letter+'</div>'+
+      '<div class="bi-info"><div class="bi-guest">'+bk.guest+'</div>'+
+      '<div class="bi-dates">Suite '+bk.suite+' · '+fmtDate(bk.checkin)+' → '+fmtDate(bk.checkout)+(statoInfo?' · '+statoInfo:'')+'</div></div>'+
+      '<div class="bi-meta"><div class="bi-price">€ '+(bk.importo||0)+'</div>'+badge+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderAll(){
+  renderPrenotazioni();
+  renderContratti();
+  renderDashboard();
+  aggiornaBadge();
+  aggiornaSelectOspiti();
+}
+
+// ── AGGIORNA STATO PRENOTAZIONE ──
+function aggiornaStatoBooking(id,field,value){
+  var bk=bookings.find(function(b){return b.id===id;});
+  if(!bk) return;
+  bk[field]=value;
+  saveBookings();
+  renderAll();
+  // Riaggiorna il modale se ancora aperto
+  if(currentBookingId===id) openDettaglio(id);
+  var labels={contratto:'Contratto aggiornato',doc:'Documento aggiornato',pagamento:'Pagamento aggiornato'};
+  notify('✅ '+( labels[field]||'Stato aggiornato')+' ✓');
+}
+
+function segnaContrattoFirmato(id){
+  aggiornaStatoBooking(id,'contratto','firmato');
+}
+function segnaDocOk(id){
+  aggiornaStatoBooking(id,'doc','ok');
+}
+function segnaPagamentoOk(id){
+  aggiornaStatoBooking(id,'pagamento','ok');
+}
+
+// ── SCARICA CONTRATTO COME TXT ──
+function scaricaContratto(bookingId){
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  if(!bk){notify('⚠️ Prenotazione non trovata');return;}
+  var testo=generaTestoContratto(bk);
+  var blob=new Blob([testo],{type:'text/plain;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='Contratto_'+bk.guest.replace(/\s/g,'_')+'.txt';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  notify('📥 Contratto scaricato ✓');
+}
+
+// ── BACKUP E DRIVE ──
+function esportaBackup(){
+  var data={
+    data_export: new Date().toISOString(),
+    struttura: CFG,
+    prenotazioni: bookings,
+    interventi: interventi,
+    prezzi: prezziStagione
+  };
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='HermosaHome_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  notify('💾 Backup scaricato ✓');
+}
+
+function salvaBackupSuDrive(){
+  esportaBackup();
+  setTimeout(function(){
+    window.open('https://drive.google.com/drive/u/0/my-drive','_blank');
+    notify('📤 Apri Drive e trascina il file scaricato');
+  },600);
+}
+
+function scaricaDocumentoOspite(bookingId){
+  var key='hh_doc_'+bookingId;
+  var raw=localStorage.getItem(key);
+  if(!raw){notify('⚠️ Documento non ancora caricato dall\'ospite');return;}
+  try{
+    var obj=JSON.parse(raw);
+    var a=document.createElement('a');
+    a.href=obj.dataUrl||obj.data;
+    a.download=obj.nome||('doc_'+bookingId+'.jpg');
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    notify('📥 Documento scaricato ✓');
+  }catch(e){notify('⚠️ Errore lettura documento');}
+}
+
+function salvaSuDriveDocumento(bookingId){
+  scaricaDocumentoOspite(bookingId);
+  setTimeout(function(){
+    window.open('https://drive.google.com/drive/u/0/my-drive','_blank');
+    notify('📤 Trascina il documento su Drive');
+  },600);
+}
+
+// ── SYNC CON APP OSPITE (storage event) ──
+window.addEventListener('storage', function(e){
+  if(e.key==='hh_bookings'){
+    try{
+      var updated=JSON.parse(e.newValue);
+      if(Array.isArray(updated)&&updated.length){
+        bookings=updated;
+        renderAll();
+        aggiornaCalendario();
+        notify('🔄 Dati aggiornati dall\'app ospite');
+      }
+    }catch(err){}
+  }
+});
+
+// ── RICARICA DATI DA LOCALSTORAGE ──
+function ricaricaDati(){
+  try{
+    var b=JSON.parse(localStorage.getItem('hh_bookings'));
+    if(Array.isArray(b)&&b.length){ bookings=b; renderAll(); aggiornaCalendario(); notify('🔄 Dati ricaricati ✓');}
+    else notify('ℹ️ Nessun aggiornamento disponibile');
+  }catch(e){ notify('⚠️ Errore ricarica dati');}
 }
 
 // MAP
@@ -1187,6 +1411,8 @@ function initMap(){
     </div>
     <div class="topbar-right">
       <span class="topbar-date" id="topbar-date"></span>
+      <button class="btn btn-ghost btn-sm" onclick="ricaricaDati()" title="Ricarica dati dall'app ospite" style="font-size:14px;">🔄</button>
+      <button class="btn btn-ghost btn-sm" onclick="salvaBackupSuDrive()" title="Backup su Google Drive" style="font-size:14px;">☁️</button>
       <button class="btn btn-primary btn-sm" onclick="openModal('modal-booking')">＋ Prenotazione</button>
     </div>
   </div>
@@ -1218,23 +1444,7 @@ function initMap(){
               <div class="card-title">Prenotazioni attive</div>
               <button class="btn btn-ghost btn-sm" onclick="nav('prenotazioni',null,'Prenotazioni')">Vedi tutte →</button>
             </div>
-            <div class="card-body" style="padding:8px 18px;">
-              <div class="booking-item" onclick="openModal('modal-dettaglio')">
-                <div class="bi-apt" style="background:#2C2416;color:var(--terra);">T</div>
-                <div class="bi-info"><div class="bi-guest">Marco Rossi</div><div class="bi-dates">Suite Tomasi di Lampedusa · 7 mar → 12 mar · ✍️ Contratto firmato</div></div>
-                <div class="bi-meta"><div class="bi-price">€ 500</div><span class="badge bg">Attivo</span></div>
-              </div>
-              <div class="booking-item">
-                <div class="bi-apt" style="background:#1A2C35;color:#7AB8D0;">F</div>
-                <div class="bi-info"><div class="bi-guest">Sophie Müller</div><div class="bi-dates">Suite Florio · 8 mar → 15 mar · ⚠️ Doc. + Pagamento mancanti</div></div>
-                <div class="bi-meta"><div class="bi-price">€ 400</div><span class="badge bo">Incompleto</span></div>
-              </div>
-              <div class="booking-item">
-                <div class="bi-apt" style="background:#1F2C1A;color:#8DB87A;">S</div>
-                <div class="bi-info"><div class="bi-guest">Luca Ferrari</div><div class="bi-dates">Suite Stabile · 10 mar → 13 mar · ✅ Tutto completato</div></div>
-                <div class="bi-meta"><div class="bi-price">€ 500</div><span class="badge bb">Check-in oggi</span></div>
-              </div>
-            </div>
+            <div class="card-body" id="dash-bookings-list" style="padding:8px 18px;"></div>
           </div>
 
           <!-- Occupancy -->
@@ -1557,26 +1767,7 @@ function initMap(){
         <div class="table-wrap">
           <table>
             <thead><tr><th>Suite</th><th>Ospite</th><th>Check-in</th><th>Check-out</th><th>Contratto</th><th>Doc.</th><th>Pagamento</th><th>Azioni</th></tr></thead>
-            <tbody>
-              <tr>
-                <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--terra);margin-right:5px;"></span>Tomasi di Lampedusa</td>
-                <td><strong>Marco Rossi</strong></td><td>07/03 12:00</td><td>12/03 10:00</td>
-                <td><span class="badge bg">✍️ Firmato</span></td><td><span class="badge bg">✓</span></td><td><span class="badge bg">€ 500 ✓</span></td>
-                <td><button class="btn btn-ghost btn-sm" onclick="openDettaglio('b1')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button></td>
-              </tr>
-              <tr>
-                <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--info);margin-right:5px;"></span>Florio</td>
-                <td><strong>Sophie Müller</strong></td><td>08/03 14:00</td><td>15/03 10:00</td>
-                <td><span class="badge bo">⏳ Attesa</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge br">€ 400 ✗</span></td>
-                <td><button class="btn btn-ghost btn-sm" onclick="openDettaglio('b2')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button></td>
-              </tr>
-              <tr>
-                <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:5px;"></span>Stabile</td>
-                <td><strong>Luca Ferrari</strong></td><td>10/03 12:00</td><td>13/03 10:00</td>
-                <td><span class="badge bg">✍️ Firmato</span></td><td><span class="badge br">⚠️</span></td><td><span class="badge bg">€ 500 ✓</span></td>
-                <td><button class="btn btn-ghost btn-sm" onclick="openDettaglio('b3')">👁</button><button class="btn btn-ghost btn-sm" onclick="openModal('modal-notifica')">🔔</button></td>
-              </tr>
-            </tbody>
+            <tbody id="prenotazioni-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -2564,6 +2755,8 @@ function initMap(){
       </div>
       <div id="det-contatti" style="background:var(--sand);border-radius:8px;padding:12px;margin-bottom:10px;min-height:44px;"></div>
       <div style="font-size:11px;color:var(--soft);margin-bottom:12px;">Piattaforma: <strong id="det-source">—</strong></div>
+      <!-- Aggiorna stato -->
+      <div id="det-stato-btns" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px;background:var(--sand);border-radius:8px;margin-bottom:10px;"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-primary btn-sm" onclick="openNotificaOspite(currentBookingId);closeModal('modal-dettaglio')">🔔 Messaggio</button>
         <button class="btn btn-outline btn-sm" onclick="visualizzaContratto(currentBookingId);closeModal('modal-dettaglio')">📄 Contratto</button>
@@ -2746,8 +2939,7 @@ if ('serviceWorker' in navigator) {
 // Init on load
 document.addEventListener('DOMContentLoaded', function(){
   if(typeof caricaAnagrafica==='function') caricaAnagrafica();
-  if(typeof aggiornaBadge==='function') aggiornaBadge();
-  if(typeof aggiornaSelectOspiti==='function') aggiornaSelectOspiti();
+  if(typeof renderAll==='function') renderAll();
   if(typeof caricaPrezzi==='function') caricaPrezzi();
   try{var ic=JSON.parse(localStorage.getItem('hh_ical')||'{}');
     Object.keys(ic).forEach(function(k){var el=document.getElementById('ical-'+k);if(el)el.value=ic[k];});

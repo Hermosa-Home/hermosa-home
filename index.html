@@ -3,356 +3,389 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Hermosa Home</title>
+<title>Hermosa Home — Il tuo soggiorno</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#1A140D">
+<meta name="apple-mobile-web-app-title" content="Hermosa Home">
+<meta name="theme-color" content="#2C2416">
 <link rel="manifest" href="manifest.json">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
-  --dark:#1A140D;--terra:#C4956A;--terra-l:#E8D5BE;--terra-xl:#F5EAD8;
-  --sand:#F5F0E8;--cream:#FAF7F2;--mid:#6B5C48;--soft:#9B8B78;
-  --success:#5A8A6A;--danger:#C4706A;--info:#6A7A9B;
-  --safe-top:env(safe-area-inset-top,0px);
+  --sand:#F5F0E8;--cream:#FAF7F2;--terra:#C4956A;--terra-d:#A07550;
+  --terra-l:#E8D5BE;--terra-xl:#F5EAD8;--deep:#2C2416;--mid:#6B5C48;
+  --soft:#9B8B78;--white:#FFF;--success:#5A8A6A;--danger:#C4706A;
+  --info:#6A7A9B;--gold:#C9A84C;
 }
-body{font-family:'DM Sans',sans-serif;background:var(--dark);color:white;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--sand);color:var(--deep);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:80px}
 
 /* HERO */
-.hero{background:linear-gradient(160deg,#1A140D 0%,#2C2416 50%,#3D3020 100%);padding:calc(var(--safe-top) + 28px) 24px 28px;position:relative;overflow:hidden}
-.hero::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:40px;background:var(--sand);clip-path:ellipse(55% 100% at 50% 100%)}
-.lang-row{display:flex;gap:8px;margin-bottom:24px}
-.lang-btn{padding:5px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.15);font-size:12px;cursor:pointer;background:transparent;color:rgba(255,255,255,.5);font-family:inherit;transition:all .2s}
-.lang-btn.active{background:var(--terra);border-color:var(--terra);color:white;font-weight:500}
-.eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--terra);margin-bottom:8px}
-.guest-name{font-family:'Cormorant Garamond',serif;font-size:36px;font-style:italic;color:var(--terra);line-height:1.1;margin-bottom:4px}
-.suite-tag{font-size:13px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:6px}
-
-/* CONTENT */
-.content{background:var(--sand);padding:24px 20px;min-height:calc(100vh - 220px)}
+.hero{background:linear-gradient(160deg,var(--deep) 0%,#4A3828 100%);color:white;padding:44px 22px 28px;position:relative;overflow:hidden}
+.hero::before{content:'🌹';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:80px;opacity:.12}
+.hero-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--terra);margin-bottom:8px}
+.hero-name{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400;line-height:1.1;margin-bottom:6px}
+.hero-sub{font-size:12.5px;color:rgba(255,255,255,.5);margin-bottom:18px}
+.lang-toggle{display:flex;gap:6px}
+.lang-btn{padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);font-size:11px;cursor:pointer;font-family:inherit}
+.lang-btn.active{background:var(--terra);color:white;border-color:var(--terra)}
 
 /* SOGGIORNO CARD */
-.stay-card{background:var(--terra);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.stay-dates{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1}
-.date-block{}
-.date-lbl{font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:.7;margin-bottom:2px}
-.date-val{font-size:22px;font-weight:700}
-.date-sub{font-size:11px;opacity:.7}
-.stay-badge{background:rgba(255,255,255,.2);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;white-space:nowrap}
+.soggiorno-card{margin:16px 14px;background:var(--white);border-radius:16px;padding:18px;border:1px solid var(--terra-l);box-shadow:0 4px 20px rgba(196,149,106,.12)}
+.sc-suite{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;margin-bottom:12px;color:var(--deep)}
+.sc-dates{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:12px}
+.sc-date-box{background:var(--sand);border-radius:10px;padding:10px;text-align:center}
+.sc-date-lbl{font-size:10px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:3px}
+.sc-date-val{font-size:15px;font-weight:700}
+.sc-date-time{font-size:11px;color:var(--soft)}
+.sc-arrow{font-size:18px;color:var(--terra);text-align:center}
+.sc-stato{display:flex;gap:6px;flex-wrap:wrap}
+.stato-pill{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.stato-ok{background:#E6F4EA;color:#3A7A4A}
+.stato-warn{background:#FFF0E0;color:#B07020}
+.stato-err{background:#FDECEA;color:#B84040}
 
-/* GRID */
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.tile{background:white;border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .18s;position:relative;border:1.5px solid transparent}
+/* TILES */
+.tiles-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;margin-bottom:6px}
+.tile{background:var(--white);border-radius:14px;padding:16px 14px;border:1.5px solid var(--terra-l);cursor:pointer;transition:all .18s;position:relative;text-align:center}
 .tile:active{transform:scale(.97)}
-.tile:hover{border-color:var(--terra-l);box-shadow:0 4px 16px rgba(196,149,106,.15)}
-.tile.dark{background:var(--dark);color:white}
-.tile-badge{position:absolute;top:12px;right:12px;width:20px;height:20px;background:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-.tile-icon{font-size:28px;margin-bottom:10px;display:block}
-.tile-title{font-size:15px;font-weight:600;margin-bottom:3px;color:inherit}
-.tile-sub{font-size:12px;color:var(--soft);line-height:1.3}
-.tile.dark .tile-sub{color:rgba(255,255,255,.5)}
+.tile-icon{font-size:26px;margin-bottom:8px}
+.tile-label{font-size:12px;font-weight:600;color:var(--deep)}
+.tile-sub{font-size:10.5px;color:var(--soft);margin-top:2px}
+.tile-badge{position:absolute;top:8px;right:10px;background:var(--danger);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+.tile.done{border-color:var(--success)}
+.tile.done .tile-icon::after{content:'✓';position:absolute;top:6px;right:8px;font-size:12px;color:var(--success);font-weight:700}
 
 /* SEZIONI */
-.section{background:white;border-radius:16px;padding:18px;margin-bottom:14px}
-.sec-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:500;color:var(--dark);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--sand)}
-.info-row{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--sand);align-items:flex-start}
-.info-row:last-child{border-bottom:none}
-.info-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center;margin-top:2px}
-.info-label{font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
-.info-val{font-size:13.5px;font-weight:500;color:var(--dark)}
-.info-sub{font-size:11.5px;color:var(--soft);margin-top:2px}
+.section{display:none;padding:14px}
+.section.active{display:block}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.back-btn{width:34px;height:34px;border-radius:50%;background:var(--terra-l);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400}
 
-/* STATO ITEM */
-.stato-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--sand)}
-.stato-row:last-child{border-bottom:none}
-.stato-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.dot-ok{background:var(--success)}.dot-warn{background:#E8A020}.dot-err{background:var(--danger)}
-.stato-txt{flex:1;font-size:13px}
-.stato-badge{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:600}
-.badge-ok{background:#E6F4EA;color:#3A7A4A}.badge-warn{background:#FFF0E0;color:#C07820}.badge-err{background:#FDECEA;color:#B84040}
+/* CONTRATTO */
+.contratto-box{background:var(--sand);border-radius:12px;padding:16px;font-size:12px;color:var(--mid);line-height:1.9;white-space:pre-wrap;max-height:42vh;overflow-y:auto;margin-bottom:14px;font-family:'DM Sans',sans-serif}
+.firma-area{border:2px dashed var(--terra-l);border-radius:12px;padding:20px;text-align:center;margin-bottom:14px}
+.firma-area.firmato{border-color:var(--success);background:#E6F4EA}
+.firma-check{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--mid);line-height:1.5;cursor:pointer}
+.firma-check input{accent-color:var(--terra);width:16px;height:16px;flex-shrink:0;margin-top:2px}
+
+/* DOCUMENTI */
+.upload-zone{border:2px dashed var(--terra-l);border-radius:12px;padding:28px 18px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.upload-zone:hover{border-color:var(--terra);background:var(--terra-xl)}
+.upload-zone.has-file{border-color:var(--success);background:#E6F4EA}
+.preview-img{width:100%;border-radius:8px;max-height:220px;object-fit:contain;margin-bottom:10px}
+
+/* SMART LOCK */
+.lock-card{background:var(--deep);border-radius:16px;padding:20px;color:white;margin-bottom:14px;text-align:center}
+.lock-btn{background:var(--terra);color:white;border:none;border-radius:12px;padding:16px;font-size:15px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;margin-bottom:10px;transition:all .2s}
+.lock-btn:active{transform:scale(.97)}
+.pin-box{background:rgba(255,255,255,.08);border-radius:10px;padding:14px;margin-top:12px}
+.pin-val{font-size:28px;font-weight:700;letter-spacing:8px;font-family:'Cormorant Garamond',serif;color:var(--terra)}
+
+/* PAGAMENTO */
+.pay-card{background:var(--terra-xl);border-radius:14px;padding:20px;margin-bottom:14px;text-align:center}
+.pay-amount{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:var(--deep);margin:8px 0}
+.iban-box{background:var(--white);border-radius:10px;padding:14px;font-size:12px;color:var(--mid);line-height:1.8;margin-bottom:12px}
 
 /* BTN */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .18s;text-decoration:none;justify-content:center}
-.btn-primary{background:var(--terra);color:white;width:100%}
-.btn-primary:active{background:#A07550}
-.btn-outline{background:transparent;border:1.5px solid var(--terra-l);color:var(--mid);width:100%}
-.btn-ghost{background:var(--sand);color:var(--mid);width:100%}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif;width:100%;margin-bottom:8px}
+.btn-primary{background:var(--terra);color:white}
+.btn-primary:active{background:var(--terra-d)}
+.btn-outline{background:transparent;border:1.5px solid var(--terra-l);color:var(--mid)}
+.btn-success{background:var(--success);color:white}
+.btn-wa{background:#25D366;color:white}
 
-/* HIDDEN */
-.page{display:none}.page.active{display:block}
-.section-hidden{display:none}
-
-/* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--terra-l);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:50}
-.nav-item2{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
-.nav-item2 span{font-size:20px}
-.nav-item2 small{font-size:9px;color:var(--soft)}
-.nav-item2.active small{color:var(--terra);font-weight:600}
-
-/* UPLOAD */
-.upload-zone{border:2px dashed var(--terra-l);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s}
-.upload-zone:hover{border-color:var(--terra);background:var(--terra-xl)}
-.upload-zone input{display:none}
+/* MAPPA */
+.map-item{display:flex;gap:12px;padding:14px;background:var(--white);border-radius:12px;border:1px solid var(--terra-l);margin-bottom:10px}
+.map-icon{width:44px;height:44px;border-radius:10px;background:var(--sand);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.map-title{font-size:13.5px;font-weight:700;margin-bottom:3px}
+.map-body{font-size:12px;color:var(--mid);line-height:1.6}
 
 /* TOAST */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:white;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:all .3s;z-index:999;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--deep);color:white;padding:11px 18px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1px solid var(--terra-l);display:flex;padding:8px 0 env(safe-area-inset-bottom);z-index:50}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;font-size:10px;color:var(--soft);position:relative}
+.bn-item.active{color:var(--terra)}
+.bn-icon{font-size:20px}
+
+/* UTILITY */
+.card{background:var(--white);border-radius:12px;border:1px solid var(--terra-l);padding:16px;margin-bottom:12px}
+.lbl{display:block;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--soft);margin-bottom:5px;font-weight:600}
+.info-box{background:var(--sand);border-radius:10px;padding:14px;font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:12px}
+.divider{height:1px;background:var(--terra-l);margin:14px 0}
+.text-center{text-align:center}
+.text-success{color:var(--success)}
+.text-danger{color:var(--danger)}
 </style>
 </head>
 <body>
 
-<div id="page-home" class="page active">
-
+<div id="page-home">
   <!-- HERO -->
   <div class="hero">
-    <div class="lang-row">
-      <button class="lang-btn active" onclick="setLang('it',this)">🇮🇹 IT</button>
-      <button class="lang-btn" onclick="setLang('en',this)">🇬🇧 EN</button>
+    <div class="hero-eyebrow">Hermosa Home · Palermo</div>
+    <div class="hero-name" id="hero-nome">Benvenuto/a</div>
+    <div class="hero-sub" id="hero-suite">Suite · Via Mariano Stabile 124</div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('it',this)" data-it="🇮🇹 Italiano" data-en="🇮🇹 Italiano">🇮🇹 Italiano</button>
+      <button class="lang-btn" onclick="setLang('en',this)" data-it="🇬🇧 English" data-en="🇬🇧 English">🇬🇧 English</button>
     </div>
-    <div class="eyebrow">HERMOSA HOME</div>
-    <div class="guest-name" id="hero-name">Benvenuto</div>
-    <div class="suite-tag">🏠 <span id="hero-suite">Suite · 3° piano</span></div>
   </div>
 
-  <div class="content">
-    <!-- SOGGIORNO -->
-    <div class="stay-card" id="stay-card">
-      <div class="stay-dates">
-        <div class="date-block">
-          <div class="date-lbl" data-it="CHECK-IN" data-en="CHECK-IN">CHECK-IN</div>
-          <div class="date-val" id="ci-date">—</div>
-          <div class="date-sub" id="ci-time">ore 14:00</div>
-        </div>
-        <div class="date-block">
-          <div class="date-lbl" data-it="CHECK-OUT" data-en="CHECK-OUT">CHECK-OUT</div>
-          <div class="date-val" id="co-date">—</div>
-          <div class="date-sub" id="co-time">ore 10:00</div>
-        </div>
+  <!-- SOGGIORNO CARD -->
+  <div class="soggiorno-card">
+    <div class="sc-suite" id="card-suite">Suite —</div>
+    <div class="sc-dates">
+      <div class="sc-date-box">
+        <div class="sc-date-lbl" data-it="Check-in" data-en="Check-in">Check-in</div>
+        <div class="sc-date-val" id="card-checkin">—</div>
+        <div class="sc-date-time" data-it="ore 14:00" data-en="2:00 PM">ore 14:00</div>
       </div>
-      <div class="stay-badge" id="stay-status">In corso ▶</div>
-    </div>
-
-    <!-- TILES -->
-    <div class="tiles">
-      <div class="tile dark" onclick="showSection('lock')">
-        <span class="tile-icon">🔐</span>
-        <div class="tile-title" data-it="Apri le porte" data-en="Open doors">Apri le porte</div>
-        <div class="tile-sub" data-it="Smart lock" data-en="Smart lock">Smart lock</div>
-      </div>
-      <div class="tile" onclick="showSection('docs')">
-        <div class="tile-badge" id="doc-badge" style="display:none">!</div>
-        <span class="tile-icon">📋</span>
-        <div class="tile-title" data-it="Documenti" data-en="Documents">Documenti</div>
-        <div class="tile-sub" data-it="Carica la tua carta" data-en="Upload your ID">Carica la tua carta</div>
-      </div>
-      <div class="tile" onclick="showSection('contract')">
-        <div class="tile-badge" id="contract-badge" style="display:none">!</div>
-        <span class="tile-icon">✍️</span>
-        <div class="tile-title" data-it="Contratto" data-en="Contract">Contratto</div>
-        <div class="tile-sub" data-it="Leggi e firma" data-en="Read and sign">Leggi e firma</div>
-      </div>
-      <div class="tile" onclick="showSection('info')">
-        <span class="tile-icon">ℹ️</span>
-        <div class="tile-title" data-it="Info struttura" data-en="House info">Info struttura</div>
-        <div class="tile-sub" data-it="WiFi, regole, guida" data-en="WiFi, rules, guide">WiFi, regole, guida</div>
-      </div>
-      <div class="tile" onclick="showSection('payment')">
-        <div class="tile-badge" id="pay-badge" style="display:none">!</div>
-        <span class="tile-icon">💳</span>
-        <div class="tile-title" data-it="Pagamento" data-en="Payment">Pagamento</div>
-        <div class="tile-sub" id="pay-sub" data-it="Saldo soggiorno" data-en="Balance">Saldo soggiorno</div>
-      </div>
-      <div class="tile" onclick="showSection('map')">
-        <span class="tile-icon">🗺️</span>
-        <div class="tile-title" data-it="Mappa & Arrivo" data-en="Map & Arrival">Mappa & Arrivo</div>
-        <div class="tile-sub" data-it="Come raggiungerci" data-en="How to reach us">Come raggiungerci</div>
+      <div class="sc-arrow">→</div>
+      <div class="sc-date-box">
+        <div class="sc-date-lbl" data-it="Check-out" data-en="Check-out">Check-out</div>
+        <div class="sc-date-val" id="card-checkout">—</div>
+        <div class="sc-date-time" data-it="ore 10:00" data-en="10:00 AM">ore 10:00</div>
       </div>
     </div>
-
-    <!-- STATO PRENOTAZIONE -->
-    <div class="section">
-      <div class="sec-title" data-it="Stato prenotazione" data-en="Booking status">Stato prenotazione</div>
-      <div class="stato-row">
-        <div class="stato-dot" id="dot-contratto"></div>
-        <div class="stato-txt" data-it="Contratto" data-en="Contract">Contratto</div>
-        <span class="stato-badge" id="badge-contratto">—</span>
-      </div>
-      <div class="stato-row">
-        <div class="stato-dot" id="dot-doc"></div>
-        <div class="stato-txt" data-it="Documenti identità" data-en="Identity documents">Documenti identità</div>
-        <span class="stato-badge" id="badge-doc">—</span>
-      </div>
-      <div class="stato-row">
-        <div class="stato-dot" id="dot-pag"></div>
-        <div class="stato-txt" data-it="Pagamento" data-en="Payment">Pagamento</div>
-        <span class="stato-badge" id="badge-pag">—</span>
-      </div>
-    </div>
-
-    <!-- CONTATTI -->
-    <div class="section">
-      <div class="sec-title">Hermosa Home</div>
-      <div class="info-row">
-        <div class="info-icon">📍</div>
-        <div><div class="info-label">Indirizzo</div><div class="info-val">Via Mariano Stabile 124, Piano 3°</div><div class="info-sub">90139 Palermo (PA)</div></div>
-      </div>
-      <div class="info-row">
-        <div class="info-icon">📞</div>
-        <div><div class="info-label">Assistenza</div><div class="info-val"><a href="tel:+393284845555" style="color:var(--terra);text-decoration:none">+39 328 484 5555</a></div></div>
-      </div>
-      <div class="info-row">
-        <div class="info-icon">✉️</div>
-        <div><div class="info-label">Email</div><div class="info-val"><a href="mailto:info.hermosahome@gmail.com" style="color:var(--terra);text-decoration:none">info.hermosahome@gmail.com</a></div></div>
-      </div>
-      <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
-        <a href="https://wa.me/393284845555" target="_blank" class="btn btn-primary">🟢 Scrivi su WhatsApp</a>
-        <a href="https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo" target="_blank" class="btn btn-ghost">📍 Apri in Maps</a>
-      </div>
-    </div>
-
+    <div class="sc-stato" id="card-stato"></div>
   </div>
-</div>
 
-<!-- ═══ SEZIONE SMART LOCK ═══ -->
-<div id="page-lock" class="page">
-  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
-    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">🔐 Smart Lock</div>
-  </div>
-  <div style="background:var(--sand);padding:20px;min-height:100vh;">
-    <div class="section">
-      <div class="sec-title">Apri con link</div>
-      <div style="font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:16px;">
-        Usa il link qui sotto per aprire il portone di Via Mariano Stabile 124 e la porta della tua suite direttamente dallo smartphone.
-      </div>
-      <a href="https://chiavistello.it/open/HH-PA-001" target="_blank" class="btn btn-primary" style="margin-bottom:10px;">🔓 Apri portone e suite</a>
-      <div style="background:white;border-radius:10px;padding:14px;margin-top:14px;">
-        <div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">PIN di backup</div>
-        <div style="font-size:32px;font-weight:700;letter-spacing:8px;color:var(--terra);font-family:'Cormorant Garamond',serif;">742</div>
-        <div style="font-size:11px;color:var(--soft);margin-top:6px;">Da usare solo se il link non funziona</div>
-      </div>
+  <!-- TILES -->
+  <div class="tiles-grid">
+    <div class="tile" id="tile-lock" onclick="showSection('lock')">
+      <div class="tile-icon">🔐</div>
+      <div class="tile-label" data-it="Apri porte" data-en="Open doors">Apri porte</div>
+      <div class="tile-sub" data-it="Smart lock" data-en="Smart lock">Smart lock</div>
     </div>
-    <div class="section">
-      <div class="sec-title">Orari accesso</div>
-      <div class="info-row"><div class="info-icon">🏠</div><div><div class="info-label">Check-in</div><div class="info-val" id="lock-ci">—</div></div></div>
-      <div class="info-row"><div class="info-icon">🚪</div><div><div class="info-label">Check-out</div><div class="info-val" id="lock-co">—</div></div></div>
+    <div class="tile" id="tile-docs" onclick="showSection('docs')">
+      <div class="tile-icon">🪪</div>
+      <div class="tile-badge" id="docs-badge" style="display:none">!</div>
+      <div class="tile-label" data-it="Documenti" data-en="Documents">Documenti</div>
+      <div class="tile-sub" data-it="Carica ID" data-en="Upload ID">Carica ID</div>
+    </div>
+    <div class="tile" id="tile-contratto" onclick="showSection('contratto')">
+      <div class="tile-icon">📄</div>
+      <div class="tile-badge" id="contratto-badge" style="display:none">!</div>
+      <div class="tile-label" data-it="Contratto" data-en="Contract">Contratto</div>
+      <div class="tile-sub" data-it="Leggi e firma" data-en="Read &amp; sign">Leggi e firma</div>
+    </div>
+    <div class="tile" id="tile-pagamento" onclick="showSection('pagamento')">
+      <div class="tile-icon">💳</div>
+      <div class="tile-badge" id="pagamento-badge" style="display:none">!</div>
+      <div class="tile-label" data-it="Pagamento" data-en="Payment">Pagamento</div>
+      <div class="tile-sub" data-it="Completa ora" data-en="Complete now">Completa ora</div>
+    </div>
+    <div class="tile" onclick="showSection('info')">
+      <div class="tile-icon">🏠</div>
+      <div class="tile-label" data-it="Info suite" data-en="Suite info">Info suite</div>
+      <div class="tile-sub" data-it="WiFi, regole" data-en="WiFi, rules">WiFi, regole</div>
+    </div>
+    <div class="tile" onclick="showSection('mappa')">
+      <div class="tile-icon">🗺</div>
+      <div class="tile-label" data-it="Come arrivare" data-en="Getting here">Come arrivare</div>
+      <div class="tile-sub" data-it="Mappa e guida" data-en="Map &amp; guide">Mappa e guida</div>
+    </div>
+  </div>
+
+  <!-- CONTATTI -->
+  <div style="padding:0 14px;margin-top:8px;">
+    <div class="card" style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:28px;">🌹</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;" data-it="Hermosa Home di Alessandra Trapani" data-en="Hermosa Home by Alessandra Trapani">Hermosa Home di Alessandra Trapani</div>
+        <div style="font-size:11.5px;color:var(--soft);margin-top:2px;">Via Mariano Stabile 124, Piano 3° · Palermo</div>
+      </div>
+      <a id="wa-host" href="#" style="text-decoration:none;">
+        <div style="width:40px;height:40px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;">📱</div>
+      </a>
     </div>
   </div>
 </div>
 
-<!-- ═══ SEZIONE DOCUMENTI ═══ -->
-<div id="page-docs" class="page">
-  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
-    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">📋 Documenti</div>
+<!-- ─── SEZIONE SMART LOCK ─── -->
+<div id="page-lock" class="section" style="padding:14px;">
+  <div class="section-header">
+    <button class="back-btn" onclick="backHome()">←</button>
+    <div class="section-title" data-it="🔐 Apri le porte" data-en="🔐 Open doors">🔐 Apri le porte</div>
   </div>
-  <div style="background:var(--sand);padding:20px;min-height:100vh;">
-    <div class="section">
-      <div class="sec-title">Carica documento identità</div>
-      <div style="font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:16px;">
-        Per legge è obbligatorio fornire i dati del documento di identità entro 24h dall'arrivo. I dati vengono trasmessi al Portale Alloggiati della Polizia di Stato.
-      </div>
-      <div class="upload-zone" onclick="document.getElementById('doc-upload').click()">
-        <input type="file" id="doc-upload" accept="image/*,application/pdf" onchange="handleUpload(this)">
-        <div style="font-size:36px;margin-bottom:10px;">📄</div>
-        <div style="font-size:14px;font-weight:600;color:var(--dark);">Tocca per caricare</div>
-        <div style="font-size:12px;color:var(--soft);margin-top:4px;">Foto del documento · JPG, PNG, PDF</div>
-      </div>
-      <div id="upload-confirm" style="display:none;margin-top:14px;background:#E6F4EA;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:22px;margin-bottom:6px;">✅</div>
-        <div style="font-size:14px;font-weight:600;color:#3A7A4A;">Documento caricato!</div>
-        <div style="font-size:12px;color:#5A9A6A;margin-top:3px;">Il gestore lo verificherà a breve</div>
-      </div>
+  <div class="lock-card">
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:8px;" data-it="Premi per aprire il portone" data-en="Tap to open the main door">Premi per aprire il portone</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:16px;" data-it="Via Mariano Stabile 124" data-en="Via Mariano Stabile 124">Via Mariano Stabile 124</div>
+    <button class="lock-btn" onclick="apriPorta('portone')">🚪 Apri portone</button>
+    <button class="lock-btn" style="background:rgba(255,255,255,.12);" onclick="apriPorta('suite')">🚪 Apri porta suite</button>
+    <div class="pin-box">
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;" data-it="PIN di backup (se lo smart lock non risponde)" data-en="Backup PIN (if smart lock fails)">PIN di backup</div>
+      <div class="pin-val" id="lock-pin">7 4 2</div>
+    </div>
+  </div>
+  <div class="info-box" style="font-size:12px;">
+    ⏰ <strong data-it="Orari validi:" data-en="Valid hours:">Orari validi:</strong><br>
+    <span data-it="Check-in: dal giorno di arrivo ore 14:00" data-en="Check-in: from arrival day at 2:00 PM">Check-in: dal giorno di arrivo ore 14:00</span><br>
+    <span data-it="Check-out: fino alle 10:00 dell'ultimo giorno" data-en="Check-out: until 10:00 AM on departure day">Check-out: fino alle 10:00 dell'ultimo giorno</span><br>
+    <span id="lock-validity"></span>
+  </div>
+</div>
+
+<!-- ─── SEZIONE DOCUMENTI ─── -->
+<div id="page-docs" class="section" style="padding:14px;">
+  <div class="section-header">
+    <button class="back-btn" onclick="backHome()">←</button>
+    <div class="section-title" data-it="🪪 Documenti" data-en="🪪 Documents">🪪 Documenti</div>
+  </div>
+  <div class="info-box" id="docs-info">
+    <span data-it="Carica un documento di identità valido (carta d'identità, passaporto o patente) per completare la prenotazione." data-en="Please upload a valid ID document (ID card, passport or driving licence) to complete your booking.">Carica un documento di identità valido per completare la prenotazione.</span>
+  </div>
+  <div id="doc-status-ok" style="display:none;padding:16px;background:#E6F4EA;border-radius:12px;text-align:center;margin-bottom:14px;">
+    <div style="font-size:32px;margin-bottom:8px;">✅</div>
+    <div style="font-size:14px;font-weight:600;color:var(--success);" data-it="Documento caricato" data-en="Document uploaded">Documento caricato</div>
+    <div style="font-size:12px;color:var(--mid);margin-top:4px;" id="doc-status-tipo"></div>
+  </div>
+  <div id="doc-upload-area">
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="lbl" data-it="Tipo documento" data-en="Document type">Tipo documento</label>
+      <select id="doc-tipo" style="width:100%;padding:10px 12px;border:1.5px solid var(--terra-l);border-radius:8px;font-size:13px;color:var(--deep);background:var(--cream);font-family:'DM Sans',sans-serif;">
+        <option value="Carta d'identità">🪪 Carta d'identità</option>
+        <option value="Passaporto">🛂 Passaporto</option>
+        <option value="Patente">🚗 Patente di guida</option>
+      </select>
+    </div>
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('doc-file').click()">
+      <div style="font-size:36px;margin-bottom:8px;" id="upload-icon">📸</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;" data-it="Tocca per fotografare o caricare" data-en="Tap to take a photo or upload">Tocca per fotografare o caricare</div>
+      <div style="font-size:11.5px;color:var(--soft);" data-it="JPEG, PNG o PDF · max 5MB" data-en="JPEG, PNG or PDF · max 5MB">JPEG, PNG o PDF · max 5MB</div>
+    </div>
+    <input type="file" id="doc-file" accept="image/*,application/pdf" capture="environment" style="display:none" onchange="handleDocUpload(this)">
+    <img id="doc-preview" class="preview-img" style="display:none;">
+    <button class="btn btn-success" id="doc-save-btn" style="display:none;" onclick="salvaDocumento()">
+      ✅ <span data-it="Conferma e invia" data-en="Confirm and send">Conferma e invia</span>
+    </button>
+  </div>
+</div>
+
+<!-- ─── SEZIONE CONTRATTO ─── -->
+<div id="page-contratto" class="section" style="padding:14px;">
+  <div class="section-header">
+    <button class="back-btn" onclick="backHome()">←</button>
+    <div class="section-title" data-it="📄 Contratto" data-en="📄 Contract">📄 Contratto</div>
+  </div>
+  <div id="contratto-firmato-msg" style="display:none;padding:16px;background:#E6F4EA;border-radius:12px;text-align:center;margin-bottom:14px;">
+    <div style="font-size:32px;margin-bottom:8px;">✍️</div>
+    <div style="font-size:14px;font-weight:600;color:var(--success);" data-it="Contratto firmato digitalmente" data-en="Contract digitally signed">Contratto firmato digitalmente</div>
+    <div style="font-size:12px;color:var(--mid);margin-top:4px;" id="firma-data-label"></div>
+  </div>
+  <div id="contratto-action-area">
+    <div class="contratto-box" id="contratto-text"></div>
+    <div class="firma-area" id="firma-area">
+      <div style="font-size:13px;color:var(--mid);margin-bottom:12px;" data-it="Firma digitale" data-en="Digital signature">Firma digitale</div>
+      <label class="firma-check">
+        <input type="checkbox" id="firma-check-1">
+        <span data-it="Ho letto e accetto tutte le condizioni del contratto di locazione turistica breve." data-en="I have read and accept all the terms of the short-term rental contract.">Ho letto e accetto tutte le condizioni del contratto di locazione turistica breve.</span>
+      </label>
+      <div style="height:10px;"></div>
+      <label class="firma-check">
+        <input type="checkbox" id="firma-check-2">
+        <span data-it="Dichiaro che i dati forniti sono corretti e che sono il titolare della prenotazione." data-en="I confirm that the provided details are correct and that I am the booking holder.">Dichiaro che i dati forniti sono corretti e che sono il titolare della prenotazione.</span>
+      </label>
+    </div>
+    <button class="btn btn-primary" id="firma-btn" onclick="firmaContratto()" style="opacity:.5;cursor:not-allowed;" disabled>
+      ✍️ <span data-it="Firma digitalmente" data-en="Sign digitally">Firma digitalmente</span>
+    </button>
+    <button class="btn btn-outline" onclick="copiaContratto()" style="margin-top:4px;">
+      📋 <span data-it="Copia testo" data-en="Copy text">Copia testo</span>
+    </button>
+  </div>
+</div>
+
+<!-- ─── SEZIONE PAGAMENTO ─── -->
+<div id="page-pagamento" class="section" style="padding:14px;">
+  <div class="section-header">
+    <button class="back-btn" onclick="backHome()">←</button>
+    <div class="section-title" data-it="💳 Pagamento" data-en="💳 Payment">💳 Pagamento</div>
+  </div>
+  <div id="pagamento-ok-msg" style="display:none;padding:16px;background:#E6F4EA;border-radius:12px;text-align:center;margin-bottom:14px;">
+    <div style="font-size:32px;margin-bottom:8px;">✅</div>
+    <div style="font-size:14px;font-weight:600;color:var(--success);" data-it="Pagamento completato" data-en="Payment completed">Pagamento completato</div>
+  </div>
+  <div class="pay-card">
+    <div style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;" data-it="Importo soggiorno" data-en="Stay amount">Importo soggiorno</div>
+    <div class="pay-amount" id="pay-amount">€ —</div>
+    <div style="font-size:12px;color:var(--mid);" id="pay-suite-label">Suite —</div>
+  </div>
+  <button class="btn btn-primary" id="paypal-btn" onclick="apriPayPal()">💙 Paga con PayPal</button>
+  <div style="text-align:center;font-size:12px;color:var(--soft);margin:6px 0;" data-it="oppure" data-en="or">oppure</div>
+  <div class="iban-box">
+    <strong data-it="Bonifico bancario:" data-en="Bank transfer:">Bonifico bancario:</strong><br>
+    <span data-it="Intestato a:" data-en="Payee:">Intestato a:</span> <strong>Alessandra Trapani</strong><br>
+    <span data-it="IBAN:" data-en="IBAN:">IBAN:</span> <strong id="iban-val">IT00 X000 0000 0000 0000 0000 000</strong><br>
+    <span data-it="Causale:" data-en="Reference:">Causale:</span> <span id="causale-val">Soggiorno Hermosa Home</span>
+  </div>
+  <button class="btn btn-outline" onclick="copiaIBAN()">📋 <span data-it="Copia IBAN" data-en="Copy IBAN">Copia IBAN</span></button>
+</div>
+
+<!-- ─── SEZIONE INFO SUITE ─── -->
+<div id="page-info" class="section" style="padding:14px;">
+  <div class="section-header">
+    <button class="back-btn" onclick="backHome()">←</button>
+    <div class="section-title" data-it="🏠 Info suite" data-en="🏠 Suite info">🏠 Info suite</div>
+  </div>
+  <div class="card">
+    <div style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:10px;">📶 WiFi</div>
+    <div style="font-size:14px;margin-bottom:4px;"><strong data-it="Rete:" data-en="Network:">Rete:</strong> <span id="wifi-rete">HermosaHome_Suite</span></div>
+    <div style="font-size:14px;"><strong data-it="Password:" data-en="Password:">Password:</strong> <span id="wifi-pwd">hermosa2024</span></div>
+  </div>
+  <div class="card">
+    <div style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:10px;" data-it="📋 Regole della casa" data-en="📋 House rules">📋 Regole della casa</div>
+    <div style="font-size:13px;color:var(--mid);line-height:1.8;">
+      🕙 <span data-it="Check-in dalle 14:00 · Check-out entro le 10:00" data-en="Check-in from 2:00 PM · Check-out by 10:00 AM">Check-in dalle 14:00 · Check-out entro le 10:00</span><br>
+      🔇 <span data-it="Silenzio dalle 22:00 alle 08:00" data-en="Quiet hours from 10:00 PM to 8:00 AM">Silenzio dalle 22:00 alle 08:00</span><br>
+      🚭 <span data-it="Vietato fumare in tutti gli spazi interni" data-en="No smoking in all indoor spaces">Vietato fumare in tutti gli spazi interni</span><br>
+      🐾 <span data-it="Animali non ammessi" data-en="No pets allowed">Animali non ammessi</span><br>
+      🗝 <span data-it="Chiavi/accesso nel cassetto dell'ingresso a check-out" data-en="Leave keys in entrance drawer at check-out">Chiavi nel cassetto ingresso al check-out</span>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:11px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-bottom:10px;">🌟 <span data-it="Cosa vedere vicino" data-en="Nearby attractions">Cosa vedere vicino</span></div>
+    <div style="font-size:12.5px;color:var(--mid);line-height:1.8;">
+      🎭 Teatro Massimo — <span data-it="4 min a piedi" data-en="4 min walk">4 min a piedi</span><br>
+      🏛 Quattro Canti — <span data-it="9 min a piedi" data-en="9 min walk">9 min a piedi</span><br>
+      ⛪ Cattedrale — <span data-it="14 min a piedi" data-en="14 min walk">14 min a piedi</span><br>
+      🥘 Mercato Ballarò — <span data-it="15 min a piedi" data-en="15 min walk">15 min a piedi</span><br>
+      🏖 Mondello — <span data-it="30 min in bus (linea 806)" data-en="30 min by bus (line 806)">30 min in bus (linea 806)</span>
     </div>
   </div>
 </div>
 
-<!-- ═══ SEZIONE CONTRATTO ═══ -->
-<div id="page-contract" class="page">
-  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
-    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">✍️ Contratto</div>
+<!-- ─── SEZIONE MAPPA ─── -->
+<div id="page-mappa" class="section" style="padding:14px;">
+  <div class="section-header">
+    <button class="back-btn" onclick="backHome()">←</button>
+    <div class="section-title" data-it="🗺 Come arrivare" data-en="🗺 Getting here">🗺 Come arrivare</div>
   </div>
-  <div style="background:var(--sand);padding:20px;min-height:100vh;">
-    <div class="section">
-      <div class="sec-title">Contratto di locazione</div>
-      <div id="contract-text" style="font-size:12px;line-height:1.8;color:var(--mid);background:white;border-radius:10px;padding:14px;max-height:45vh;overflow-y:auto;white-space:pre-wrap;margin-bottom:16px;"></div>
-      <button class="btn btn-primary" style="margin-bottom:8px;" onclick="firmaContratto()">✍️ Accetto e firmo digitalmente</button>
-      <button class="btn btn-ghost" onclick="copiaContratto2()">📋 Copia testo</button>
+  <a href="https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo" target="_blank" class="btn btn-primary" style="text-decoration:none;margin-bottom:14px;">📍 <span data-it="Apri in Google Maps" data-en="Open in Google Maps">Apri in Google Maps</span></a>
+  <div class="map-item">
+    <div class="map-icon">✈️</div>
+    <div>
+      <div class="map-title" data-it="Dall'aeroporto (PMO)" data-en="From the airport (PMO)">Dall'aeroporto (PMO)</div>
+      <div class="map-body" data-it="Treno Trinacria Express → Centrale (~50 min, €6,90) poi bus 101/102 o taxi (10 min a piedi)" data-en="Trinacria Express train → Centrale (~50 min, €6.90) then bus 101/102 or taxi (10 min walk)">Treno Trinacria Express → Centrale (~50 min, €6,90) poi bus 101/102 o taxi</div>
     </div>
   </div>
-</div>
-
-<!-- ═══ SEZIONE INFO ═══ -->
-<div id="page-info" class="page">
-  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
-    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">ℹ️ Info struttura</div>
-  </div>
-  <div style="background:var(--sand);padding:20px;min-height:100vh;">
-    <div class="section">
-      <div class="sec-title">WiFi</div>
-      <div class="info-row"><div class="info-icon">📶</div><div><div class="info-label">Rete</div><div class="info-val" id="wifi-name">HermosaHome_Suite</div></div></div>
-      <div class="info-row"><div class="info-icon">🔑</div><div><div class="info-label">Password</div><div class="info-val">welcome2026</div></div></div>
-    </div>
-    <div class="section">
-      <div class="sec-title">Regole della casa</div>
-      <div class="info-row"><div class="info-icon">🚬</div><div><div class="info-val">Vietato fumare</div><div class="info-sub">In tutti gli spazi interni</div></div></div>
-      <div class="info-row"><div class="info-icon">🔇</div><div><div class="info-val">Silenzio notturno</div><div class="info-sub">Dalle 22:00 alle 08:00</div></div></div>
-      <div class="info-row"><div class="info-icon">🐾</div><div><div class="info-val">Animali</div><div class="info-sub">Solo su accordo preventivo</div></div></div>
-      <div class="info-row"><div class="info-icon">🗝</div><div><div class="info-val">Check-out</div><div class="info-sub">Chiavi nel cassetto ingresso · entro le 10:00</div></div></div>
-    </div>
-    <div class="section">
-      <div class="sec-title">🎭 Da vedere</div>
-      <div class="info-row"><div class="info-icon">🎭</div><div><div class="info-val">Teatro Massimo</div><div class="info-sub">4 min a piedi · Più grande d'Italia</div></div></div>
-      <div class="info-row"><div class="info-icon">✝️</div><div><div class="info-val">Quattro Canti</div><div class="info-sub">9 min · Cuore barocco di Palermo</div></div></div>
-      <div class="info-row"><div class="info-icon">🥘</div><div><div class="info-val">Mercato Ballarò</div><div class="info-sub">15 min · Street food eccellente</div></div></div>
-      <div class="info-row"><div class="info-icon">🏖</div><div><div class="info-val">Mondello</div><div class="info-sub">30 min in bus (linea 806)</div></div></div>
+  <div class="map-item">
+    <div class="map-icon">🚂</div>
+    <div>
+      <div class="map-title" data-it="Dalla Stazione Centrale" data-en="From Palermo Centrale">Dalla Stazione Centrale</div>
+      <div class="map-body" data-it="15 min a piedi lungo Via Roma · oppure bus 101/102 (3 fermate) · Taxi ~€8" data-en="15 min walk along Via Roma · or bus 101/102 (3 stops) · Taxi ~€8">15 min a piedi lungo Via Roma · bus 101/102 · Taxi ~€8</div>
     </div>
   </div>
-</div>
-
-<!-- ═══ SEZIONE PAGAMENTO ═══ -->
-<div id="page-payment" class="page">
-  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
-    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">💳 Pagamento</div>
-  </div>
-  <div style="background:var(--sand);padding:20px;min-height:100vh;">
-    <div class="section">
-      <div class="sec-title">Saldo da pagare</div>
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Importo</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:52px;color:var(--terra);" id="pay-amount">€ —</div>
-      </div>
-      <div id="pay-links" style="display:flex;flex-direction:column;gap:8px;">
-        <a id="paypal-btn" href="#" target="_blank" class="btn btn-primary">💙 Paga con PayPal</a>
-        <button class="btn btn-outline" onclick="copyIBAN()">🏦 Copia IBAN per bonifico</button>
-      </div>
-      <div style="margin-top:14px;font-size:11.5px;color:var(--soft);text-align:center;line-height:1.6;" id="pay-info">Causale: Soggiorno Hermosa Home</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ SEZIONE MAPPA ═══ -->
-<div id="page-map" class="page">
-  <div style="background:var(--dark);padding:calc(var(--safe-top)+20px) 20px 20px;display:flex;align-items:center;gap:12px;">
-    <button onclick="backHome()" style="background:rgba(255,255,255,.1);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">‹</button>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:20px;">🗺️ Come arrivare</div>
-  </div>
-  <div style="background:var(--sand);padding:20px;min-height:100vh;">
-    <div class="section">
-      <div class="sec-title">Hermosa Home</div>
-      <div class="info-row"><div class="info-icon">📍</div><div><div class="info-val">Via Mariano Stabile 124</div><div class="info-sub">Piano Terzo · 90139 Palermo</div></div></div>
-      <a href="https://maps.google.com/?q=Via+Mariano+Stabile+124+Palermo" target="_blank" class="btn btn-primary" style="margin-top:12px;">📍 Apri in Google Maps</a>
-    </div>
-    <div class="section">
-      <div class="sec-title">Come arrivare</div>
-      <div class="info-row"><div class="info-icon">✈️</div><div><div class="info-val">Dall'aeroporto</div><div class="info-sub">Treno da Punta Raisi → Centrale (~35 min, €6,90) poi 15 min a piedi</div></div></div>
-      <div class="info-row"><div class="info-icon">🚂</div><div><div class="info-val">Dalla Stazione Centrale</div><div class="info-sub">15 min a piedi oppure bus 101/102 (3 fermate)</div></div></div>
-      <div class="info-row"><div class="info-icon">🚗</div><div><div class="info-val">In auto</div><div class="info-sub">⚠️ ZTL attiva in centro. Comunicare la targa per permesso temporaneo.</div></div></div>
-      <div class="info-row"><div class="info-icon">🚕</div><div><div class="info-val">Taxi</div><div class="info-sub">App inTaxi o ItTaxi · sempre disponibili in centro</div></div></div>
+  <div class="map-item">
+    <div class="map-icon">🚗</div>
+    <div>
+      <div class="map-title" data-it="In auto" data-en="By car">In auto</div>
+      <div class="map-body" data-it="⚠️ ZTL attiva nel centro storico — comunicarci la targa! Parcheggio Trinacria ~200m." data-en="⚠️ ZTL (restricted traffic zone) in the historic centre — please send us your plate number! Parking Trinacria ~200m.">⚠️ ZTL attiva — comunicarci la targa! Parcheggio Trinacria ~200m.</div>
     </div>
   </div>
 </div>
@@ -361,179 +394,290 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:white;min-hei
 <div class="toast" id="toast"></div>
 
 <script>
-// ── BOOKING DATA ──
-var bookingData = {};
-var lang = 'it';
-
-var i18n = {
-  it: { welcome:'Benvenuto,', stay_active:'In corso ▶', stay_future:'Prossimo 📅', stay_past:'Concluso ✓',
-        doc_ok:'Verificato ✓', doc_wait:'In verifica', doc_miss:'Da caricare',
-        contr_ok:'Firmato ✓', contr_wait:'Da firmare', contr_miss:'Non inviato',
-        pag_ok:'Pagato ✓', pag_wait:'In attesa' },
-  en: { welcome:'Welcome,', stay_active:'Active ▶', stay_future:'Upcoming 📅', stay_past:'Completed ✓',
-        doc_ok:'Verified ✓', doc_wait:'Under review', doc_miss:'Upload needed',
-        contr_ok:'Signed ✓', contr_wait:'Sign needed', contr_miss:'Not sent',
-        pag_ok:'Paid ✓', pag_wait:'Pending' }
+// ── DATI BOOKING ──
+var bookingData = null;
+var bookingId = null;
+var CFG_OSPITE = {
+  tel:'+39 328 484 5555', whatsapp:'393284845555',
+  paypal:'https://paypal.me/HERMOSAHOME',
+  iban:'IT00 X000 0000 0000 0000 0000 000'
 };
+var currentLang = 'it';
 
-function setLang(l, btn){
-  lang = l;
-  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  document.querySelectorAll('[data-'+l+']').forEach(function(el){
-    el.textContent = el.getAttribute('data-'+l);
-  });
+// Leggi parametro URL
+function getBookingFromURL() {
+  var params = new URLSearchParams(window.location.search);
+  var bkParam = params.get('booking'); // es: HH-b1774465696429
+  if (!bkParam) return null;
+  var id = bkParam.replace('HH-','');
+  try {
+    var all = JSON.parse(localStorage.getItem('hh_bookings') || '[]');
+    return all.find(function(b){ return b.id === id; }) || null;
+  } catch(e){ return null; }
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', function(){
+  bookingData = getBookingFromURL();
+  if (!bookingData) {
+    // Modalità demo senza booking
+    document.getElementById('hero-nome').textContent = 'Benvenuto/a';
+    document.getElementById('hero-suite').textContent = 'App ospite Hermosa Home';
+    document.getElementById('card-suite').textContent = '— Nessuna prenotazione trovata —';
+    document.getElementById('card-checkin').textContent = '—';
+    document.getElementById('card-checkout').textContent = '—';
+    document.getElementById('card-stato').innerHTML = '<span class="stato-pill stato-warn">⚠️ Link non valido o scaduto</span>';
+    toast('⚠️ Nessuna prenotazione trovata. Usa il link ricevuto via WhatsApp.');
+    return;
+  }
+  bookingId = bookingData.id;
   initUI();
+});
+
+function initUI(){
+  var bk = bookingData;
+  var fmt = function(d){ return d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; };
+
+  // Hero
+  document.getElementById('hero-nome').textContent = 'Ciao, ' + bk.guest.split(' ')[0] + '! 👋';
+  document.getElementById('hero-suite').textContent = 'Suite ' + bk.suite + ' · Via Mariano Stabile 124';
+
+  // Soggiorno card
+  document.getElementById('card-suite').textContent = 'Suite ' + bk.suite;
+  document.getElementById('card-checkin').textContent = fmt(bk.checkin);
+  document.getElementById('card-checkout').textContent = fmt(bk.checkout);
+
+  // Stato badges
+  var stati = [];
+  stati.push(bk.contratto==='firmato'?'<span class="stato-pill stato-ok">✍️ Contratto firmato</span>':'<span class="stato-pill stato-warn">⚠️ Contratto da firmare</span>');
+  stati.push(bk.doc==='ok'?'<span class="stato-pill stato-ok">🪪 Doc. verificati</span>':bk.doc==='da_verificare'?'<span class="stato-pill stato-warn">⏳ Doc. in verifica</span>':'<span class="stato-pill stato-err">⚠️ Doc. mancanti</span>');
+  stati.push(bk.pagamento==='ok'?'<span class="stato-pill stato-ok">💳 Pagato</span>':'<span class="stato-pill stato-err">💳 Da pagare</span>');
+  document.getElementById('card-stato').innerHTML = stati.join('');
+
+  // Tile badges
+  if(bk.contratto!=='firmato') document.getElementById('contratto-badge').style.display='block';
+  if(bk.doc!=='ok'&&bk.doc!=='da_verificare') document.getElementById('docs-badge').style.display='block';
+  if(bk.pagamento!=='ok') document.getElementById('pagamento-badge').style.display='block';
+
+  // WA gestore
+  document.getElementById('wa-host').href = 'https://wa.me/'+CFG_OSPITE.whatsapp+'?text='+encodeURIComponent('Ciao! Sono '+bk.guest+', ospite della Suite '+bk.suite+'.');
+
+  // Lock validity
+  var fmt2 = function(d){ return d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}) : '—'; };
+  document.getElementById('lock-validity').textContent = '📅 Validità: '+fmt2(bk.checkin)+' → '+fmt2(bk.checkout);
+
+  // Contratto
+  populateContratto(bk);
+
+  // Pagamento
+  document.getElementById('pay-amount').textContent = '€ ' + (bk.importo||0);
+  document.getElementById('pay-suite-label').textContent = 'Suite ' + bk.suite;
+  document.getElementById('causale-val').textContent = 'Soggiorno Suite '+bk.suite+' · '+fmt2(bk.checkin)+'-'+fmt2(bk.checkout);
+
+  // IBAN e WiFi da CFG
+  document.getElementById('iban-val').textContent = CFG_OSPITE.iban;
+  var wifiMap = {'Tomasi di Lampedusa':'HermosaHome_Lampedusa','Florio':'HermosaHome_Florio','Stabile':'HermosaHome_Stabile'};
+  document.getElementById('wifi-rete').textContent = wifiMap[bk.suite]||'HermosaHome_Suite';
+  document.getElementById('wifi-pwd').textContent = 'hermosa2024';
+
+  // Stato contratto
+  if(bk.contratto==='firmato'){
+    document.getElementById('contratto-firmato-msg').style.display='block';
+    document.getElementById('firma-data-label').textContent = 'Firmato da '+bk.guest;
+    document.getElementById('contratto-action-area').style.display='none';
+  }
+
+  // Stato doc
+  var docSaved = localStorage.getItem('hh_doc_'+bk.id);
+  if(docSaved || bk.doc==='ok'||bk.doc==='da_verificare'){
+    document.getElementById('doc-status-ok').style.display='block';
+    document.getElementById('doc-upload-area').style.display='none';
+    document.getElementById('doc-status-tipo').textContent = bk.doc==='ok'?'✅ Documento verificato':'⏳ In attesa di verifica';
+  }
+
+  // Stato pagamento
+  if(bk.pagamento==='ok'){
+    document.getElementById('pagamento-ok-msg').style.display='block';
+  }
 }
 
-function toast(msg){
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show');}, 2500);
-}
+// ── CONTRATTO ──
+function populateContratto(bk){
+  var fmt = function(d){ return d ? new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}) : '—'; };
+  var notti = bk.checkin&&bk.checkout?Math.round((new Date(bk.checkout)-new Date(bk.checkin))/86400000):'—';
+  var testo = 'CONTRATTO DI LOCAZIONE TURISTICA BREVE\n'
+    +'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
+    +'LOCATORE\nHermosa Home di Alessandra Trapani\nVia Mariano Stabile 124, Piano 3° · 90139 Palermo\n'
+    +'Tel: +39 328 484 5555 · info@hermosahome.it\n\n'
+    +'CONDUTTORE\nNome: '+bk.guest+'\n'
+    +(bk.phone?'Tel: '+bk.phone+'\n':'')
+    +(bk.email?'Email: '+bk.email+'\n':'')+'\n'
+    +'IMMOBILE\nSuite '+bk.suite+'\nVia Mariano Stabile 124, Piano 3° · Palermo\n\n'
+    +'PERIODO\nCheck-in: '+fmt(bk.checkin)+' ore 14:00\n'
+    +'Check-out: '+fmt(bk.checkout)+' ore 10:00\n'
+    +'Durata: '+notti+' notti · N° ospiti: '+(bk.ospiti||2)+'\n\n'
+    +'CANONE\nTotale: € '+bk.importo+'\n\n'
+    +'CONDIZIONI\n'
+    +'1. Locazione turistica ai sensi art. 4 D.L. 50/2017.\n'
+    +'2. Check-in: presentare documento d\'identità valido.\n'
+    +'3. Animali non ammessi salvo accordo preventivo.\n'
+    +'4. Vietato fumare in tutti gli spazi interni.\n'
+    +'5. Silenzio dalle 22:00 alle 08:00.\n'
+    +'6. Il conduttore risponde dei danni all\'immobile.\n'
+    +'7. Cedolare secca 26% applicata.\n\n'
+    +'Palermo, '+new Date().toLocaleDateString('it-IT')+'\n\n'
+    +'_______________________________\nFirma conduttore';
+  document.getElementById('contratto-text').textContent = testo;
 
-function showSection(name){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.getElementById('page-'+name).classList.add('active');
-  window.scrollTo(0,0);
-}
-function backHome(){
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.getElementById('page-home').classList.add('active');
-}
-
-function handleUpload(input){
-  if(!input.files[0]) return;
-  document.getElementById('upload-confirm').style.display = 'block';
-  toast('✅ Documento caricato!');
+  // Abilita firma solo quando entrambe le checkbox sono spuntate
+  ['firma-check-1','firma-check-2'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', function(){
+      var ok = document.getElementById('firma-check-1').checked && document.getElementById('firma-check-2').checked;
+      var btn = document.getElementById('firma-btn');
+      btn.disabled = !ok;
+      btn.style.opacity = ok?'1':'0.5';
+      btn.style.cursor = ok?'pointer':'not-allowed';
+    });
+  });
 }
 
 function firmaContratto(){
-  toast('✍️ Firma registrata! Grazie.');
-  document.getElementById('badge-contratto').textContent = i18n[lang].contr_ok;
-  document.getElementById('badge-contratto').className = 'stato-badge badge-ok';
-  document.getElementById('dot-contratto').className = 'stato-dot dot-ok';
-}
-function copiaContratto2(){
-  var t = document.getElementById('contract-text').textContent;
-  if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('📋 Copiato!');});
-}
-function copyIBAN(){
-  var iban = bookingData.iban || 'IT00 X000 0000 0000 0000 0000 000';
-  if(navigator.clipboard) navigator.clipboard.writeText(iban).then(function(){toast('📋 IBAN copiato!');});
-}
-
-function initUI(){
-  var d = bookingData;
-  var t = i18n[lang];
-  // Hero
-  var nameEl = document.getElementById('hero-name');
-  if(nameEl) nameEl.textContent = d.guest || t.welcome;
-  var suiteEl = document.getElementById('hero-suite');
-  if(suiteEl) suiteEl.textContent = (d.suite ? 'Suite '+d.suite : 'Suite') + ' · 3° piano';
-
-  // Date soggiorno
-  var fmt = function(s){ return s ? new Date(s).toLocaleString(lang==='it'?'it-IT':'en-GB',{day:'2-digit',month:'short'}) : '—'; };
-  var ciEl = document.getElementById('ci-date'); if(ciEl) ciEl.textContent = fmt(d.checkin);
-  var coEl = document.getElementById('co-date'); if(coEl) coEl.textContent = fmt(d.checkout);
-
-  // Status badge
-  var now = new Date(); now.setHours(0,0,0,0);
-  var ci = d.checkin ? new Date(d.checkin) : null;
-  var co = d.checkout ? new Date(d.checkout) : null;
-  var statusEl = document.getElementById('stay-status');
-  if(statusEl && ci && co){
-    if(now < ci) statusEl.textContent = t.stay_future;
-    else if(now >= co) statusEl.textContent = t.stay_past;
-    else statusEl.textContent = t.stay_active;
-  }
-
-  // Smart lock orari
-  var lci = document.getElementById('lock-ci'); if(lci) lci.textContent = fmt(d.checkin) + ' · ore 14:00';
-  var lco = document.getElementById('lock-co'); if(lco) lco.textContent = fmt(d.checkout) + ' · ore 10:00';
-
-  // Stato prenotazione
-  var statiContr = {firmato:{cls:'badge-ok',txt:t.contr_ok,dot:'dot-ok'}, attesa:{cls:'badge-warn',txt:t.contr_wait,dot:'dot-warn'}, non_inviato:{cls:'badge-err',txt:t.contr_miss,dot:'dot-err'}};
-  var statiDoc   = {ok:{cls:'badge-ok',txt:t.doc_ok,dot:'dot-ok'}, da_verificare:{cls:'badge-warn',txt:t.doc_wait,dot:'dot-warn'}, mancante:{cls:'badge-err',txt:t.doc_miss,dot:'dot-err'}};
-  var statiPag   = {ok:{cls:'badge-ok',txt:t.pag_ok,dot:'dot-ok'}, mancante:{cls:'badge-warn',txt:t.pag_wait,dot:'dot-warn'}};
-
-  function setStato(dotId, badgeId, statiMap, key){
-    var s = statiMap[key] || statiMap[Object.keys(statiMap)[2]];
-    var dot = document.getElementById(dotId); if(dot){ dot.className='stato-dot '+s.dot; }
-    var badge = document.getElementById(badgeId); if(badge){ badge.textContent=s.txt; badge.className='stato-badge '+s.cls; }
-  }
-  setStato('dot-contratto','badge-contratto', statiContr, d.contratto||'non_inviato');
-  setStato('dot-doc','badge-doc', statiDoc, d.doc||'mancante');
-  setStato('dot-pag','badge-pag', statiPag, d.pagamento||'mancante');
-
-  // Badge tiles
-  if(document.getElementById('doc-badge')) document.getElementById('doc-badge').style.display = (d.doc==='mancante')?'flex':'none';
-  if(document.getElementById('contract-badge')) document.getElementById('contract-badge').style.display = (d.contratto!=='firmato')?'flex':'none';
-  if(document.getElementById('pay-badge')) document.getElementById('pay-badge').style.display = (d.pagamento!=='ok')?'flex':'none';
-
-  // Pagamento
-  var payAmtEl = document.getElementById('pay-amount'); if(payAmtEl) payAmtEl.textContent = d.importo ? '€ '+d.importo : '€ —';
-  var ppBtn = document.getElementById('paypal-btn');
-  if(ppBtn && d.paypal) ppBtn.href = d.paypal + (d.importo ? '/'+d.importo+'EUR' : '');
-  var payInfo = document.getElementById('pay-info');
-  if(payInfo && d.iban) payInfo.innerHTML = 'IBAN: <strong>'+d.iban+'</strong><br>Causale: Soggiorno Hermosa Home';
-
-  // WiFi per suite
-  var wifiEl = document.getElementById('wifi-name'); if(wifiEl && d.suite) wifiEl.textContent = 'HermosaHome_'+d.suite.replace('Tomasi di Lampedusa','Lampedusa');
-
-  // Contratto testo
-  var ctEl = document.getElementById('contract-text');
-  if(ctEl && d.guest){
-    var fmtL = function(s){ return s?new Date(s).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—'; };
-    ctEl.textContent = 'CONTRATTO DI LOCAZIONE TURISTICA\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n'
-      +'Locatore: Hermosa Home di Alessandra Trapani\nP.IVA: 07218170822\nVia Mariano Stabile 124, 3° · Palermo\n\n'
-      +'Conduttore: '+d.guest+'\n\n'
-      +'Immobile: Suite '+d.suite+'\nVia Mariano Stabile 124, Piano 3° · Palermo\n\n'
-      +'Check-in: '+fmtL(d.checkin)+' ore 14:00\nCheck-out: '+fmtL(d.checkout)+' ore 10:00\n'
-      +'Importo: € '+(d.importo||'—')+'\n\n'
-      +'CONDIZIONI\n1. Locazione turistica ai sensi art. 4 D.L. 50/2017\n2. Presentare documento d\'identità al check-in\n3. Vietato fumare all\'interno\n4. Silenzio dalle 22:00 alle 08:00\n5. Checkout entro le 10:00\n\n'
-      +'Palermo, '+new Date().toLocaleDateString('it-IT')+'\n\n'
-      +'Firma conduttore: ___________________';
-  }
-}
-
-// ── LEGGI PARAMETRO BOOKING DALL'URL ──
-(function(){
-  var params = new URLSearchParams(window.location.search);
-  var bookingParam = params.get('booking');
-  if(bookingParam){
-    // Cerca nei dati del gestionale salvati in localStorage
-    try{
-      var bookings = JSON.parse(localStorage.getItem('hh_bookings') || '[]');
-      var cfg = JSON.parse(localStorage.getItem('hh_cfg') || '{}');
-      // Estrai ID dal parametro HH-{id}
-      var bookingId = bookingParam.replace('HH-','');
-      var bk = bookings.find(function(b){ return b.id === bookingId; });
-      if(bk){
-        bookingData = Object.assign({}, bk, {
-          paypal: cfg.paypal || 'https://paypal.me/HERMOSAHOME',
-          iban: cfg.iban || 'IT00 X000 0000 0000 0000 0000 000'
-        });
-      } else {
-        // Demo fallback
-        bookingData = {guest:'Ospite',suite:'Suite',checkin:'',checkout:'',importo:0,
-          contratto:'non_inviato',doc:'mancante',pagamento:'mancante',
-          paypal:'https://paypal.me/HERMOSAHOME', iban: cfg.iban||''};
-      }
-    } catch(e){
-      bookingData = {guest:'Ospite',suite:'Suite',checkin:'',checkout:'',importo:0,
-        contratto:'non_inviato',doc:'mancante',pagamento:'mancante'};
+  if(!bookingData){toast('⚠️ Nessuna prenotazione');return;}
+  // Aggiorna localStorage
+  try{
+    var all=JSON.parse(localStorage.getItem('hh_bookings')||'[]');
+    var idx=all.findIndex(function(b){return b.id===bookingData.id;});
+    if(idx>-1){
+      all[idx].contratto='firmato';
+      localStorage.setItem('hh_bookings',JSON.stringify(all));
+      bookingData.contratto='firmato';
     }
-  } else {
-    // Nessun parametro — mostra demo
-    bookingData = {guest:'Benvenuto',suite:'Florio',
-      checkin: new Date().toISOString().split('T')[0],
-      checkout: new Date(Date.now()+5*86400000).toISOString().split('T')[0],
-      importo:500, contratto:'attesa', doc:'mancante', pagamento:'mancante',
-      paypal:'https://paypal.me/HERMOSAHOME', iban:''};
-  }
+  }catch(e){}
+  // Aggiorna UI
+  document.getElementById('contratto-firmato-msg').style.display='block';
+  document.getElementById('firma-data-label').textContent='Firmato da '+bookingData.guest+' · '+new Date().toLocaleDateString('it-IT');
+  document.getElementById('contratto-action-area').style.display='none';
+  document.getElementById('contratto-badge').style.display='none';
+  // Aggiorna stato card
   initUI();
-})();
+  toast('✍️ Contratto firmato digitalmente!');
+}
+
+function copiaContratto(){
+  var testo=document.getElementById('contratto-text').textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(testo).then(function(){toast('📋 Testo copiato!');});}
+  else toast('📋 Copia il testo manualmente');
+}
+
+// ── DOCUMENTI ──
+function handleDocUpload(input){
+  var file=input.files[0];
+  if(!file)return;
+  if(file.size>5*1024*1024){toast('⚠️ File troppo grande (max 5MB)');return;}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var preview=document.getElementById('doc-preview');
+    if(file.type.startsWith('image/')){
+      preview.src=e.target.result;
+      preview.style.display='block';
+    }
+    document.getElementById('upload-icon').textContent='✅';
+    document.getElementById('upload-zone').classList.add('has-file');
+    document.getElementById('doc-save-btn').style.display='flex';
+    // Salva temporaneamente
+    window._docTemp={dataUrl:e.target.result,nome:file.name,tipo:document.getElementById('doc-tipo').value,ext:file.name.split('.').pop()};
+  };
+  reader.readAsDataURL(file);
+}
+
+function salvaDocumento(){
+  if(!bookingData||!window._docTemp){toast('⚠️ Seleziona un file prima');return;}
+  try{
+    // Salva documento
+    var docData=JSON.stringify({
+      dataUrl:window._docTemp.dataUrl,
+      nome:bookingData.guest.replace(/\s/g,'_')+'_'+window._docTemp.tipo.replace(/\s/g,'_'),
+      tipo:window._docTemp.tipo,
+      ext:window._docTemp.ext,
+      data:new Date().toLocaleDateString('it-IT'),
+      bookingId:bookingData.id
+    });
+    localStorage.setItem('hh_doc_'+bookingData.id,docData);
+    // Aggiorna booking
+    var all=JSON.parse(localStorage.getItem('hh_bookings')||'[]');
+    var idx=all.findIndex(function(b){return b.id===bookingData.id;});
+    if(idx>-1){all[idx].doc='da_verificare';localStorage.setItem('hh_bookings',JSON.stringify(all));bookingData.doc='da_verificare';}
+    // Aggiorna UI
+    document.getElementById('doc-status-ok').style.display='block';
+    document.getElementById('doc-upload-area').style.display='none';
+    document.getElementById('doc-status-tipo').textContent='⏳ In attesa di verifica da parte del gestore';
+    document.getElementById('docs-badge').style.display='none';
+    initUI();
+    toast('✅ Documento inviato al gestore!');
+  }catch(e){toast('⚠️ Errore salvataggio: '+e.message);}
+}
+
+// ── PAGAMENTO ──
+function apriPayPal(){
+  if(!bookingData)return;
+  var url=CFG_OSPITE.paypal+'/'+( bookingData.importo||0)+'EUR';
+  window.open(url,'_blank');
+  toast('💙 PayPal aperto ✓');
+}
+
+function copiaIBAN(){
+  var iban=document.getElementById('iban-val').textContent;
+  if(navigator.clipboard){navigator.clipboard.writeText(iban).then(function(){toast('📋 IBAN copiato!');});}
+  else toast('📋 Copia manualmente: '+iban);
+}
+
+// ── SMART LOCK ──
+function apriPorta(tipo){
+  var url='https://chiavistello.it/open/HH-PA-001';
+  window.open(url,'_blank');
+  toast(tipo==='portone'?'🚪 Portone aperto!':'🚪 Porta suite aperta!');
+}
+
+// ── NAVIGAZIONE ──
+function showSection(name){
+  document.getElementById('page-home').style.display='none';
+  ['lock','docs','contratto','pagamento','info','mappa'].forEach(function(s){
+    var el=document.getElementById('page-'+s);
+    if(el) el.classList.remove('active');
+  });
+  var target=document.getElementById('page-'+name);
+  if(target) target.classList.add('active');
+}
+
+function backHome(){
+  document.getElementById('page-home').style.display='block';
+  ['lock','docs','contratto','pagamento','info','mappa'].forEach(function(s){
+    var el=document.getElementById('page-'+s);
+    if(el) el.classList.remove('active');
+  });
+}
+
+// ── LINGUA ──
+function setLang(lang,btn){
+  currentLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  document.querySelectorAll('[data-it]').forEach(function(el){
+    var txt=lang==='en'?el.getAttribute('data-en'):el.getAttribute('data-it');
+    if(txt) el.textContent=txt;
+  });
+}
+
+// ── TOAST ──
+var _toastTimer;
+function toast(msg){
+  var el=document.getElementById('toast');
+  if(!el)return;
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(function(){el.classList.remove('show');},2800);
+}
 </script>
 </body>
 </html>
