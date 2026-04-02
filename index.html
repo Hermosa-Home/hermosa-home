@@ -404,16 +404,30 @@ var CFG_OSPITE = {
 };
 var currentLang = 'it';
 
-// Leggi parametro URL
+// Leggi parametro URL — supporta sia localStorage che dati embedded nell'URL
 function getBookingFromURL() {
   var params = new URLSearchParams(window.location.search);
   var bkParam = params.get('booking'); // es: HH-b1774465696429
-  if (!bkParam) return null;
-  var id = bkParam.replace('HH-','');
-  try {
-    var all = JSON.parse(localStorage.getItem('hh_bookings') || '[]');
-    return all.find(function(b){ return b.id === id; }) || null;
-  } catch(e){ return null; }
+  var dParam = params.get('d');        // dati booking codificati in base64
+
+  // 1) Prova localStorage (stesso browser del gestionale)
+  if (bkParam) {
+    var id = bkParam.replace('HH-','');
+    try {
+      var all = JSON.parse(localStorage.getItem('hh_bookings') || '[]');
+      var found = all.find(function(b){ return b.id === id; });
+      if (found) return found;
+    } catch(e){}
+  }
+
+  // 2) Fallback: decodifica dati dal parametro ?d= (funziona su qualsiasi device/browser)
+  if (dParam) {
+    try {
+      return JSON.parse(decodeURIComponent(atob(dParam)));
+    } catch(e){}
+  }
+
+  return null;
 }
 
 // ── INIT ──
@@ -524,43 +538,54 @@ function populateContratto(bk){
     +'4. Vietato fumare in tutti gli spazi interni.\n'
     +'5. Silenzio dalle 22:00 alle 08:00.\n'
     +'6. Il conduttore risponde dei danni all\'immobile.\n'
-    +'7. Cedolare secca 26% applicata.\n\n'
+    +'7. Cedolare secca 26% applicata.\n'
+    +'8. CARTA DI CREDITO A GARANZIA: Il conduttore fornisce i dati di una carta di credito valida a garanzia di eventuali danni o consumi extra. La carta non viene addebitata salvo inadempimenti documentati.\n'
+    +'9. In caso di danni accertati, il locatore ha facoltà di addebitare il relativo importo sulla carta fornita, con preavviso scritto.\n\n'
     +'Palermo, '+new Date().toLocaleDateString('it-IT')+'\n\n'
     +'_______________________________\nFirma conduttore';
   document.getElementById('contratto-text').textContent = testo;
 
-  // Abilita firma solo quando entrambe le checkbox sono spuntate
-  ['firma-check-1','firma-check-2'].forEach(function(id){
-    document.getElementById(id).addEventListener('change', function(){
-      var ok = document.getElementById('firma-check-1').checked && document.getElementById('firma-check-2').checked;
-      var btn = document.getElementById('firma-btn');
-      btn.disabled = !ok;
-      btn.style.opacity = ok?'1':'0.5';
-      btn.style.cursor = ok?'pointer':'not-allowed';
-    });
-  });
+  // Abilita firma quando entrambe le checkbox sono spuntate
+  function checkFirma(){
+    var ok = document.getElementById('firma-check-1').checked && document.getElementById('firma-check-2').checked;
+    var btn = document.getElementById('firma-btn');
+    btn.disabled = !ok;
+    btn.style.opacity = ok?'1':'0.5';
+    btn.style.cursor = ok?'pointer':'not-allowed';
+  }
+  document.getElementById('firma-check-1').addEventListener('change', checkFirma);
+  document.getElementById('firma-check-2').addEventListener('change', checkFirma);
+  // Controlla stato iniziale
+  checkFirma();
 }
 
 function firmaContratto(){
-  if(!bookingData){toast('⚠️ Nessuna prenotazione');return;}
-  // Aggiorna localStorage
+  if(!bookingData){ toast('⚠️ Dati prenotazione non trovati'); return; }
+  var dataFirma = new Date().toLocaleDateString('it-IT');
+  // Salva firma in localStorage
   try{
     var all=JSON.parse(localStorage.getItem('hh_bookings')||'[]');
     var idx=all.findIndex(function(b){return b.id===bookingData.id;});
     if(idx>-1){
       all[idx].contratto='firmato';
       localStorage.setItem('hh_bookings',JSON.stringify(all));
-      bookingData.contratto='firmato';
     }
-  }catch(e){}
+    // Salva anche come chiave dedicata (per cross-tab sync)
+    localStorage.setItem('hh_firma_'+bookingData.id, JSON.stringify({firmato:true,data:dataFirma,guest:bookingData.guest}));
+    bookingData.contratto='firmato';
+  }catch(e){ console.log('localStorage non disponibile, firma salvata localmente'); }
   // Aggiorna UI
   document.getElementById('contratto-firmato-msg').style.display='block';
-  document.getElementById('firma-data-label').textContent='Firmato da '+bookingData.guest+' · '+new Date().toLocaleDateString('it-IT');
+  document.getElementById('firma-data-label').textContent='Firmato da '+bookingData.guest+' · '+dataFirma;
   document.getElementById('contratto-action-area').style.display='none';
   document.getElementById('contratto-badge').style.display='none';
-  // Aggiorna stato card
   initUI();
   toast('✍️ Contratto firmato digitalmente!');
+  // Notifica gestore via WhatsApp
+  setTimeout(function(){
+    var msg='✍️ Firma contratto ricevuta!\n\nOspite: '+bookingData.guest+'\nSuite: '+bookingData.suite+'\nData firma: '+dataFirma+'\n\nHermosa Home';
+    window.open('https://wa.me/'+CFG_OSPITE.whatsapp+'?text='+encodeURIComponent(msg),'_blank');
+  }, 1000);
 }
 
 function copiaContratto(){

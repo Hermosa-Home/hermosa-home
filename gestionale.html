@@ -769,32 +769,9 @@ function saveBooking(){
     suite:suiteKey,ospiti:parseInt(ospiti)||2,checkin:checkin,checkout:checkout,
     importo:importo,source:source,contratto:'non_inviato',doc:'mancante',pagamento:'mancante'};
   bookings.push(newB); saveBookings(); aggiornaBadge(); aggiornaSelectOspiti();
-  // Tabella prenotazioni
-  var tbody=document.querySelector('#panel-prenotazioni table tbody');
-  if(tbody){
-    var tr=document.createElement('tr');
-    var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+sc.bg+';margin-right:5px;border:1px solid '+sc.color+';"></span>';
-    tr.innerHTML='<td>'+dot+suiteKey+'</td>'
-      +'<td><strong>'+guestName+'</strong><br><span style="font-size:10px;color:var(--soft);">'+phone+'</span></td>'
-      +'<td>'+fmt(checkin)+' 14:00</td><td>'+fmt(checkout)+' 10:00</td>'
-      +'<td><span class="badge bo">⏳ Da inviare</span></td><td><span class="badge br">⚠️</span></td>'
-      +'<td><span class="badge br">€ '+importo+' ✗</span></td>'
-      +'<td><button class="btn btn-ghost btn-sm" onclick="openDettaglio(\''+newB.id+'\')">👁</button>'
-      +'<button class="btn btn-ghost btn-sm" onclick="openNotificaOspite(\''+newB.id+'\')">🔔</button></td>';
-    tbody.appendChild(tr);
-  }
-  // Dashboard
-  var biList=document.querySelector('#panel-dashboard .card-body');
-  if(biList){
-    var div=document.createElement('div'); div.className='booking-item';
-    div.innerHTML='<div class="bi-apt" style="background:'+sc.bg+';color:'+sc.color+';">'+sc.letter+'</div>'
-      +'<div class="bi-info"><div class="bi-guest">'+guestName+'</div>'
-      +'<div class="bi-dates">Suite '+suiteKey+' · '+fmt(checkin)+' → '+fmt(checkout)+'</div></div>'
-      +'<div class="bi-meta"><div class="bi-price">€ '+importo+'</div><span class="badge bo">Nuovo</span></div>';
-    biList.appendChild(div);
-  }
-  // Automazioni WA con link app personalizzato
-  var appLink=APP_URL+'?booking=HH-'+newB.id;
+  renderPrenotazioni(); renderContratti(); renderDocumenti(); renderAlloggiati(); renderDashboard();
+  // Automazioni WA con link app personalizzato + dati embedded per mobile
+  var appLink=APP_URL+'?booking=HH-'+newB.id+'&d='+codificaBookingPerURL(newB);
   var ac=document.getElementById('mb-auto-contratto');
   var ad=document.getElementById('mb-auto-doc');
   var ap=document.getElementById('mb-auto-pag');
@@ -1268,11 +1245,189 @@ window.addEventListener('storage', function(e){
 
 // ── RICARICA DATI DA LOCALSTORAGE ──
 function ricaricaDati(){
+  var aggiornamenti=0;
   try{
     var b=JSON.parse(localStorage.getItem('hh_bookings'));
-    if(Array.isArray(b)&&b.length){ bookings=b; renderAll(); aggiornaCalendario(); notify('🔄 Dati ricaricati ✓');}
-    else notify('ℹ️ Nessun aggiornamento disponibile');
-  }catch(e){ notify('⚠️ Errore ricarica dati');}
+    if(Array.isArray(b)&&b.length){ bookings=b; }
+  }catch(e){}
+  // Controlla firme ricevute dall'app ospite
+  bookings.forEach(function(bk){
+    var firmaKey='hh_firma_'+bk.id;
+    try{
+      var firma=JSON.parse(localStorage.getItem(firmaKey));
+      if(firma&&firma.firmato&&bk.contratto!=='firmato'){
+        bk.contratto='firmato'; aggiornamenti++;
+      }
+    }catch(e){}
+    var docKey='hh_doc_'+bk.id;
+    try{
+      var doc=localStorage.getItem(docKey);
+      if(doc&&bk.doc==='mancante'){
+        bk.doc='da_verificare'; aggiornamenti++;
+      }
+    }catch(e){}
+  });
+  if(aggiornamenti>0){ saveBookings(); }
+  renderAll();
+  aggiornaCalendario();
+  notify(aggiornamenti>0?'🔄 '+aggiornamenti+' aggiornamento/i dall\'app ospite':'🔄 Dati ricaricati ✓');
+}
+
+// ── RENDER DOCUMENTI ──
+function renderDocumenti(){
+  var tbody=document.getElementById('doc-table-body');
+  if(!tbody) return;
+  tbody.innerHTML=bookings.map(function(bk){
+    var docData=null;
+    try{ docData=JSON.parse(localStorage.getItem('hh_doc_'+bk.id)); }catch(e){}
+    var tipo=docData?docData.tipo:(bk.doc==='ok'?'Documento verificato':'—');
+    var dataCaricato=docData?docData.data:'—';
+    var statoBadge, azioni;
+    if(bk.doc==='ok'){
+      statoBadge='<span class="badge bg">Verificato ✓</span>';
+      azioni='<button class="btn btn-ghost btn-sm" onclick="previewDocumento(\''+bk.id+'\')">👁 Vedi</button> <button class="btn btn-ghost btn-sm" onclick="scaricaDocumentoOspite(\''+bk.id+'\')">📥</button> <button class="btn btn-ghost btn-sm" onclick="salvaSuDriveDocumento(\''+bk.id+'\')">☁️</button>';
+    } else if(bk.doc==='da_verificare'&&docData){
+      statoBadge='<span class="badge bo">Da verificare</span>';
+      azioni='<button class="btn btn-success btn-sm" onclick="approvaDoc(\''+bk.id+'\')">✓ Verifica</button> <button class="btn btn-ghost btn-sm" onclick="previewDocumento(\''+bk.id+'\')">👁</button> <button class="btn btn-ghost btn-sm" onclick="scaricaDocumentoOspite(\''+bk.id+'\')">📥</button>';
+    } else {
+      statoBadge='<span class="badge br">Mancante</span>';
+      azioni='<button class="btn btn-primary btn-sm" onclick="openModal(\'modal-doc-invia\')">📤 Sollecita</button>';
+    }
+    return '<tr>'+
+      '<td><strong>'+bk.guest+'</strong></td>'+
+      '<td>'+tipo+'</td>'+
+      '<td>'+bk.suite+'</td>'+
+      '<td>'+dataCaricato+'</td>'+
+      '<td>'+statoBadge+'</td>'+
+      '<td>'+azioni+'</td>'+
+    '</tr>';
+  }).join('');
+
+  // Aggiorna select ospite upload manuale
+  var sel=document.getElementById('doc-ospite-sel');
+  if(sel) sel.innerHTML=bookings.filter(function(bk){return bk.doc!=='ok';}).map(function(bk){
+    return '<option value="'+bk.id+'">'+bk.guest+' — Suite '+bk.suite+'</option>';
+  }).join('');
+}
+
+function approvaDoc(bookingId){
+  aggiornaStatoBooking(bookingId,'doc','ok');
+  renderDocumenti();
+  renderAlloggiati();
+  notify('✅ Documento verificato e approvato ✓');
+}
+
+function previewDocumento(bookingId){
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  var docData=null;
+  try{ docData=JSON.parse(localStorage.getItem('hh_doc_'+bookingId)); }catch(e){}
+  if(!docData){ notify('⚠️ Documento non ancora caricato dall\'ospite'); return; }
+  document.getElementById('doc-preview-title').textContent=(bk?bk.guest:'Ospite')+' — Documento identità';
+  var cnt=document.getElementById('doc-preview-content');
+  if(docData.dataUrl&&docData.dataUrl.startsWith('data:image')){
+    cnt.innerHTML='<img src="'+docData.dataUrl+'" style="max-width:100%;border-radius:8px;">';
+  } else {
+    cnt.innerHTML='<div style="font-size:48px;margin-bottom:10px;">📄</div><div>'+docData.tipo+'</div>';
+  }
+  document.getElementById('doc-preview-info').innerHTML='<strong>Tipo:</strong> '+docData.tipo+'<br><strong>Caricato:</strong> '+docData.data+'<br><strong>Ospite:</strong> '+(bk?bk.guest:'—');
+  window._previewDocBookingId=bookingId;
+  openModal('modal-doc-preview');
+}
+
+function verificaDocFromPreview(){
+  if(window._previewDocBookingId) approvaDoc(window._previewDocBookingId);
+  closeModal('modal-doc-preview');
+}
+
+// ── RENDER ALLOGGIATI ──
+var alloggiatiStato={};  // bookingId -> 'inviato'|'da_inviare'|'bloccato'
+
+function renderAlloggiati(){
+  var tbody=document.getElementById('alloggiati-tbody');
+  var cards=document.getElementById('alloggiati-cards');
+
+  var rows=bookings.map(function(bk){
+    var docData=null;
+    try{ docData=JSON.parse(localStorage.getItem('hh_doc_'+bk.id)); }catch(e){}
+    var docInfo=docData?docData.tipo+' ('+bk.guest+')':'⚠️ Mancante';
+    var stato=alloggiatiStato[bk.id]||(bk.doc==='ok'?'inviato':bk.doc==='da_verificare'?'da_inviare':'bloccato');
+    var statoBadge,azione;
+    if(stato==='inviato'){
+      statoBadge='<span style="background:#E6F4EA;color:#3A7A4A;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">✅ Inviato</span>';
+      azione='<button class="btn btn-ghost btn-sm" onclick="notify(\'Ricevuta PS\')">📥 Ricevuta</button>';
+    } else if(stato==='da_inviare'){
+      statoBadge='<span style="background:#FFF0E0;color:#C07820;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">⏳ Da inviare</span>';
+      azione='<button class="btn btn-primary btn-sm" onclick="inviaAlloggiatiPS(\''+bk.id+'\')">📤 Invia ora</button>';
+    } else {
+      statoBadge='<span style="background:#FDECEA;color:#B84040;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">❌ Bloccato</span>';
+      azione='<button class="btn btn-outline btn-sm" onclick="nav(\'documenti\',null,\'Documenti\')">📋 Richiedi doc</button>';
+    }
+    var p='padding:11px 14px;font-size:13px;';
+    return '<tr style="border-bottom:1px solid var(--sand);">'+
+      '<td style="'+p+'"><strong>'+bk.guest+'</strong><br><span style="font-size:11px;color:var(--soft);">'+(bk.source||'IT')+' · '+fmtDate(bk.checkin)+'</span></td>'+
+      '<td style="'+p+'">'+bk.suite.replace('Tomasi di Lampedusa','Lampedusa')+'</td>'+
+      '<td style="'+p+'">'+fmtDateL(bk.checkin)+'</td>'+
+      '<td style="'+p+'">'+docInfo+'</td>'+
+      '<td style="'+p+'">'+statoBadge+'</td>'+
+      '<td style="'+p+'">'+azione+'</td>'+
+    '</tr>';
+  }).join('');
+  if(tbody) tbody.innerHTML=rows;
+
+  // Cards in documenti panel
+  if(cards) cards.innerHTML=bookings.map(function(bk){
+    var stato=alloggiatiStato[bk.id]||(bk.doc==='ok'?'inviato':bk.doc==='da_verificare'?'da_inviare':'bloccato');
+    var icon=stato==='inviato'?'✅':stato==='da_inviare'?'⏳':'❌';
+    var badgeCls=stato==='inviato'?'bg':stato==='da_inviare'?'bo':'br';
+    var subText=stato==='inviato'?'Registrato':stato==='da_inviare'?'In attesa verifica':'Documento mancante';
+    var btn=stato==='da_inviare'?'<button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="inviaAlloggiatiPS(\''+bk.id+'\')">Invia ora</button>':'<span class="badge '+badgeCls+'" style="margin-top:8px;">'+subText+'</span>';
+    return '<div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">'+
+      '<div style="font-size:28px;margin-bottom:6px;">'+icon+'</div>'+
+      '<div style="font-size:13px;font-weight:600;color:var(--deep);">'+bk.guest+'</div>'+
+      '<div style="font-size:11px;color:var(--soft);margin-top:3px;">'+subText+'</div>'+
+      btn+'</div>';
+  }).join('');
+}
+
+function inviaAlloggiatiPS(bookingId){
+  alloggiatiStato[bookingId]='inviato';
+  renderAlloggiati();
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  notify('📤 '+(bk?bk.guest:bookingId)+' inviato al Portale Alloggiati PS ✓');
+  window.open('https://alloggiatiweb.poliziadistato.it','_blank');
+}
+
+// ── EXTEND renderAll ──
+var _origRenderAll = (typeof renderAll === 'function') ? renderAll : null;
+renderAll = function(){
+  renderPrenotazioni();
+  renderContratti();
+  renderDashboard();
+  renderDocumenti();
+  renderAlloggiati();
+  aggiornaBadge();
+  aggiornaSelectOspiti();
+};
+
+// ── CARTA CREDITO IN CONTRATTO ──
+// Override generaTestoContratto per aggiungere la clausola carta credito
+var _origGeneraTestoContratto = generaTestoContratto;
+generaTestoContratto = function(bk){
+  var testo = _origGeneraTestoContratto(bk);
+  // Aggiungi clausola carta credito dopo le condizioni
+  var insert = '8. GARANZIA: Il conduttore fornisce i dati di una carta di credito valida a garanzia di eventuali danni o extra. La carta non viene addebitata salvo inadempimenti.\n9. In caso di danni all\'immobile o agli arredi, il locatore ha facoltà di addebitare l\'importo sulla carta fornita.\n\n';
+  testo = testo.replace('Palermo, ', insert + 'Palermo, ');
+  return testo;
+};
+
+// ── ENCODE BOOKING IN URL per app ospite mobile ──
+function codificaBookingPerURL(bk){
+  try{
+    var payload={id:bk.id,guest:bk.guest,suite:bk.suite,checkin:bk.checkin,checkout:bk.checkout,
+      importo:bk.importo,phone:bk.phone||'',email:bk.email||'',ospiti:bk.ospiti||2,
+      contratto:bk.contratto,doc:bk.doc,pagamento:bk.pagamento,source:bk.source||'diretto'};
+    return btoa(encodeURIComponent(JSON.stringify(payload)));
+  }catch(e){return '';}
 }
 
 // MAP
@@ -1783,37 +1938,7 @@ function initMap(){
         <div class="table-wrap">
           <table>
             <thead><tr><th>Ospite</th><th>Suite</th><th>Soggiorno</th><th>Stato</th><th>Azioni</th></tr></thead>
-            <tbody id="contratti-tbody">
-              <tr>
-                <td><strong>Marco Rossi</strong></td><td>Tomasi di Lampedusa</td><td>7–12 mar</td>
-                <td><span class="badge bg">✍️ Firmato · 07/03</span></td>
-                <td>
-                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b1')">👁 Vedi</button>
-                  <button class="btn btn-ghost btn-sm" onclick="notify('Download PDF...')">📥</button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Sophie Müller</strong></td><td>Florio</td><td>8–15 mar</td>
-                <td><span class="badge bo">⏳ Inviato · in attesa</span></td>
-                <td>
-                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b2')">👁 Vedi</button>
-                  <button class="btn btn-outline btn-sm" onclick="sollecitaContratto('b2')">📤 Sollecita</button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Luca Ferrari</strong></td><td>Stabile</td><td>10–13 mar</td>
-                <td><span class="badge bg">✍️ Firmato · 06/03</span></td>
-                <td>
-                  <button class="btn btn-ghost btn-sm" onclick="visualizzaContratto('b3')">👁 Vedi</button>
-                  <button class="btn btn-ghost btn-sm" onclick="notify('Download PDF...')">📥</button>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Anna Bianchi</strong></td><td>Tomasi di Lampedusa</td><td>14–18 mar</td>
-                <td><span class="badge br">⚠️ Non inviato</span></td>
-                <td><button class="btn btn-primary btn-sm" onclick="openModal('modal-contratto')">📄 Invia ora</button></td>
-              </tr>
-            </tbody>
+            <tbody id="contratti-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -1832,42 +1957,7 @@ function initMap(){
           <div class="table-wrap">
             <table>
               <thead><tr><th>Ospite</th><th>Tipo</th><th>Suite</th><th>Caricato</th><th>Stato</th><th>Azioni</th></tr></thead>
-              <tbody id="doc-table-body">
-                <tr id="doc-row-marco">
-                  <td><strong>Marco Rossi</strong></td>
-                  <td>🪪 Carta d'identità</td>
-                  <td>Tomasi di Lampedusa</td>
-                  <td>06/03/2026</td>
-                  <td><span class="badge bg">Verificato ✓</span></td>
-                  <td>
-                    <button class="btn btn-ghost btn-sm" onclick="openDocPreview('marco')">👁 Vedi</button>
-                    <button class="btn btn-ghost btn-sm" onclick="downloadDoc('Marco Rossi')">📥</button>
-                  </td>
-                </tr>
-                <tr id="doc-row-sophie">
-                  <td><strong>Sophie Müller</strong></td>
-                  <td>🛂 Passaporto</td>
-                  <td>Florio</td>
-                  <td>07/03/2026</td>
-                  <td id="sophie-badge"><span class="badge bo">Da verificare</span></td>
-                  <td>
-                    <button class="btn btn-success btn-sm" onclick="verificaDoc('sophie')">✓ Verifica</button>
-                    <button class="btn btn-ghost btn-sm" onclick="openDocPreview('sophie')">👁</button>
-                    <button class="btn btn-ghost btn-sm" onclick="downloadDoc('Sophie Müller')">📥</button>
-                  </td>
-                </tr>
-                <tr id="doc-row-luca">
-                  <td><strong>Luca Ferrari</strong></td>
-                  <td id="luca-tipo">—</td>
-                  <td>Stabile</td>
-                  <td id="luca-data">—</td>
-                  <td id="luca-badge"><span class="badge br">Mancante</span></td>
-                  <td>
-                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-doc-invia')">📤 Sollecita</button>
-                    <button class="btn btn-ghost btn-sm" id="luca-upload-btn" style="display:none;" onclick="openDocPreview('luca')">👁</button>
-                  </td>
-                </tr>
-              </tbody>
+              <tbody id="doc-table-body"></tbody>
             </table>
           </div>
         </div>
@@ -1921,31 +2011,14 @@ function initMap(){
 
       </div>
 
-      <!-- PORTALE ALLOGGIATI -->
+            <!-- PORTALE ALLOGGIATI dinamico -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">🏛 Portale Alloggiati — Polizia di Stato</div>
           <a href="https://alloggiatiweb.poliziadistato.it" target="_blank" class="btn btn-outline btn-sm">Apri portale ↗</a>
         </div>
-        <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-          <div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">
-            <div style="font-size:28px;margin-bottom:6px;">✅</div>
-            <div style="font-size:13px;font-weight:600;color:var(--deep);">Marco Rossi</div>
-            <div style="font-size:11px;color:var(--soft);margin-top:3px;">Inviato · 06/03</div>
-            <span class="badge bg" style="margin-top:8px;">Registrato</span>
-          </div>
-          <div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">
-            <div style="font-size:28px;margin-bottom:6px;">⏳</div>
-            <div style="font-size:13px;font-weight:600;color:var(--deep);">Sophie Müller</div>
-            <div style="font-size:11px;color:var(--soft);margin-top:3px;">In attesa verifica</div>
-            <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="inviaAlloggiati('Sophie Müller')">Invia ora</button>
-          </div>
-          <div style="background:var(--sand);border-radius:10px;padding:14px;text-align:center;">
-            <div style="font-size:28px;margin-bottom:6px;">❌</div>
-            <div style="font-size:13px;font-weight:600;color:var(--deep);">Luca Ferrari</div>
-            <div style="font-size:11px;color:var(--soft);margin-top:3px;">Documento mancante</div>
-            <span class="badge br" style="margin-top:8px;">Da completare</span>
-          </div>
+        <div class="card-body">
+          <div id="alloggiati-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;"></div>
         </div>
       </div>
 
@@ -2272,32 +2345,7 @@ function initMap(){
               <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Stato PS</th>
               <th style="padding:9px 14px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--soft);">Azione</th>
             </tr></thead>
-            <tbody>
-              <tr style="border-bottom:1px solid var(--sand);">
-                <td style="padding:11px 14px;font-size:13px;"><strong>Marco Rossi</strong><br><span style="font-size:11px;color:var(--soft);">IT · 15/03/1985</span></td>
-                <td style="padding:11px 14px;font-size:13px;">Lampedusa</td>
-                <td style="padding:11px 14px;font-size:13px;">07/03/2026</td>
-                <td style="padding:11px 14px;font-size:13px;">🪪 CI IT-AB1234</td>
-                <td style="padding:11px 14px;"><span style="background:#E6F4EA;color:#3A7A4A;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">✅ Inviato</span></td>
-                <td style="padding:11px 14px;"><button class="btn btn-ghost btn-sm" onclick="notify('Download ricevuta PS ✓')">📥 Ricevuta</button></td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--sand);">
-                <td style="padding:11px 14px;font-size:13px;"><strong>Sophie Müller</strong><br><span style="font-size:11px;color:var(--soft);">DE · 22/07/1990</span></td>
-                <td style="padding:11px 14px;font-size:13px;">Florio</td>
-                <td style="padding:11px 14px;font-size:13px;">08/03/2026</td>
-                <td style="padding:11px 14px;font-size:13px;">🛂 Passaporto DE-XX9876</td>
-                <td style="padding:11px 14px;"><span style="background:#FFF0E0;color:#C07820;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">⏳ Da inviare</span></td>
-                <td style="padding:11px 14px;"><button class="btn btn-primary btn-sm" onclick="inviaAlloggiati('Sophie Müller')">📤 Invia ora</button></td>
-              </tr>
-              <tr>
-                <td style="padding:11px 14px;font-size:13px;"><strong>Luca Ferrari</strong><br><span style="font-size:11px;color:var(--soft);">IT</span></td>
-                <td style="padding:11px 14px;font-size:13px;">Stabile</td>
-                <td style="padding:11px 14px;font-size:13px;">10/03/2026</td>
-                <td style="padding:11px 14px;font-size:13px;color:var(--danger);">⚠️ Mancante</td>
-                <td style="padding:11px 14px;"><span style="background:#FDECEA;color:#B84040;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;">❌ Bloccato</span></td>
-                <td style="padding:11px 14px;"><button class="btn btn-outline btn-sm" onclick="nav('documenti',null,'Documenti')">📋 Richiedi doc</button></td>
-              </tr>
-            </tbody>
+            <tbody id="alloggiati-tbody"></tbody>
           </table>
         </div>
       </div>
