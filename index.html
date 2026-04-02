@@ -595,51 +595,137 @@ function copiaContratto(){
 }
 
 // ── DOCUMENTI ──
+// ── COMPRIMI IMMAGINE ──
+function comprimiImmagine(dataUrl, maxW, maxH, qualita, callback){
+  var img=new Image();
+  img.onload=function(){
+    var canvas=document.createElement('canvas');
+    var ratio=Math.min(maxW/img.width, maxH/img.height, 1);
+    canvas.width=Math.round(img.width*ratio);
+    canvas.height=Math.round(img.height*ratio);
+    var ctx=canvas.getContext('2d');
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    callback(canvas.toDataURL('image/jpeg', qualita));
+  };
+  img.onerror=function(){ callback(dataUrl); }; // fallback no-op
+  img.src=dataUrl;
+}
+
 function handleDocUpload(input){
   var file=input.files[0];
   if(!file)return;
-  if(file.size>5*1024*1024){toast('⚠️ File troppo grande (max 5MB)');return;}
+  if(file.size>10*1024*1024){toast('⚠️ File troppo grande (max 10MB)');return;}
+  document.getElementById('upload-icon').textContent='⏳';
   var reader=new FileReader();
   reader.onload=function(e){
-    var preview=document.getElementById('doc-preview');
+    var tipo=document.getElementById('doc-tipo').value;
     if(file.type.startsWith('image/')){
-      preview.src=e.target.result;
-      preview.style.display='block';
+      // Comprimi subito a max 800x1000 q=0.65
+      comprimiImmagine(e.target.result,800,1000,0.65,function(compressed){
+        var preview=document.getElementById('doc-preview');
+        preview.src=compressed;
+        preview.style.display='block';
+        document.getElementById('upload-icon').textContent='✅';
+        document.getElementById('upload-zone').classList.add('has-file');
+        document.getElementById('doc-save-btn').style.display='flex';
+        window._docTemp={dataUrl:compressed,nome:file.name,tipo:tipo,ext:'jpg',isImage:true};
+      });
+    } else {
+      // PDF: salva senza immagine
+      document.getElementById('upload-icon').textContent='✅';
+      document.getElementById('upload-zone').classList.add('has-file');
+      document.getElementById('doc-save-btn').style.display='flex';
+      window._docTemp={dataUrl:null,nome:file.name,tipo:tipo,ext:'pdf',isImage:false};
     }
-    document.getElementById('upload-icon').textContent='✅';
-    document.getElementById('upload-zone').classList.add('has-file');
-    document.getElementById('doc-save-btn').style.display='flex';
-    // Salva temporaneamente
-    window._docTemp={dataUrl:e.target.result,nome:file.name,tipo:document.getElementById('doc-tipo').value,ext:file.name.split('.').pop()};
   };
   reader.readAsDataURL(file);
 }
 
 function salvaDocumento(){
   if(!bookingData||!window._docTemp){toast('⚠️ Seleziona un file prima');return;}
-  try{
-    // Salva documento
-    var docData=JSON.stringify({
-      dataUrl:window._docTemp.dataUrl,
-      nome:bookingData.guest.replace(/\s/g,'_')+'_'+window._docTemp.tipo.replace(/\s/g,'_'),
-      tipo:window._docTemp.tipo,
-      ext:window._docTemp.ext,
-      data:new Date().toLocaleDateString('it-IT'),
-      bookingId:bookingData.id
+  var oggi=new Date().toLocaleDateString('it-IT');
+  var docInfo={
+    tipo:window._docTemp.tipo,
+    data:oggi,
+    bookingId:bookingData.id,
+    guest:bookingData.guest
+  };
+
+  // Prova a salvare in localStorage con compressione progressiva
+  var salvato=false;
+  var livelli=[
+    {w:600,h:800,q:0.5},
+    {w:400,h:500,q:0.4},
+    {w:300,h:400,q:0.3}
+  ];
+
+  function tentaSalvataggio(idx){
+    if(idx>=livelli.length){
+      // Tutti i tentativi falliti — salva solo lo stato senza immagine
+      salvaStatoDocumento(docInfo, null);
+      return;
+    }
+    var liv=livelli[idx];
+    var dataToCompress=window._docTemp.dataUrl;
+    if(!dataToCompress||!window._docTemp.isImage){
+      salvaStatoDocumento(docInfo, null);
+      return;
+    }
+    comprimiImmagine(dataToCompress,liv.w,liv.h,liv.q,function(compressed){
+      var payload=JSON.stringify(Object.assign({},docInfo,{dataUrl:compressed}));
+      try{
+        localStorage.setItem('hh_doc_'+bookingData.id, payload);
+        salvato=true;
+        salvaStatoDocumento(docInfo, compressed);
+      }catch(e){
+        tentaSalvataggio(idx+1);
+      }
     });
-    localStorage.setItem('hh_doc_'+bookingData.id,docData);
-    // Aggiorna booking
+  }
+
+  if(window._docTemp.isImage){
+    tentaSalvataggio(0);
+  } else {
+    salvaStatoDocumento(docInfo, null);
+  }
+}
+
+function salvaStatoDocumento(docInfo, imageDataUrl){
+  var oggi=docInfo.data;
+  // Aggiorna hh_bookings
+  try{
     var all=JSON.parse(localStorage.getItem('hh_bookings')||'[]');
     var idx=all.findIndex(function(b){return b.id===bookingData.id;});
-    if(idx>-1){all[idx].doc='da_verificare';localStorage.setItem('hh_bookings',JSON.stringify(all));bookingData.doc='da_verificare';}
-    // Aggiorna UI
-    document.getElementById('doc-status-ok').style.display='block';
-    document.getElementById('doc-upload-area').style.display='none';
-    document.getElementById('doc-status-tipo').textContent='⏳ In attesa di verifica da parte del gestore';
-    document.getElementById('docs-badge').style.display='none';
-    initUI();
-    toast('✅ Documento inviato al gestore!');
-  }catch(e){toast('⚠️ Errore salvataggio: '+e.message);}
+    if(idx>-1){all[idx].doc='da_verificare';localStorage.setItem('hh_bookings',JSON.stringify(all));}
+    bookingData.doc='da_verificare';
+  }catch(e){}
+
+  // Salva almeno i metadati (senza immagine se necessario)
+  if(!imageDataUrl){
+    try{ localStorage.setItem('hh_doc_'+bookingData.id, JSON.stringify(docInfo)); }catch(e){}
+  }
+
+  // Aggiorna UI
+  document.getElementById('doc-status-ok').style.display='block';
+  document.getElementById('doc-upload-area').style.display='none';
+  document.getElementById('doc-status-tipo').textContent='⏳ In attesa di verifica da parte del gestore';
+  document.getElementById('docs-badge').style.display='none';
+  initUI();
+
+  // Invia notifica WhatsApp al gestore con documento allegato
+  var msgWA='📎 Documento ricevuto!\n\n'
+    +'Ospite: '+bookingData.guest+'\n'
+    +'Suite: '+bookingData.suite+'\n'
+    +'Tipo: '+docInfo.tipo+'\n'
+    +'Data: '+oggi+'\n\n'
+    +'Il documento è pronto per la verifica nel gestionale.\n\nHermosa Home';
+  setTimeout(function(){
+    window.open('https://wa.me/'+CFG_OSPITE.whatsapp+'?text='+encodeURIComponent(msgWA),'_blank');
+  }, 800);
+
+  toast('✅ Documento salvato! Notifica inviata al gestore via WhatsApp');
 }
 
 // ── PAGAMENTO ──

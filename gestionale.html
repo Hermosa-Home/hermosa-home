@@ -889,7 +889,7 @@ function openDettaglio(bookingId){
   document.getElementById('det-checkin').textContent=fmt(bk.checkin);
   document.getElementById('det-checkout').textContent=fmt(bk.checkout);
   document.getElementById('det-suite').textContent='Suite '+bk.suite+' · Via M. Stabile 124 / 3°';
-  document.getElementById('det-importo').textContent='€ '+(bk.importo||'—');
+  document.getElementById('det-importo').textContent=(bk.importo>0?'€ '+bk.importo:'€ —');
   var ci=document.getElementById('det-contatti');
   if(ci){
     var waBtn=bk.waNum?'<a href="https://wa.me/'+bk.waNum+'" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none">🟢 WhatsApp</a>':'';
@@ -1106,30 +1106,36 @@ function renderDashboard(){
   var list=document.getElementById('dash-bookings-list');
   if(!list) return;
   var oggi=new Date(); oggi.setHours(0,0,0,0);
+  var trenta=new Date(oggi); trenta.setDate(trenta.getDate()-30);
+  // Mostra: future + ultime 30 giorni, ordinate per checkin decrescente
   var attive=bookings.filter(function(bk){
     var co=new Date(bk.checkout); co.setHours(0,0,0,0);
-    return co>=oggi;
-  }).slice(0,5);
+    return co>=trenta; // checkout non oltre 30 giorni fa
+  }).sort(function(a,b){return new Date(b.checkin)-new Date(a.checkin);}).slice(0,5);
   if(attive.length===0){
-    list.innerHTML='<div style="padding:16px;text-align:center;color:var(--soft);font-size:13px;">Nessuna prenotazione attiva</div>';
+    list.innerHTML='<div style="padding:16px;text-align:center;color:var(--soft);font-size:13px;">Nessuna prenotazione</div>';
     return;
   }
   list.innerHTML=attive.map(function(bk){
     var sc=suiteColors[bk.suite]||{bg:'#2C2416',color:'var(--terra)',letter:'?'};
+    var co=new Date(bk.checkout); co.setHours(0,0,0,0);
+    var ci=new Date(bk.checkin); ci.setHours(0,0,0,0);
+    var isPast=co<oggi;
     var statoInfo=bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok'?
       '✅ Tutto completato':
-      (bk.contratto!=='firmato'?'⚠️ Contratto':'')+(bk.doc!=='ok'?' · Doc. mancanti':'')+(bk.pagamento!=='ok'?' · Pagamento mancante':'');
-    var badge=bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok'?
-      '<span class="badge bg">Completo</span>':
-      bk.contratto!=='firmato'?'<span class="badge bo">Incompleto</span>':'<span class="badge br">Azione req.</span>';
-    var today=new Date(); today.setHours(0,0,0,0);
-    var ci=new Date(bk.checkin); ci.setHours(0,0,0,0);
-    if(ci.getTime()===today.getTime()) badge='<span class="badge bb">Check-in oggi</span>';
-    return '<div class="booking-item" onclick="openDettaglio(\''+bk.id+'\')" style="cursor:pointer;">'+
+      [bk.contratto!=='firmato'?'⚠️ Contratto':'',(bk.doc!=='ok'&&bk.doc!=='da_verificare')?'Doc. mancanti':'',bk.pagamento!=='ok'?'Pagamento mancante':''].filter(Boolean).join(' · ');
+    var badge;
+    if(isPast) badge='<span class="badge bgr">Concluso</span>';
+    else if(ci.getTime()===oggi.getTime()) badge='<span class="badge bb">Check-in oggi</span>';
+    else if(bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok') badge='<span class="badge bg">Completo</span>';
+    else if(bk.contratto!=='firmato') badge='<span class="badge bo">Incompleto</span>';
+    else badge='<span class="badge br">Azione req.</span>';
+    var importoTxt=bk.importo>0?'€ '+bk.importo:'€ —';
+    return '<div class="booking-item" onclick="openDettaglio(\''+bk.id+'\')" style="cursor:pointer;'+(isPast?'opacity:.65;':'')+'">'+
       '<div class="bi-apt" style="background:'+sc.bg+';color:'+sc.color+';">'+sc.letter+'</div>'+
       '<div class="bi-info"><div class="bi-guest">'+bk.guest+'</div>'+
       '<div class="bi-dates">Suite '+bk.suite+' · '+fmtDate(bk.checkin)+' → '+fmtDate(bk.checkout)+(statoInfo?' · '+statoInfo:'')+'</div></div>'+
-      '<div class="bi-meta"><div class="bi-price">€ '+(bk.importo||0)+'</div>'+badge+'</div>'+
+      '<div class="bi-meta"><div class="bi-price">'+importoTxt+'</div>'+badge+'</div>'+
     '</div>';
   }).join('');
 }
@@ -1250,27 +1256,36 @@ function ricaricaDati(){
     var b=JSON.parse(localStorage.getItem('hh_bookings'));
     if(Array.isArray(b)&&b.length){ bookings=b; }
   }catch(e){}
-  // Controlla firme ricevute dall'app ospite
+
+  // Controlla firme e documenti ricevuti dall'app ospite
   bookings.forEach(function(bk){
-    var firmaKey='hh_firma_'+bk.id;
+    // Firma
     try{
-      var firma=JSON.parse(localStorage.getItem(firmaKey));
+      var firma=JSON.parse(localStorage.getItem('hh_firma_'+bk.id));
       if(firma&&firma.firmato&&bk.contratto!=='firmato'){
         bk.contratto='firmato'; aggiornamenti++;
       }
     }catch(e){}
-    var docKey='hh_doc_'+bk.id;
+    // Documento (anche solo metadati senza immagine)
     try{
-      var doc=localStorage.getItem(docKey);
-      if(doc&&bk.doc==='mancante'){
+      var docRaw=localStorage.getItem('hh_doc_'+bk.id);
+      if(docRaw&&bk.doc==='mancante'){
         bk.doc='da_verificare'; aggiornamenti++;
       }
     }catch(e){}
   });
+
   if(aggiornamenti>0){ saveBookings(); }
   renderAll();
+  renderDocumenti();
+  renderAlloggiati();
   aggiornaCalendario();
-  notify(aggiornamenti>0?'🔄 '+aggiornamenti+' aggiornamento/i dall\'app ospite':'🔄 Dati ricaricati ✓');
+
+  if(aggiornamenti>0){
+    notify('🔄 '+aggiornamenti+' aggiornamento/i ricevuto/i dall\'app ospite ✓');
+  } else {
+    notify('🔄 Dati aggiornati ✓');
+  }
 }
 
 // ── RENDER DOCUMENTI ──
