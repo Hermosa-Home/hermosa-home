@@ -404,15 +404,17 @@ var CFG_OSPITE = {
 };
 var currentLang = 'it';
 
-// Leggi parametro URL — supporta sia localStorage che dati embedded nell'URL
+// Leggi parametro URL — 3 strategie in ordine di priorità
 function getBookingFromURL() {
   var params = new URLSearchParams(window.location.search);
-  var bkParam = params.get('booking'); // es: HH-b1774465696429
-  var dParam = params.get('d');        // dati booking codificati in base64
+  var bkParam = params.get('booking'); // es: HH-b1775139975540
+  var tParam  = params.get('t');       // token compatto pipe-separated (nuovo)
+  var dParam  = params.get('d');       // token JSON base64 (vecchio, compatibilità)
 
-  // 1) Prova localStorage (stesso browser del gestionale)
-  if (bkParam) {
-    var id = bkParam.replace('HH-','');
+  var id = bkParam ? bkParam.replace('HH-','') : null;
+
+  // Strategia 1: localStorage stesso browser (gestionale + ospite stesso device)
+  if (id) {
     try {
       var all = JSON.parse(localStorage.getItem('hh_bookings') || '[]');
       var found = all.find(function(b){ return b.id === id; });
@@ -420,10 +422,37 @@ function getBookingFromURL() {
     } catch(e){}
   }
 
-  // 2) Fallback: decodifica dati dal parametro ?d= (funziona su qualsiasi device/browser)
+  // Strategia 2: token compatto ?t= (pipe-separated)
+  if (tParam) {
+    try {
+      var decoded = decodeURIComponent(escape(atob(tParam)));
+      var parts = decoded.split('|');
+      if (parts.length >= 6) {
+        return {
+          id:       parts[0]||id||'',
+          guest:    parts[1]||'Ospite',
+          suite:    parts[2]||'Suite',
+          checkin:  parts[3]||'',
+          checkout: parts[4]||'',
+          importo:  parseInt(parts[5])||0,
+          phone:    parts[6]||'',
+          email:    parts[7]||'',
+          ospiti:   parseInt(parts[8])||2,
+          contratto:'non_inviato',
+          doc:      'mancante',
+          pagamento:'mancante'
+        };
+      }
+    } catch(e){}
+  }
+
+  // Strategia 3: token JSON ?d= (vecchio formato, retrocompatibilità)
   if (dParam) {
     try {
       return JSON.parse(decodeURIComponent(atob(dParam)));
+    } catch(e){}
+    try {
+      return JSON.parse(decodeURIComponent(escape(atob(dParam))));
     } catch(e){}
   }
 

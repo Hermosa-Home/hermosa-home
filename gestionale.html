@@ -770,21 +770,66 @@ function saveBooking(){
     importo:importo,source:source,contratto:'non_inviato',doc:'mancante',pagamento:'mancante'};
   bookings.push(newB); saveBookings(); aggiornaBadge(); aggiornaSelectOspiti();
   renderPrenotazioni(); renderContratti(); renderDocumenti(); renderAlloggiati(); renderDashboard();
-  // Automazioni WA con link app personalizzato + dati embedded per mobile
-  var appLink=APP_URL+'?booking=HH-'+newB.id+'&d='+codificaBookingPerURL(newB);
+  // Link app ospite — corto e leggibile
+  var appLink=buildAppLink(newB);
+  var fmtCI=fmtL(checkin); var fmtCO=fmtL(checkout);
   var ac=document.getElementById('mb-auto-contratto');
   var ad=document.getElementById('mb-auto-doc');
   var ap=document.getElementById('mb-auto-pag');
   if(ac&&ac.checked){
-    var mC='♦ Benvenuto a Hermosa Home, Palermo!\n\nGentile '+guestName+',\n\nPrenotazione confermata per la Suite '+suiteKey+'.\n\n📅 Check-in: '+fmtL(checkin)+' ore 14:00\n📅 Check-out: '+fmtL(checkout)+' ore 10:00\n💶 Importo: €'+importo+'\n\n♦ La tua app personale:\n'+appLink+'\n\nNell app: Porte · Documenti · Contratto · Pagamento · Mappa\n\n📞 '+CFG.tel+'\n✉ '+CFG.email+'\n\nHermosa Home · Via Mariano Stabile 124 🌹';
+    var mC=[
+      '🌹 Hermosa Home — Palermo',
+      '',
+      'Gentile '+guestName+',',
+      'la sua prenotazione è confermata!',
+      '',
+      '🏛  Suite: '+suiteKey,
+      '📅  Check-in:  '+fmtCI+' · ore 14:00',
+      '📅  Check-out: '+fmtCO+' · ore 10:00',
+      '💶  Totale: € '+importo,
+      '',
+      '📱 La sua app personale:',
+      appLink,
+      '',
+      'Nell\'app: porte · documenti · contratto · pagamento · mappa',
+      '',
+      'A presto!',
+      'Hermosa Home · Via Mariano Stabile 124, 3° piano · Palermo',
+      '📞 '+CFG.tel+' · ✉️ '+CFG.email
+    ].join('\n');
     window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(mC),'_blank');
   }
   if(ad&&ad.checked){setTimeout(function(){
-    var mD='Gentile '+guestName+',\n\ncarica i documenti dalla tua app:\n\n📱 '+appLink+'\n→ sezione Documenti\n\nGrazie! 🙏\nHermosa Home 🌹';
+    var mD=[
+      '📋 Documenti — Hermosa Home',
+      '',
+      'Gentile '+guestName+',',
+      'per completare la prenotazione della Suite '+suiteKey,
+      'è necessario caricare un documento di identità.',
+      '',
+      '📱 Apra l\'app e vada su → Documenti:',
+      appLink,
+      '',
+      'Grazie per la collaborazione!',
+      'Hermosa Home · '+CFG.tel
+    ].join('\n');
     window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(mD),'_blank');
   },1200);}
   if(ap&&ap.checked){setTimeout(function(){
-    var mP='Gentile '+guestName+',\n\ncompleta il pagamento (€'+importo+'):\n\n💳 '+CFG.paypal+'\n\n📱 Dalla tua app:\n'+appLink+'\n\nHermosa Home 🌹';
+    var mP=[
+      '💳 Pagamento — Hermosa Home',
+      '',
+      'Gentile '+guestName+',',
+      'per completare la prenotazione della Suite '+suiteKey,
+      'è richiesto il pagamento di € '+importo+'.',
+      '',
+      '💙 PayPal: '+CFG.paypal,
+      '',
+      '📱 Oppure dalla sua app → Pagamento:',
+      appLink,
+      '',
+      'Hermosa Home · '+CFG.tel
+    ].join('\n');
     window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(mP),'_blank');
   },2400);}
   ['mb-guest','mb-phone','mb-email','mb-checkin','mb-checkout','mb-importo'].forEach(function(id){
@@ -795,14 +840,14 @@ function saveBooking(){
   aggiornaCalendario();
 }
 
-// Templates  
+// Templates messaggi — usano link corto
 const tmpl={
-  acc:'Gentile {nome},\n\ntramite questo link apri il portone di Via Mariano Stabile 124 e la tua suite con lo smartphone.\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN: 742\n⏰ Valido: {checkin} → {checkout}\n\n📱 La tua app personale:\n{app_url}\n\nHermosa Home · Palermo 🌹',
-  ben:'♦ Benvenuto a Hermosa Home, Palermo!\n\nGentile {nome},\n\nLa tua prenotazione è confermata per la Suite {suite}.\n\n♦ La tua app personale:\n{app_url}\n\nNell app trovi tutto ciò di cui hai bisogno:\n♦ Apertura porte · ♦ Documenti · ♦ Contratto · ♦ Pagamento · ♦ Mappa\n\n📞 {tel}\n✉ {email}\n\nHermosa Home · Via Mariano Stabile 124, 3° piano · Palermo 🌹',
-  doc:'Gentile {nome},\n\nper completare la prenotazione carica i documenti di identità dalla tua app:\n\n📱 {app_url}\n→ sezione Documenti\n\nGrazie! 🙏\nHermosa Home 🌹',
-  pag:'Gentile {nome},\n\ncompleta il pagamento del soggiorno (€{importo}):\n\n💳 {paypal}\n\n📱 Dalla tua app:\n{app_url}\n\nHermosa Home · {tel} 🌹',
-  cho:'Ciao {nome}! 👋\n\nDomani checkout dalla Suite {suite} entro le 10:00.\n🗝 Chiavi nel cassetto ingresso\n🗑️ Rifiuti nei cassonetti cortile\n💡 Spegni luci e clima\n\nGrazie per aver scelto Hermosa Home! 🌹',
-  map:'Gentile {nome},\n\nHermosa Home si trova in Via Mariano Stabile 124, Piano 3° · Palermo.\n\n🚉 Dalla Stazione Centrale: 15 min a piedi o bus 101/102\n✈️ Dall aeroporto: treno → Centrale (~60 min)\n🚗 Auto: ZTL attiva — comunicaci la targa!\n\n📱 La tua app:\n{app_url}\n\nA presto! 🌹'
+  acc:'Gentile {nome},\n\n🔐 Link apertura porte Hermosa Home:\n\n🔗 chiavistello.it/open/HH-PA-001\n🔑 PIN di backup: 742\n⏰ Valido: {checkin} → {checkout}\n\n📱 La sua app:\n{app_url}\n\nHermosa Home · Via Mariano Stabile 124',
+  ben:'🌹 Hermosa Home — Palermo\n\nGentile {nome},\n\nbenvenuto/a nella Suite {suite}!\n\n📱 La sua app personale:\n{app_url}\n\nNell\'app troverà:\n📄 Contratto · 🪪 Documenti\n💳 Pagamento · 🔐 Porte · 🗺 Mappa\n\n📞 {tel}\n✉️ {email}',
+  doc:'📋 Hermosa Home — Documenti\n\nGentile {nome},\n\nper completare la prenotazione carichi\nun documento di identità valido.\n\n📱 La sua app → Documenti:\n{app_url}\n\nGrazie!\nHermosa Home · {tel}',
+  pag:'💳 Hermosa Home — Pagamento\n\nGentile {nome},\n\npagamento soggiorno Suite {suite}: € {importo}\n\n💙 PayPal: {paypal}\n\n📱 La sua app → Pagamento:\n{app_url}\n\nHermosa Home · {tel}',
+  cho:'Ciao {nome}! 👋\n\nDomani checkout Suite {suite} entro le 10:00.\n\n🗝  Lasci le chiavi nel cassetto dell\'ingresso\n🗑️  Rifiuti nei cassonetti al piano terra\n💡  Spegni luci, clima e TV\n\nGrazie per aver scelto Hermosa Home!\nArrivederci a presto 🌹',
+  map:'🗺 Hermosa Home — Come arrivare\n\nGentile {nome},\n\nVia Mariano Stabile 124, Piano 3° · Palermo\n\n🚉 Dalla Stazione: 15 min a piedi / bus 101–102\n✈️ Dall\'aeroporto: treno → Centrale (~60 min, €6,90)\n🚗 Auto: ZTL attiva — ci comunichi la targa!\n\n📱 La sua app → Mappa:\n{app_url}\n\nA presto!'
 };
 function loadTmpl(sel){
   if(!sel.value||!tmpl[sel.value]) return;
@@ -810,7 +855,7 @@ function loadTmpl(sel){
   var bk=bookings.find(function(b){return b.id===(ospSel?ospSel.value:'');})||{};
   var guestName=bk.guest||(ospSel?ospSel.value.split(' — ')[0]:'Ospite')||'Ospite';
   var fmt=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';};
-  var appLink=APP_URL+'?booking=HH-'+(bk.id||Date.now());
+  var appLink=bk.id?buildAppLink(bk):(APP_URL+'?booking=HH-demo');
   var msg=tmpl[sel.value]
     .replace(/{nome}/g,guestName)
     .replace(/{suite}/g,bk.suite||'Suite')
@@ -1007,10 +1052,21 @@ function sollecitaContratto(bookingId){
   var bk=bookings.find(function(b){return b.id===bookingId;});
   if(!bk){notify('Reminder inviato ✓');return;}
   var waNum=bk.waNum||CFG.whatsapp;
-  var appLink=APP_URL+'?booking=HH-'+bk.id;
-  var msg='Gentile '+bk.guest+',\n\nricordiamo che il contratto per la Suite '+bk.suite+' è ancora in attesa di firma.\n\n📱 Firma qui:\n'+appLink+'\n\nHermosa Home · '+CFG.tel+' 🌹';
+  var appLink=buildAppLink(bk);
+  var msg=[
+    '📄 Hermosa Home — Contratto',
+    '',
+    'Gentile '+bk.guest+',',
+    'il contratto per la Suite '+bk.suite,
+    'è ancora in attesa di firma digitale.',
+    '',
+    '📱 La sua app → Contratto:',
+    appLink,
+    '',
+    'Hermosa Home · '+CFG.tel
+  ].join('\n');
   window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
-  notify('📤 Sollecito inviato ✓');
+  notify('📤 Sollecito contratto inviato ✓');
 }
 
 // ── MANUTENZIONE ──
@@ -1435,14 +1491,30 @@ generaTestoContratto = function(bk){
   return testo;
 };
 
-// ── ENCODE BOOKING IN URL per app ospite mobile ──
+// ── ENCODE BOOKING IN URL — formato compatto pipe-separated ──
+// Formato: id|guest|suite|checkin|checkout|importo|phone|email
+// ~120 chars → base64 ~160 chars (vs 400+ dell'approccio JSON precedente)
 function codificaBookingPerURL(bk){
   try{
-    var payload={id:bk.id,guest:bk.guest,suite:bk.suite,checkin:bk.checkin,checkout:bk.checkout,
-      importo:bk.importo,phone:bk.phone||'',email:bk.email||'',ospiti:bk.ospiti||2,
-      contratto:bk.contratto,doc:bk.doc,pagamento:bk.pagamento,source:bk.source||'diretto'};
-    return btoa(encodeURIComponent(JSON.stringify(payload)));
+    var parts=[
+      bk.id||'',
+      bk.guest||'',
+      bk.suite||'',
+      bk.checkin||'',
+      bk.checkout||'',
+      bk.importo||0,
+      bk.phone||'',
+      bk.email||'',
+      bk.ospiti||2
+    ].join('|');
+    // btoa su stringa UTF-8 safe
+    return btoa(unescape(encodeURIComponent(parts)));
   }catch(e){return '';}
+}
+
+function buildAppLink(bk){
+  var token=codificaBookingPerURL(bk);
+  return APP_URL+'?booking=HH-'+bk.id+(token?'&t='+token:'');
 }
 
 // MAP
