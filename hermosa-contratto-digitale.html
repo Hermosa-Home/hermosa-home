@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hermosa Home Palermo — Contratto</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sand:#F5F0E8;--cream:#FAF7F2;--terra:#C4956A;--terra-d:#A07550;
+  --terra-l:#E8D5BE;--terra-xl:#F5EAD8;--deep:#2C2416;--mid:#6B5C48;
+  --soft:#9B8B78;--white:#FFF;--success:#5A8A6A;--danger:#C4706A;
+  --phone-w:390px;--phone-h:844px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:#1A1410;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.phone-shell{width:var(--phone-w);height:var(--phone-h);background:var(--cream);border-radius:50px;box-shadow:0 0 0 2px #3A3028,0 0 0 6px #1A1410,0 40px 80px rgba(0,0,0,.6);overflow:hidden;position:relative;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:32px;background:#1A1410;border-radius:0 0 20px 20px;z-index:200;display:flex;align-items:center;justify-content:center;gap:6px}
+.notch-cam{width:10px;height:10px;border-radius:50%;background:#2A2020;border:1px solid #3A3030}
+.notch-speaker{width:50px;height:4px;background:#2A2020;border-radius:4px}
+.status-bar{height:44px;padding:0 24px;display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:6px;flex-shrink:0}
+.status-time{font-size:15px;font-weight:600;color:var(--deep)}
+.status-icons{display:flex;gap:5px;align-items:center;font-size:12px;color:var(--deep)}
+.screen-container{flex:1;overflow:hidden;position:relative}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow-y:auto;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);background:var(--cream);-webkit-overflow-scrolling:touch}
+.screen.active{transform:translateX(0)}
+.screen.slide-left{transform:translateX(-30%)}
+
+/* HEADER */
+.screen-header{background:var(--deep);padding:50px 20px 20px;flex-shrink:0}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--terra);cursor:pointer;margin-bottom:16px;background:none;border:none;font-family:'DM Sans',sans-serif}
+.screen-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--white);line-height:1.2}
+.screen-sub{font-size:12px;color:rgba(255,255,255,.45);margin-top:4px}
+.screen-content{flex:1;padding:20px;overflow-y:auto}
+
+/* STEP NAV */
+.step-nav{display:flex;gap:0;background:var(--white);border-radius:12px;border:1px solid var(--terra-l);overflow:hidden;margin-bottom:18px}
+.step-nav-item{flex:1;padding:11px 6px;text-align:center;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--soft);cursor:pointer;border-right:1px solid var(--terra-l);transition:all .2s;position:relative}
+.step-nav-item:last-child{border-right:none}
+.step-nav-item.active{background:var(--terra);color:white}
+.step-nav-item.done{background:var(--terra-xl);color:var(--terra-d)}
+.step-num{display:block;font-size:14px;font-weight:700;margin-bottom:1px}
+
+/* CARD */
+.s-card{background:var(--white);border-radius:16px;border:1px solid var(--terra-l);overflow:hidden;margin-bottom:14px}
+.s-card-header{padding:14px 16px;border-bottom:1px solid var(--terra-l);font-size:11px;font-weight:600;color:var(--soft);letter-spacing:.8px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.s-card-body{padding:16px}
+
+/* CONTRACT TEXT */
+.contract-text{font-size:12.5px;line-height:1.8;color:var(--mid);max-height:220px;overflow-y:auto;padding-right:4px}
+.contract-text h4{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:500;color:var(--deep);margin:14px 0 6px;letter-spacing:.3px}
+.contract-text p{margin-bottom:8px}
+.contract-text::-webkit-scrollbar{width:3px}
+.contract-text::-webkit-scrollbar-thumb{background:var(--terra-l);border-radius:3px}
+.read-progress{height:3px;background:var(--terra-l);border-radius:3px;margin-top:10px;overflow:hidden}
+.read-fill{height:100%;background:var(--terra);width:0%;transition:width .3s}
+
+/* FORM */
+.form-group{margin-bottom:14px}
+label{display:block;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--soft);margin-bottom:6px;font-weight:600}
+input[type="text"],input[type="email"],input[type="date"],select{width:100%;padding:11px 13px;border:1.5px solid var(--terra-l);border-radius:10px;font-size:14px;color:var(--deep);background:var(--sand);font-family:'DM Sans',sans-serif;transition:border-color .15s;outline:none;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--terra);background:var(--white)}
+
+/* DATA ROW */
+.data-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--sand)}
+.data-row:last-child{border-bottom:none}
+.dr-label{font-size:11.5px;color:var(--soft)}
+.dr-value{font-size:13px;font-weight:600;color:var(--deep)}
+
+/* SIGNATURE */
+.sig-canvas-wrap{position:relative;border:2px dashed var(--terra-l);border-radius:14px;overflow:hidden;background:var(--sand);cursor:crosshair;transition:border-color .2s}
+.sig-canvas-wrap:hover{border-color:var(--terra)}
+canvas{display:block;touch-action:none}
+.sig-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;transition:opacity .3s}
+.sig-placeholder .sp-icon{font-size:28px;opacity:.3;margin-bottom:6px}
+.sig-placeholder .sp-text{font-size:12px;color:var(--soft)}
+.sig-actions{display:flex;gap:8px;margin-top:10px}
+
+/* BTN */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .18s;font-family:'DM Sans',sans-serif;width:100%}
+.btn-primary{background:var(--terra);color:white}
+.btn-primary:active{background:var(--terra-d);transform:scale(.98)}
+.btn-primary:disabled{background:var(--terra-l);color:var(--soft);cursor:not-allowed;transform:none}
+.btn-outline{background:transparent;border:1.5px solid var(--terra-l);color:var(--mid)}
+.btn-outline:active{border-color:var(--terra);background:var(--terra-xl);transform:scale(.98)}
+.btn-ghost{background:transparent;color:var(--soft);font-size:13px;padding:9px 14px}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:10px;width:auto}
+.btn-danger{background:var(--danger);color:white}
+.btn-success{background:var(--success);color:white}
+
+/* CHECKBOX */
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--sand);cursor:pointer}
+.check-item:last-child{border-bottom:none}
+.check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--terra-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:all .2s;background:var(--white)}
+.check-box.checked{background:var(--terra);border-color:var(--terra);color:white;font-size:12px}
+.check-label{font-size:13px;color:var(--deep);line-height:1.5}
+.check-sub{font-size:11px;color:var(--soft);margin-top:2px}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:#E6F4EA;color:#3A7A4A}
+.badge-orange{background:#FFF0E0;color:#C07820}
+
+/* SUMMARY */
+.summary-hero{background:var(--deep);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center}
+.sh-icon{font-size:36px;margin-bottom:8px}
+.sh-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:white;margin-bottom:4px}
+.sh-sub{font-size:12px;color:rgba(255,255,255,.45)}
+
+/* SUCCESS */
+@keyframes success-pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.success-icon{font-size:56px;animation:success-pop .4s ease forwards}
+@keyframes check-draw{to{stroke-dashoffset:0}}
+
+/* HOME INDICATOR */
+.home-indicator{height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hi-bar{width:120px;height:4px;background:rgba(44,36,22,.25);border-radius:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--deep);color:white;padding:12px 20px;border-radius:40px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--terra-l);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="phone-shell">
+  <div class="phone-notch">
+    <div class="notch-cam"></div><div class="notch-speaker"></div><div class="notch-cam"></div>
+  </div>
+  <div class="status-bar">
+    <div class="status-time" id="s-time">19:42</div>
+    <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+  </div>
+
+  <div class="screen-container">
+
+    <!-- ══ STEP 1: RIEPILOGO ══ -->
+    <div class="screen active" id="sc-1">
+      <div class="screen-header">
+        <div class="screen-title">Contratto di soggiorno</div>
+        <div class="screen-sub">Hermosa Home · Suite Tomasi di Lampedusa</div>
+      </div>
+      <div class="screen-content">
+
+        <div class="step-nav">
+          <div class="step-nav-item active"><span class="step-num">1</span>Dati</div>
+          <div class="step-nav-item"><span class="step-num">2</span>Contratto</div>
+          <div class="step-nav-item"><span class="step-num">3</span>Clausole</div>
+          <div class="step-nav-item"><span class="step-num">4</span>Firma</div>
+        </div>
+
+        <div class="s-card">
+          <div class="s-card-header">Riepilogo prenotazione</div>
+          <div class="s-card-body" style="padding:8px 16px;">
+            <div class="data-row"><span class="dr-label">Appartamento</span><span class="dr-value">Tomasi di Lampedusa</span></div>
+            <div class="data-row"><span class="dr-label">Check-in</span><span class="dr-value">07/03/2026 · 12:00</span></div>
+            <div class="data-row"><span class="dr-label">Check-out</span><span class="dr-value">12/03/2026 · 10:00</span></div>
+            <div class="data-row"><span class="dr-label">Notti</span><span class="dr-value">5</span></div>
+            <div class="data-row"><span class="dr-label">Ospiti</span><span class="dr-value">2 persone</span></div>
+            <div class="data-row"><span class="dr-label">Importo totale</span><span class="dr-value" style="color:var(--terra);font-size:16px;">€ 450</span></div>
+          </div>
+        </div>
+
+        <div class="s-card">
+          <div class="s-card-header">Dati del conduttore</div>
+          <div class="s-card-body">
+            <div class="form-group">
+              <label>Nome e cognome</label>
+              <input type="text" value="Marco Rossi" id="f-nome">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" value="marco.rossi@email.com" id="f-email">
+            </div>
+            <div class="form-group">
+              <label>Documento d'identità n.</label>
+              <input type="text" placeholder="CA00000AA" id="f-doc">
+            </div>
+            <div class="form-group">
+              <label>Nazionalità</label>
+              <select id="f-naz">
+                <option selected>🇮🇹 Italiana</option>
+                <option>🇩🇪 Tedesca</option>
+                <option>🇫🇷 Francese</option>
+                <option>🇬🇧 Britannica</option>
+                <option>🇺🇸 Statunitense</option>
+                <option>Altro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goStep(2)">Avanti → Leggi contratto</button>
+        <div style="height:20px;"></div>
+      </div>
+      <div class="home-indicator"><div class="hi-bar"></div></div>
+    </div>
+
+    <!-- ══ STEP 2: TESTO CONTRATTO ══ -->
+    <div class="screen" id="sc-2">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goStep(1)">‹ Indietro</button>
+        <div class="screen-title">Testo del contratto</div>
+        <div class="screen-sub">Leggi attentamente prima di procedere</div>
+      </div>
+      <div class="screen-content">
+
+        <div class="step-nav">
+          <div class="step-nav-item done"><span class="step-num">✓</span>Dati</div>
+          <div class="step-nav-item active"><span class="step-num">2</span>Contratto</div>
+          <div class="step-nav-item"><span class="step-num">3</span>Clausole</div>
+          <div class="step-nav-item"><span class="step-num">4</span>Firma</div>
+        </div>
+
+        <div class="s-card">
+          <div class="s-card-header">
+            <span>Contratto di locazione turistica</span>
+            <span class="badge badge-orange" id="read-badge">Da leggere</span>
+          </div>
+          <div class="s-card-body">
+            <div class="contract-text" id="contract-scroll" onscroll="checkScroll(this)">
+              <p><strong>CONTRATTO DI LOCAZIONE AD USO TURISTICO</strong><br>
+              ai sensi dell'art. 1571 e ss. del Codice Civile e della normativa in materia di locazioni turistiche.</p>
+
+              <h4>Art. 1 — Parti</h4>
+              <p>Il/La sottoscritto/a <strong>Hermosa Home</strong>, in qualità di locatore, concede in locazione ad uso turistico a <strong>Marco Rossi</strong> (di seguito "conduttore") l'unità abitativa sita in Via Mariano Stabile 124, Piano Terzo, Palermo (PA), denominata "Suite Tomasi di Lampedusa".</p>
+
+              <h4>Art. 2 — Durata</h4>
+              <p>La locazione ha durata dal <strong>07/03/2026 ore 12:00</strong> al <strong>12/03/2026 ore 10:00</strong>, per un totale di 5 notti. Al termine del periodo il conduttore si obbliga a riconsegnare l'immobile libero e in buono stato.</p>
+
+              <h4>Art. 3 — Corrispettivo</h4>
+              <p>Il corrispettivo pattuito è di <strong>€ 450,00</strong> (quattrocentocinquanta/00), comprensivo di spese accessorie (acqua, luce, gas, WiFi). Il pagamento è dovuto integralmente entro la data di check-in.</p>
+
+              <h4>Art. 4 — Deposito cauzionale</h4>
+              <p>È previsto un deposito cauzionale di <strong>€ 100,00</strong> a garanzia di danni all'immobile o agli arredi. Il deposito sarà restituito entro 48 ore dal check-out, previo sopralluogo e verifica delle condizioni dell'immobile.</p>
+
+              <h4>Art. 5 — Obblighi del conduttore</h4>
+              <p>Il conduttore si obbliga a: (i) utilizzare l'immobile esclusivamente per uso turistico; (ii) non sublocare né cedere il contratto; (iii) non eccedere il numero massimo di ospiti indicato; (iv) rispettare il regolamento condominiale; (v) non fumare nei locali; (vi) osservare il silenzio dalle ore 22:00 alle 08:00.</p>
+
+              <h4>Art. 6 — Responsabilità</h4>
+              <p>Il conduttore è responsabile di eventuali danni arrecati all'immobile, ai mobili e agli impianti durante il periodo di locazione. I danni verranno quantificati dal locatore e trattenuti dal deposito cauzionale o addebitati separatamente.</p>
+
+              <h4>Art. 7 — Privacy e dati personali</h4>
+              <p>I dati personali del conduttore e degli ospiti sono trattati ai sensi del Regolamento UE 2016/679 (GDPR) per la gestione del contratto e per gli adempimenti di legge, inclusa la trasmissione dei dati al portale Alloggiati della Polizia di Stato ex art. 109 TULPS.</p>
+
+              <h4>Art. 8 — Foro competente</h4>
+              <p>Per qualsiasi controversia derivante o connessa al presente contratto, le parti eleggono il Foro di Palermo.</p>
+
+              <p style="color:var(--soft);font-size:11.5px;margin-top:14px;">Data: 07/03/2026 · Luogo: Palermo</p>
+            </div>
+
+            <div class="read-progress"><div class="read-fill" id="read-fill"></div></div>
+            <div style="font-size:11px;color:var(--soft);margin-top:6px;text-align:center;" id="read-hint">Scorri per leggere il contratto completo</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-step3" onclick="goStep(3)" disabled>
+          ↓ Scorri per continuare
+        </button>
+        <div style="height:20px;"></div>
+      </div>
+      <div class="home-indicator"><div class="hi-bar"></div></div>
+    </div>
+
+    <!-- ══ STEP 3: CLAUSOLE ══ -->
+    <div class="screen" id="sc-3">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goStep(2)">‹ Indietro</button>
+        <div class="screen-title">Clausole e consensi</div>
+        <div class="screen-sub">Seleziona tutte le voci per procedere</div>
+      </div>
+      <div class="screen-content">
+
+        <div class="step-nav">
+          <div class="step-nav-item done"><span class="step-num">✓</span>Dati</div>
+          <div class="step-nav-item done"><span class="step-num">✓</span>Contratto</div>
+          <div class="step-nav-item active"><span class="step-num">3</span>Clausole</div>
+          <div class="step-nav-item"><span class="step-num">4</span>Firma</div>
+        </div>
+
+        <div class="s-card">
+          <div class="s-card-header">Accettazione obbligatoria</div>
+          <div class="s-card-body" style="padding:4px 16px;">
+
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box"></div>
+              <div>
+                <div class="check-label">Dichiaro di aver letto e accettato integralmente il contratto di locazione turistica</div>
+              </div>
+            </div>
+
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box"></div>
+              <div>
+                <div class="check-label">Accetto il regolamento della casa e le regole condominiali</div>
+                <div class="check-sub">No fumo · Silenzio 22:00 · Max ospiti: 2</div>
+              </div>
+            </div>
+
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box"></div>
+              <div>
+                <div class="check-label">Autorizzo il trattamento dei dati personali per adempimenti di legge (GDPR · Portale Alloggiati PS)</div>
+              </div>
+            </div>
+
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box"></div>
+              <div>
+                <div class="check-label">Prendo atto del deposito cauzionale di <strong>€ 100,00</strong> e delle condizioni di restituzione</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="s-card">
+          <div class="s-card-header">Consenso facoltativo</div>
+          <div class="s-card-body" style="padding:4px 16px;">
+            <div class="check-item" onclick="toggleCheck(this)">
+              <div class="check-box checked">✓</div>
+              <div>
+                <div class="check-label">Acconsento a ricevere comunicazioni promozionali via email</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-step4" onclick="goStep(4)" disabled>
+          Avanti → Firma il contratto
+        </button>
+        <div style="height:20px;"></div>
+      </div>
+      <div class="home-indicator"><div class="hi-bar"></div></div>
+    </div>
+
+    <!-- ══ STEP 4: FIRMA ══ -->
+    <div class="screen" id="sc-4">
+      <div class="screen-header">
+        <button class="back-btn" onclick="goStep(3)">‹ Indietro</button>
+        <div class="screen-title">Firma digitale</div>
+        <div class="screen-sub">Firma con il dito nell'area sottostante</div>
+      </div>
+      <div class="screen-content">
+
+        <div class="step-nav">
+          <div class="step-nav-item done"><span class="step-num">✓</span>Dati</div>
+          <div class="step-nav-item done"><span class="step-num">✓</span>Contratto</div>
+          <div class="step-nav-item done"><span class="step-num">✓</span>Clausole</div>
+          <div class="step-nav-item active"><span class="step-num">4</span>Firma</div>
+        </div>
+
+        <div class="s-card">
+          <div class="s-card-header">
+            <span>Firma del conduttore</span>
+            <span id="sig-status-badge" class="badge badge-orange">Vuota</span>
+          </div>
+          <div class="s-card-body">
+            <p style="font-size:12.5px;color:var(--soft);margin-bottom:12px;line-height:1.6;">
+              Firmando, <strong>Marco Rossi</strong> dichiara di accettare tutte le condizioni del contratto e dei consensi selezionati.
+            </p>
+
+            <div class="sig-canvas-wrap" id="sig-wrap">
+              <canvas id="sig-canvas" width="346" height="140"></canvas>
+              <div class="sig-placeholder" id="sig-placeholder">
+                <div class="sp-icon">✍️</div>
+                <div class="sp-text">Firma qui con il dito</div>
+              </div>
+            </div>
+
+            <div class="sig-actions">
+              <button class="btn btn-outline btn-sm" onclick="clearSig()" style="flex:1;">🗑 Cancella</button>
+              <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--soft);">📷 Importa firma</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="s-card" style="margin-bottom:14px;">
+          <div class="s-card-body" style="font-size:12.5px;color:var(--soft);line-height:1.6;padding:14px 16px;">
+            🗓 Data: <strong style="color:var(--deep);">07/03/2026</strong><br>
+            📍 Luogo: <strong style="color:var(--deep);">Palermo (PA)</strong><br>
+            🔐 Il documento sarà firmato digitalmente e conservato in modo sicuro.
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-sign" onclick="submitContract()" disabled>
+          ✍️ Firma e invia contratto
+        </button>
+
+        <div style="height:20px;"></div>
+      </div>
+      <div class="home-indicator"><div class="hi-bar"></div></div>
+    </div>
+
+    <!-- ══ SUCCESS ══ -->
+    <div class="screen" id="sc-success">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 30px;text-align:center;background:var(--cream);">
+        <div class="success-icon">📄</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;color:var(--deep);margin-top:18px;">Contratto firmato!</div>
+        <div style="font-size:13.5px;color:var(--soft);margin-top:10px;line-height:1.7;">
+          Il contratto è stato firmato digitalmente<br>e inviato a <strong style="color:var(--deep);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1a777b6879753468756969735a7f777b737634797577">[email&#160;protected]</a></strong>.<br><br>
+          Una copia è stata conservata nei nostri archivi.
+        </div>
+        <div style="margin-top:24px;background:var(--white);border-radius:16px;border:1px solid var(--terra-l);padding:16px 20px;width:100%;text-align:left;">
+          <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--soft);margin-bottom:10px;">Riepilogo firmato</div>
+          <div class="data-row"><span class="dr-label">Contratto n.</span><span class="dr-value">#HH-PA-2026-0307</span></div>
+          <div class="data-row"><span class="dr-label">Firmato il</span><span class="dr-value">07/03/2026 · 19:47</span></div>
+          <div class="data-row"><span class="dr-label">Valore legale</span><span class="dr-value"><span class="badge badge-green">✓ Valido</span></span></div>
+        </div>
+        <div style="height:24px;"></div>
+        <button class="btn btn-primary" onclick="location.reload()" style="max-width:240px;">← Torna alla home</button>
+      </div>
+      <div class="home-indicator"><div class="hi-bar"></div></div>
+    </div>
+
+  </div><!-- /screen-container -->
+  <div class="home-indicator"><div class="hi-bar"></div></div>
+</div>
+
+<div class="toast" id="toast-el"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Clock
+function tick(){const n=new Date();document.getElementById('s-time').textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0')}
+tick();setInterval(tick,10000);
+
+// Toast
+let tt;
+function toast(msg){const e=document.getElementById('toast-el');e.textContent=msg;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2500)}
+
+// Navigation
+let hist=['sc-1'];
+function goStep(n){
+  const id='sc-'+n;
+  const cur=document.querySelector('.screen.active');
+  const nxt=document.getElementById(id);
+  if(!nxt||cur.id===id)return;
+  const fwd=n>parseInt(cur.id.split('-')[1]);
+  if(fwd){cur.classList.add('slide-left');setTimeout(()=>cur.classList.remove('active','slide-left'),350);nxt.style.transform='translateX(100%)';}
+  else{cur.style.transform='translateX(100%)';setTimeout(()=>{cur.classList.remove('active');cur.style.transform='';},350);nxt.style.transform='translateX(-30%)';}
+  nxt.classList.add('active');
+  requestAnimationFrame(()=>{nxt.style.transform='';});
+}
+
+// Contract scroll
+let contractRead=false;
+function checkScroll(el){
+  const pct=el.scrollTop/(el.scrollHeight-el.clientHeight);
+  document.getElementById('read-fill').style.width=(pct*100)+'%';
+  if(pct>0.85&&!contractRead){
+    contractRead=true;
+    document.getElementById('read-badge').textContent='Letto ✓';
+    document.getElementById('read-badge').className='badge badge-green';
+    document.getElementById('read-hint').textContent='✓ Contratto letto completamente';
+    document.getElementById('btn-step3').disabled=false;
+    document.getElementById('btn-step3').textContent='Avanti → Clausole';
+    toast('✓ Contratto letto!');
+  }
+}
+
+// Checkboxes
+let mandatoryChecks=0;
+const MANDATORY=4;
+function toggleCheck(el){
+  const box=el.querySelector('.check-box');
+  box.classList.toggle('checked');
+  if(box.classList.contains('checked'))box.textContent='✓';else box.textContent='';
+  // Count mandatory (first 4)
+  const allItems=document.querySelectorAll('#sc-3 .s-card:first-of-type .check-item');
+  let c=0;allItems.forEach(i=>{if(i.querySelector('.check-box').classList.contains('checked'))c++;});
+  mandatoryChecks=c;
+  document.getElementById('btn-step4').disabled=(c<MANDATORY);
+  if(c===MANDATORY)toast('✓ Tutte le clausole accettate!');
+}
+
+// Signature
+const canvas=document.getElementById('sig-canvas');
+const ctx=canvas.getContext('2d');
+let drawing=false,hasSig=false;
+ctx.strokeStyle='#2C2416';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return{x:src.clientX-r.left,y:src.clientY-r.top};
+}
+
+canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)},{passive:false});
+canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();onDraw()});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();onDraw()},{passive:false});
+canvas.addEventListener('mouseup',()=>drawing=false);
+canvas.addEventListener('touchend',()=>drawing=false);
+
+function onDraw(){
+  if(!hasSig){hasSig=true;document.getElementById('sig-placeholder').style.opacity='0';document.getElementById('sig-status-badge').textContent='Firmato ✓';document.getElementById('sig-status-badge').className='badge badge-green';document.getElementById('btn-sign').disabled=false;document.getElementById('sig-wrap').style.borderColor='var(--terra)';}
+}
+
+function clearSig(){ctx.clearRect(0,0,canvas.width,canvas.height);hasSig=false;document.getElementById('sig-placeholder').style.opacity='1';document.getElementById('sig-status-badge').textContent='Vuota';document.getElementById('sig-status-badge').className='badge badge-orange';document.getElementById('btn-sign').disabled=true;document.getElementById('sig-wrap').style.borderColor='var(--terra-l)';}
+
+function submitContract(){
+  const btn=document.getElementById('btn-sign');
+  btn.textContent='⏳ Elaborazione...';btn.disabled=true;btn.style.opacity='.7';
+  setTimeout(()=>{
+    const cur=document.querySelector('.screen.active');
+    const nxt=document.getElementById('sc-success');
+    cur.classList.add('slide-left');
+    se
