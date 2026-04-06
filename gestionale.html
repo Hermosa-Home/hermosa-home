@@ -212,6 +212,9 @@ textarea{resize:vertical;min-height:80px}
 .ni-title{font-size:13px;font-weight:600;margin-bottom:2px}
 .ni-body{font-size:11.5px;color:var(--soft);line-height:1.4}
 
+#det-body button[style*="detBtnStyle"]:hover,
+#det-body .det-action-btn:hover{border-color:var(--terra)!important;background:var(--terra-xl)!important;}
+
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--terra-l);border-radius:5px}
 
 /* ── MOBILE ── */
@@ -667,7 +670,7 @@ function renderCalendar() {
         var rLeft   = isFirst ? '4px' : '0';
         var rRight  = isLast  ? '4px' : '0';
         var label   = isFirst ? '<span style="font-size:9px;white-space:nowrap;overflow:hidden;display:block;padding:0 3px;">'+booking.guest.split(' ')[0]+'</span>' : '';
-        html += '<td style="background:'+sc.bg+';border-radius:'+rLeft+' '+rRight+' '+rRight+' '+rLeft+';padding:2px 0;text-align:center;color:'+sc.text+';cursor:pointer;" title="'+booking.guest+'" onclick="openModal(\'modal-dettaglio\')">'+label+'</td>';
+        html += '<td style="background:'+sc.bg+';border-radius:'+rLeft+' '+rRight+' '+rRight+' '+rLeft+';padding:2px 0;text-align:center;color:'+sc.text+';cursor:pointer;" title="'+booking.guest+'" onclick="openDettaglio(\''+booking.id+'\')">'+label+'</td>';
       } else {
         var isToday2 = dt.getTime() === today.getTime();
         html += '<td style="background:'+(isToday2?'var(--terra-xl)':'var(--sand)')+';border-radius:4px;padding:2px;margin:1px;">&nbsp;</td>';
@@ -924,42 +927,180 @@ function openDettaglio(bookingId){
   var bk=bookings.find(function(b){return b.id===bookingId;});
   if(!bk){openModal('modal-dettaglio');return;}
   currentBookingId=bookingId;
+
   var fmt=function(d){return d?new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';};
-  var notti=bk.checkin&&bk.checkout?Math.round((new Date(bk.checkout)-new Date(bk.checkin))/86400000):'—';
-  document.querySelector('#modal-dettaglio .modal-title').textContent=bk.guest+' — Suite '+bk.suite;
-  var sc=bk.contratto==='firmato'?'<span class="badge bg">✍️ Firmato</span>':bk.contratto==='attesa'?'<span class="badge bo">⏳ In attesa</span>':'<span class="badge br">⚠️ Non inviato</span>';
-  var sd=bk.doc==='ok'?'<span class="badge bg">🪪 Verificati</span>':'<span class="badge br">⚠️ Mancanti</span>';
-  var sp=bk.pagamento==='ok'?'<span class="badge bg">💳 Pagato</span>':'<span class="badge br">💳 Non pagato</span>';
-  document.getElementById('det-badges').innerHTML='<span class="badge bg">Attivo</span><span class="badge bb">'+(bk.ospiti||2)+' ospiti</span><span class="badge bgr">'+notti+' notti</span>'+sc+sd+sp;
-  document.getElementById('det-checkin').textContent=fmt(bk.checkin);
-  document.getElementById('det-checkout').textContent=fmt(bk.checkout);
-  document.getElementById('det-suite').textContent='Suite '+bk.suite+' · Via M. Stabile 124 / 3°';
-  document.getElementById('det-importo').textContent=(bk.importo>0?'€ '+bk.importo:'€ —');
-  var ci=document.getElementById('det-contatti');
-  if(ci){
-    var waBtn=bk.waNum?'<a href="https://wa.me/'+bk.waNum+'" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none">🟢 WhatsApp</a>':'';
-    var emBtn=bk.email?'<a href="mailto:'+bk.email+'" class="btn btn-outline btn-sm" style="text-decoration:none">✉️ Email</a>':'';
-    ci.innerHTML='<div style="font-size:11px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;">Contatti ospite</div>'
-      +'<div style="font-size:13px;margin-bottom:8px;">📱 '+(bk.phone||'—')+(bk.email?' &nbsp;·&nbsp; ✉️ '+bk.email:'')+'</div>'
-      +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+waBtn+emBtn+'</div>';
-  }
-  var srcEl=document.getElementById('det-source');
-  if(srcEl) srcEl.textContent=bk.source?bk.source.charAt(0).toUpperCase()+bk.source.slice(1):'Diretto';
-  // Bottoni aggiorna stato
-  var statoBtns=document.getElementById('det-stato-btns');
-  if(statoBtns){
-    var sb='<span style="font-size:10px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-right:6px;">Aggiorna:</span>';
-    if(bk.contratto!=='firmato') sb+='<button class="btn btn-success btn-sm" onclick="segnaContrattoFirmato(\''+bk.id+'\')">✍️ Segna firmato</button>';
-    if(bk.doc!=='ok'){
-      var hasDoc=localStorage.getItem('hh_doc_'+bk.id);
-      if(hasDoc) sb+='<button class="btn btn-outline btn-sm" onclick="segnaDocOk(\''+bk.id+'\')">🪪 Approva doc</button> <button class="btn btn-ghost btn-sm" onclick="scaricaDocumentoOspite(\''+bk.id+'\')">📥 Scarica</button> <button class="btn btn-ghost btn-sm" onclick="salvaSuDriveDocumento(\''+bk.id+'\')">☁️ Drive</button>';
-      else sb+='<button class="btn btn-outline btn-sm" onclick="segnaDocOk(\''+bk.id+'\')">🪪 Doc ok</button>';
-    }
-    if(bk.pagamento!=='ok') sb+='<button class="btn btn-outline btn-sm" onclick="segnaPagamentoOk(\''+bk.id+'\')">💳 Segna pagato</button>';
-    if(bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok') sb+='<span style="color:var(--success);font-size:12px;font-weight:600;">✅ Tutto completato</span>';
-    statoBtns.innerHTML=sb;
-  }
+  var fmtTime=function(d,t){return d?(new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'})+' · '+t):'—';};
+  var notti=bk.checkin&&bk.checkout?Math.round((new Date(bk.checkout)-new Date(bk.checkin))/86400000):0;
+  var nottiTxt=notti>0?notti+' Nott'+(notti===1?'e':'i'):'—';
+  var tariffaMedia=notti>0&&bk.importo>0?Math.round(bk.importo/notti):0;
+  var idCorto='HH-'+bk.id.replace('b','').slice(-4);
+
+  // Controlla doc in localStorage
+  var hasDoc=!!localStorage.getItem('hh_doc_'+bk.id);
+  var hasSign=!!localStorage.getItem('hh_firma_'+bk.id);
+
+  // Stato contratto
+  var scBadge, scColor;
+  if(bk.contratto==='firmato'){ scBadge='✍️ Firmato'; scColor='var(--success)'; }
+  else if(bk.contratto==='attesa'){ scBadge='⏳ In attesa'; scColor='#C07820'; }
+  else { scBadge='⚠️ Non inviato'; scColor='var(--danger)'; }
+
+  // Stato documento
+  var sdBadge, sdColor;
+  if(bk.doc==='ok'){ sdBadge='🪪 Verificato'; sdColor='var(--success)'; }
+  else if(bk.doc==='da_verificare'){ sdBadge='⏳ Da verificare'; sdColor='#C07820'; }
+  else { sdBadge='❌ Mancante'; sdColor='var(--danger)'; }
+
+  // Stato pagamento
+  var spBadge=bk.pagamento==='ok'?'💳 Pagato':'💳 Non pagato';
+  var spColor=bk.pagamento==='ok'?'var(--success)':'var(--danger)';
+
+  var suiteGrad={'Tomasi di Lampedusa':'linear-gradient(135deg,#2C2416,#6B5C48)','Florio':'linear-gradient(135deg,#1A2C35,#3A6B80)','Stabile':'linear-gradient(135deg,#1F2C1A,#4A6B3A)'};
+  var grad=suiteGrad[bk.suite]||suiteGrad['Tomasi di Lampedusa'];
+
+  // Azioni rapide — bottoni contestuali
+  var azioneContratto = bk.contratto==='firmato'
+    ? '<button onclick="visualizzaContratto(currentBookingId)" style="'+detBtnStyle('var(--success)')+'">'
+      +'<span style="font-size:18px;">📄</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Vedi Contratto</div><div style="font-size:11px;opacity:.7;">Firmato · scarica o invia</div></div><span style="opacity:.4;">›</span></button>'
+    : '<button onclick="inviaContrattoDettaglio()" style="'+detBtnStyle('var(--terra)')+'">'
+      +'<span style="font-size:18px;">📄</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Invia Contratto</div><div style="font-size:11px;opacity:.7;">'+scBadge+'</div></div><span style="opacity:.4;">›</span></button>';
+
+  var azioneDoc = (bk.doc==='da_verificare'||hasDoc)
+    ? '<button onclick="previewDocumento(currentBookingId)" style="'+detBtnStyle('#6A7A9B')+'">'
+      +'<span style="font-size:18px;">🪪</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Vedi Documento</div><div style="font-size:11px;opacity:.7;">'+sdBadge+' · clicca per approvare</div></div><span style="opacity:.4;">›</span></button>'
+    : '<button onclick="nav(\'documenti\',null,\'Documenti\');closeModal(\'modal-dettaglio\')" style="'+detBtnStyle('#9B8B78')+'">'
+      +'<span style="font-size:18px;">📋</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Richiedi Documento</div><div style="font-size:11px;opacity:.7;">'+sdBadge+'</div></div><span style="opacity:.4;">›</span></button>';
+
+  var azionePag = bk.pagamento==='ok'
+    ? '<button onclick="notify(\'💳 Pagamento già registrato\')" style="'+detBtnStyle('var(--success)')+'">'
+      +'<span style="font-size:18px;">💳</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Pagamento Ricevuto</div><div style="font-size:11px;opacity:.7;">Importo confermato</div></div><span style="opacity:.4;">›</span></button>'
+    : '<button onclick="segnaPagamentoOk(currentBookingId)" style="'+detBtnStyle('var(--terra)')+'">'
+      +'<span style="font-size:18px;">💳</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Segna Pagato</div><div style="font-size:11px;opacity:.7;">€ '+bk.importo+' · non ancora ricevuto</div></div><span style="opacity:.4;">›</span></button>';
+
+  var waBtn=bk.waNum?'<a href="https://wa.me/'+bk.waNum+'" target="_blank" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#25D366;color:white;font-size:18px;text-decoration:none;border:none;">💬</a>':'';
+  var telBtn=bk.phone?'<a href="tel:'+bk.phone+'" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--terra-l);color:var(--deep);font-size:18px;text-decoration:none;border:none;">📞</a>':'';
+  var emBtn=bk.email?'<a href="mailto:'+bk.email+'" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--info);color:white;font-size:16px;text-decoration:none;border:none;">✉️</a>':'';
+
+  var noteHtml=(bk.note||'')?'<div style="margin-top:14px;"><div style="font-size:10px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:7px;">Note speciali</div><div style="background:var(--terra-xl);border-radius:10px;padding:13px;font-size:12.5px;color:var(--mid);line-height:1.7;font-style:italic;">"'+bk.note+'"</div></div>':'';
+
+  var html=
+    // Header guest
+    '<div style="margin-bottom:16px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+        +'<div><div style="font-family:\'Cormorant Garamond\',serif;font-size:26px;font-weight:500;line-height:1.1;color:var(--deep);">'+bk.guest+'</div>'
+        +'<div style="font-size:12px;color:var(--soft);margin-top:3px;">📍 Suite '+bk.suite+'</div></div>'
+        +'<div style="display:flex;gap:6px;align-items:center;">'+telBtn+waBtn+emBtn+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+        +'<span style="font-size:11px;font-weight:700;letter-spacing:.5px;padding:4px 10px;border-radius:20px;background:var(--terra);color:white;">CONFERMATO</span>'
+        +(bk.contratto==='firmato'&&bk.doc==='ok'&&bk.pagamento==='ok'?'<span style="font-size:11px;font-weight:700;letter-spacing:.5px;padding:4px 10px;border-radius:20px;background:#1A3A2A;color:#7FC89A;">COMPLETO</span>':'')
+        +'<span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--sand);color:var(--mid);">'+idCorto+'</span>'
+      +'</div>'
+    +'</div>'
+
+    // Booking Details card
+    +'<div style="background:white;border:1px solid var(--terra-l);border-radius:14px;overflow:hidden;margin-bottom:12px;">'
+      +'<div style="padding:14px 16px;border-bottom:1px solid var(--terra-l);">'
+        +'<div style="font-size:11px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;font-weight:600;">Dettagli prenotazione</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">'
+          +'<div><div style="font-size:9px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Check-in</div>'
+            +'<div style="font-size:14px;font-weight:700;color:var(--deep);">'+fmtTime(bk.checkin,'14:00')+'</div></div>'
+          +'<div><div style="font-size:9px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Check-out</div>'
+            +'<div style="font-size:14px;font-weight:700;color:var(--deep);">'+fmtTime(bk.checkout,'10:00')+'</div></div>'
+        +'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'
+          +'<div><div style="font-size:9px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Ospiti</div>'
+            +'<div style="font-size:13px;font-weight:600;">👥 '+(bk.ospiti||2)+' Adult'+(bk.ospiti===1?'o':'i')+'</div></div>'
+          +'<div><div style="font-size:9px;color:var(--soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Soggiorno</div>'
+            +'<div style="font-size:13px;font-weight:600;">🌙 '+nottiTxt+'</div></div>'
+        +'</div>'
+      +'</div>'
+      // Pricing
+      +(tariffaMedia>0?
+      '<div style="padding:14px 16px;">'
+        +'<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--mid);margin-bottom:7px;">'
+          +'<span>Tariffa media / notte</span><span>€ '+tariffaMedia+'</span></div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1.5px solid var(--sand);">'
+          +'<span style="font-size:14px;font-weight:700;color:var(--deep);">Totale</span>'
+          +'<span style="font-family:\'Cormorant Garamond\',serif;font-size:28px;font-weight:500;color:var(--terra);">€ '+bk.importo+'</span></div>'
+      +'</div>'
+      :'<div style="padding:14px 16px;font-size:13px;color:var(--soft);">Importo: € '+(bk.importo||'—')+'</div>')
+    +'</div>'
+
+    // Stato badges row
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">'
+      +'<div style="background:white;border:1.5px solid '+(bk.contratto==='firmato'?'#5A8A6A':bk.contratto==='attesa'?'#E8B840':'var(--danger)')+';border-radius:10px;padding:10px 8px;text-align:center;">'
+        +'<div style="font-size:11px;font-weight:700;color:'+(bk.contratto==='firmato'?'var(--success)':bk.contratto==='attesa'?'#B8820A':'var(--danger)')+'">'+scBadge+'</div>'
+        +'<div style="font-size:10px;color:var(--soft);margin-top:2px;">Contratto</div></div>'
+      +'<div style="background:white;border:1.5px solid '+(bk.doc==='ok'?'#5A8A6A':bk.doc==='da_verificare'?'#E8B840':'var(--danger)')+';border-radius:10px;padding:10px 8px;text-align:center;">'
+        +'<div style="font-size:11px;font-weight:700;color:'+(bk.doc==='ok'?'var(--success)':bk.doc==='da_verificare'?'#B8820A':'var(--danger)')+'">'+sdBadge+'</div>'
+        +'<div style="font-size:10px;color:var(--soft);margin-top:2px;">Documento</div></div>'
+      +'<div style="background:white;border:1.5px solid '+(bk.pagamento==='ok'?'#5A8A6A':'var(--danger)')+';border-radius:10px;padding:10px 8px;text-align:center;">'
+        +'<div style="font-size:11px;font-weight:700;color:'+(bk.pagamento==='ok'?'var(--success)':'var(--danger)')+'">'+spBadge+'</div>'
+        +'<div style="font-size:10px;color:var(--soft);margin-top:2px;">Pagamento</div></div>'
+    +'</div>'
+
+    // Azioni rapide
+    +'<div style="margin-bottom:12px;">'
+      +'<div style="font-size:11px;color:var(--soft);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Azioni rapide</div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px;">'
+        +'<button onclick="inviaLinkApp(currentBookingId)" style="'+detBtnStyle('var(--terra)')+'">'
+          +'<span style="font-size:18px;">📱</span><div style="flex:1;text-align:left;"><div style="font-size:13px;font-weight:600;">Invia Link App</div><div style="font-size:11px;opacity:.7;">WhatsApp · link personale ospite</div></div><span style="opacity:.4;">›</span></button>'
+        +azioneContratto
+        +azioneDoc
+        +azionePag
+      +'</div>'
+    +'</div>'
+
+    // Note speciali
+    +noteHtml
+
+    // Suite banner
+    +'<div style="border-radius:14px;overflow:hidden;margin-top:14px;position:relative;height:90px;background:'+grad+';display:flex;align-items:flex-end;padding:12px;">'
+      +'<div><div style="font-family:\'Cormorant Garamond\',serif;font-size:20px;font-weight:500;color:white;line-height:1.1;">Suite '+bk.suite+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.6);">Hermosa Home · Via M. Stabile 124, Palermo</div></div>'
+    +'</div>'
+
+    // Footer azioni
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--sand);">'
+      +'<button class="btn btn-primary btn-sm" onclick="openNotificaOspite(currentBookingId);closeModal(\'modal-dettaglio\')">🔔 Messaggio</button>'
+      +'<button class="btn btn-ghost btn-sm" onclick="cancellaPrenotazione()" style="color:var(--danger);">🗑 Cancella</button>'
+    +'</div>';
+
+  document.getElementById('det-body').innerHTML=html;
   openModal('modal-dettaglio');
+}
+
+function detBtnStyle(accent){
+  return 'width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;background:white;border:1.5px solid var(--terra-l);border-radius:10px;cursor:pointer;transition:all .18s;font-family:\'DM Sans\',sans-serif;color:var(--deep);text-align:left;'
+    +'--acc:'+accent+';';
+}
+
+function inviaLinkApp(bookingId){
+  var bk=bookings.find(function(b){return b.id===bookingId;});
+  if(!bk){ notify('⚠️ Prenotazione non trovata'); return; }
+  var waNum=bk.waNum||CFG.whatsapp;
+  var appLink=buildAppLink(bk);
+  var msg=[
+    '🌹 Hermosa Home — Palermo',
+    '',
+    'Gentile '+bk.guest+',',
+    'ecco il suo link app personale:',
+    '',
+    '📱 '+appLink,
+    '',
+    'Nell\'app: contratto · documenti · pagamento · mappa',
+    '',
+    'Hermosa Home · '+CFG.tel
+  ].join('\n');
+  window.open('https://wa.me/'+waNum+'?text='+encodeURIComponent(msg),'_blank');
+  notify('📱 Link app inviato via WhatsApp ✓');
+}
+
+function inviaContrattoDettaglio(){
+  if(!currentBookingId) return;
+  visualizzaContratto(currentBookingId);
+  closeModal('modal-dettaglio');
 }
 function cancellaPrenotazione(){
   if(!currentBookingId){notify('Prenotazione cancellata');closeModal('modal-dettaglio');return;}
@@ -1302,6 +1443,22 @@ window.addEventListener('storage', function(e){
         notify('🔄 Dati aggiornati dall\'app ospite');
       }
     }catch(err){}
+  } else if(e.key && e.newValue && (e.key.startsWith('hh_firma_') || e.key.startsWith('hh_doc_'))){
+    // Firma o documento arrivato dall'app ospite (stesso device/browser)
+    var aggiornamenti=0;
+    bookings.forEach(function(bk){
+      try{
+        var firma=JSON.parse(localStorage.getItem('hh_firma_'+bk.id));
+        if(firma&&firma.firmato&&bk.contratto!=='firmato'){ bk.contratto='firmato'; aggiornamenti++; }
+      }catch(e2){}
+      try{
+        var docRaw=localStorage.getItem('hh_doc_'+bk.id);
+        if(docRaw&&bk.doc==='mancante'){ bk.doc='da_verificare'; aggiornamenti++; }
+      }catch(e2){}
+    });
+    if(aggiornamenti>0){ saveBookings(); renderAll(); aggiornaCalendario(); }
+    if(e.key.startsWith('hh_firma_')) notify('✍️ Contratto firmato dall\'ospite!');
+    else notify('📄 Documento ricevuto dall\'ospite!');
   }
 });
 
@@ -1315,18 +1472,19 @@ function ricaricaDati(){
 
   // Controlla firme e documenti ricevuti dall'app ospite
   bookings.forEach(function(bk){
-    // Firma
+    // Firma — aggiorna se trovata e non ancora segnata
     try{
       var firma=JSON.parse(localStorage.getItem('hh_firma_'+bk.id));
       if(firma&&firma.firmato&&bk.contratto!=='firmato'){
         bk.contratto='firmato'; aggiornamenti++;
       }
     }catch(e){}
-    // Documento (anche solo metadati senza immagine)
+    // Documento — aggiorna se trovato (anche se già da_verificare → non regredisce a mancante)
     try{
       var docRaw=localStorage.getItem('hh_doc_'+bk.id);
-      if(docRaw&&bk.doc==='mancante'){
-        bk.doc='da_verificare'; aggiornamenti++;
+      if(docRaw){
+        if(bk.doc==='mancante'){ bk.doc='da_verificare'; aggiornamenti++; }
+        // se era già da_verificare o ok, non toccare
       }
     }catch(e){}
   });
@@ -2868,36 +3026,10 @@ function initMap(){
 </div>
 
 <div class="modal-backdrop" id="modal-dettaglio">
-  <div class="modal">
+  <div class="modal" style="width:500px;">
     <div class="modal-header"><div class="modal-title">Dettaglio prenotazione</div><button class="modal-close" onclick="closeModal('modal-dettaglio')">✕</button></div>
-    <div class="modal-body">
-      <div id="det-badges" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-        <div style="background:var(--sand);border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Check-in</div>
-          <div id="det-checkin" style="font-size:16px;font-weight:700;">—</div>
-          <div style="font-size:12px;color:var(--soft);">ore 14:00</div>
-        </div>
-        <div style="background:var(--sand);border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:var(--soft);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Check-out</div>
-          <div id="det-checkout" style="font-size:16px;font-weight:700;">—</div>
-          <div style="font-size:12px;color:var(--soft);">ore 10:00</div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--terra-xl);border-radius:8px;padding:12px;margin-bottom:10px;">
-        <span id="det-suite" style="font-size:13px;color:var(--mid);">—</span>
-        <span id="det-importo" style="font-family:'Cormorant Garamond',serif;font-size:26px;">—</span>
-      </div>
-      <div id="det-contatti" style="background:var(--sand);border-radius:8px;padding:12px;margin-bottom:10px;min-height:44px;"></div>
-      <div style="font-size:11px;color:var(--soft);margin-bottom:12px;">Piattaforma: <strong id="det-source">—</strong></div>
-      <!-- Aggiorna stato -->
-      <div id="det-stato-btns" style="display:flex;gap:6px;flex-wrap:wrap;padding:10px;background:var(--sand);border-radius:8px;margin-bottom:10px;"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="openNotificaOspite(currentBookingId);closeModal('modal-dettaglio')">🔔 Messaggio</button>
-        <button class="btn btn-outline btn-sm" onclick="visualizzaContratto(currentBookingId);closeModal('modal-dettaglio')">📄 Contratto</button>
-        <button class="btn btn-outline btn-sm" onclick="nav('documenti',null,'Documenti');closeModal('modal-dettaglio')">🪪 Documenti</button>
-        <button class="btn btn-danger btn-sm" onclick="cancellaPrenotazione()">🗑 Cancella</button>
-      </div>
+    <div class="modal-body" id="det-body" style="padding:20px;">
+      <!-- Populated dynamically by openDettaglio() -->
     </div>
   </div>
 </div>
