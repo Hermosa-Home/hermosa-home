@@ -1,46 +1,44 @@
-// Hermosa Home — Service Worker v5 (Network-First)
-const CACHE_NAME = 'hermosa-gestionale-v5';
-const URLS_TO_CACHE = [
-  './',
+// Hermosa Home — Service Worker Gestionale
+// v5 — cache aggiornata (fix layout)
+const CACHE = 'hermosa-gestionale-v5';
+const ASSETS = [
   './gestionale.html',
-  './index.html',
-  './manifest.json',
   './manifest-gestionale.json'
 ];
 
-// Install: cache base
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
+self.addEventListener('install', function(e) {
+  e.waitUntil(
+    caches.open(CACHE).then(function(cache) {
+      return cache.addAll(ASSETS);
+    }).then(function() {
+      return self.skipWaiting();
+    })
   );
-  self.skipWaiting();
 });
 
-// Activate: clean old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames =>
-      Promise.all(
-        cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
-      )
-    )
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(
+        keys.filter(function(k) { return k !== CACHE; })
+            .map(function(k) { return caches.delete(k); })
+      );
+    }).then(function() {
+      return self.clients.claim();
+    })
   );
-  self.clients.claim();
 });
 
-// Fetch: Network-First strategy
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request).then(response => {
-      // Cache successful responses
-      if(response && response.status === 200 && response.type === 'basic') {
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
-      }
+self.addEventListener('fetch', function(e) {
+  e.respondWith(
+    fetch(e.request).then(function(response) {
+      var clone = response.clone();
+      caches.open(CACHE).then(function(cache) {
+        cache.put(e.request, clone);
+      });
       return response;
-    }).catch(() => {
-      // Fallback to cache
-      return caches.match(event.request).then(cached => cached || new Response('Offline', { status: 503 }));
+    }).catch(function() {
+      return caches.match(e.request);
     })
   );
 });
